@@ -1,0 +1,74 @@
+language: "en-US"
+early_access: false
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_filters:
+    - "!wp-admin/**"
+    - "!wp-includes/**"
+    - "!wp-content/uploads/**"
+    - "!wp-content/themes/**"
+    - "!**/index.php"
+    - "!license.txt"
+    - "!readme.html"
+    - "!wp-*.php"
+    - "!xmlrpc.php"
+    - "!.htaccess"
+    - "!*.log"
+  path_instructions:
+    - path: "**/*.php"
+      instructions: |
+        Review the PHP code for WordPress plugin development best practices:
+        - Ensure proper escaping and sanitization of user inputs
+        - Check for proper nonce verification
+        - Verify adherence to WordPress Coding Standards
+        - Look for proper use of WordPress APIs and hooks
+        - Check for SQL injection vulnerabilities in database queries
+        - Ensure proper internationalization (i18n) with translation functions
+    - path: "**/*.js"
+      instructions: |
+        Review JavaScript code for WordPress plugin frontend/backend:
+        - Check for proper use of jQuery when applicable
+        - Ensure no conflicts with other plugins or themes
+        - Verify proper event delegation and cleanup
+        - Check for XSS vulnerabilities in DOM manipulation
+    - path: "**/*.css"
+      instructions: |
+        Review CSS for WordPress plugin styling:
+        - Ensure specificity is appropriate to avoid conflicts
+        - Check for responsive design considerations
+        - Verify no inline styles in PHP files (unless necessary)
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    drafts: false
+    base_branches:
+      - "main"
+      - "master"
+      - "develop"
+  tools:
+    phpstan:
+      enabled: true
+      level: 5
+    phpcs:
+      enabled: true
+      standard: "WordPress"
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+chat:
+  auto_reply: true
+  create_issues: false
+
+# Knowledge graph
+# Learn about the codebase structure to provide better context-aware reviews
+knowledge_base:
+  learnings:
+    scope: "auto"
