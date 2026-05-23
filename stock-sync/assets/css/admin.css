@@ -1,0 +1,184 @@
+/* Stock Sync — Admin Styles */
+
+.stock-sync-wrap {
+    max-width: 1200px;
+}
+
+.stock-distributor-selector {
+    margin: 15px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    display: inline-block;
+}
+
+.stock-distributor-selector label {
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.stock-upload-form {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    margin-top: 20px;
+}
+
+.stock-progress {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f0f6fc;
+    border: 1px solid #c5d9ed;
+    border-radius: 4px;
+}
+
+.stock-progress-bar {
+    width: 100%;
+    height: 24px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.stock-progress-fill {
+    height: 100%;
+    background: #2271b1;
+    transition: width 0.3s ease;
+}
+
+.stock-progress-text {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.stock-results {
+    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+}
+
+.stock-match-table {
+    margin-top: 15px;
+}
+
+.stock-match-table th,
+.stock-match-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+.stock-match-table .status-auto {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.stock-match-table .status-suggest {
+    color: #ffb900;
+    font-weight: 600;
+}
+
+.stock-match-table .status-manual {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+.stock-match-table .confidence-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.confidence-high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.confidence-medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.confidence-low {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+#res-details {
+    margin-top: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#res-details table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#res-details td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Test Product Tab */
+.stock-search-results {
+    margin-top: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    padding: 8px 12px;
+}
+
+.stock-search-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stock-search-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.stock-search-list li:last-child {
+    border-bottom: none;
+}
+
+.stock-select-product {
+    text-decoration: none;
+    color: #2271b1;
+    display: block;
+}
+
+.stock-select-product:hover {
+    color: #135e96;
+    background: #f0f6fc;
+}
+
+.stock-sku {
+    color: #646970;
+    font-size: 12px;
+}
+
+.stock-before-after {
+    margin-top: 15px;
+    max-width: 900px;
+}
+
+.stock-before-after th {
+    background: #f6f7f7;
+}
+
+.stock-before-after td {
+    vertical-align: top;
+    padding: 10px;
+}
+
+.stock-before-after .stock-unchanged {
+    color: #646970;
+    font-style: italic;
+}
