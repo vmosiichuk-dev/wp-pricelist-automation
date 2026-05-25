@@ -88,9 +88,14 @@ class StockSync_Admin {
         }
 
         // Validate MIME type
-        $finfo      = finfo_open(FILEINFO_MIME_TYPE);
-        $mime_type  = finfo_file($finfo, $uploaded['tmp_name']);
-        finfo_close($finfo);
+        $mime_type = '';
+        $finfo     = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo !== false) {
+            $mime_type = finfo_file($finfo, $uploaded['tmp_name']);
+            finfo_close($finfo);
+        } elseif (function_exists('mime_content_type')) {
+            $mime_type = mime_content_type($uploaded['tmp_name']);
+        }
 
         $valid_types = [
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

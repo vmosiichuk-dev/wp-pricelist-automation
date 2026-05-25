@@ -255,13 +255,24 @@ class StockSync_AJAX_Handler {
         $slug    = sanitize_text_field($_POST['distributor_slug'] ?? '');
         $matches = isset($_POST['matches']) ? (array) $_POST['matches'] : [];
 
+        $matches_sanitized = [];
+        foreach ($matches as $m) {
+            if (!isset($m['distributor_ref'], $m['wc_id'])) {
+                continue;
+            }
+            $matches_sanitized[] = [
+                'distributor_ref' => sanitize_text_field($m['distributor_ref']),
+                'wc_id'           => absint($m['wc_id']),
+            ];
+        }
+
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
         $bootstrap = new StockSync_Bootstrap_Matcher();
-        $saved     = $bootstrap->save_mappings($matches, $distributor->get_meta_key());
+        $saved     = $bootstrap->save_mappings($matches_sanitized, $distributor->get_meta_key());
 
         wp_send_json_success([
             'saved' => $saved,

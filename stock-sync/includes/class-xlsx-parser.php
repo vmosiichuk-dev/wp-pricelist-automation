@@ -3,6 +3,8 @@
  * XLSX Parser — Core PHP (ZipArchive + SimpleXML)
  * Accepts a distributor config to handle different file structures.
  */
+use WP_Error;
+
 class StockSync_XLSX_Parser {
 
     private $file_path;
@@ -30,14 +32,19 @@ class StockSync_XLSX_Parser {
         }
 
         $shared_strings = $this->get_shared_strings($zip);
-        $sheet_xml      = $zip->getFromName($this->distributor->get_sheet_name());
+        if (is_wp_error($shared_strings)) {
+            $zip->close();
+            return $shared_strings;
+        }
+
+        $sheet_xml = $zip->getFromName($this->distributor->get_sheet_name());
         $zip->close();
 
         if (!$sheet_xml) {
             return new WP_Error('parse_error', __('Cannot read worksheet', 'stock-sync'));
         }
 
-        $xml = simplexml_load_string($sheet_xml);
+        $xml = simplexml_load_string($sheet_xml, 'SimpleXMLElement', LIBXML_NONET);
         if ($xml === false) {
             return new WP_Error('parse_error', __('Invalid worksheet XML', 'stock-sync'));
         }
@@ -108,9 +115,9 @@ class StockSync_XLSX_Parser {
             return [];
         }
 
-        $xml = simplexml_load_string($strings_xml);
+        $xml = simplexml_load_string($strings_xml, 'SimpleXMLElement', LIBXML_NONET);
         if ($xml === false) {
-            return [];
+            return new WP_Error('parse_error', __('Invalid shared strings XML', 'stock-sync'));
         }
 
         $strings = [];
