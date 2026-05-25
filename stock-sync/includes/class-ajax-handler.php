@@ -35,6 +35,7 @@ class StockSync_AJAX_Handler {
 
         $real_file = wp_normalize_path($real_file);
         $real_temp = wp_normalize_path($real_temp);
+        $real_temp = rtrim($real_temp, '/') . '/';
 
         if (strpos($real_file, $real_temp) !== 0) {
             return new WP_Error('invalid_path', __('File is not in the allowed temp directory', 'stock-sync'));
@@ -90,7 +91,7 @@ class StockSync_AJAX_Handler {
             }
         }
 
-        $run_id        = wp_create_nonce('stock_sync_run_' . $slug);
+        $run_id        = wp_generate_uuid4();
         $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
         set_transient($transient_key, $to_process, HOUR_IN_SECONDS);
 
@@ -279,7 +280,7 @@ class StockSync_AJAX_Handler {
 
         $query   = sanitize_text_field($_POST['q'] ?? '');
         $slug    = sanitize_text_field($_POST['distributor_slug'] ?? '');
-        $limit   = min(intval($_POST['limit'] ?? 10), 20);
+        $limit   = max(1, min(intval($_POST['limit'] ?? 10), 20));
 
         if (strlen($query) < 2) {
             wp_send_json_error(__('Query too short', 'stock-sync'));

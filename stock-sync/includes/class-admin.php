@@ -109,7 +109,7 @@ class StockSync_Admin {
             wp_mkdir_p($temp_dir);
         }
 
-        $temp_name = 'stock_' . wp_create_nonce('stock_temp') . '_' . time() . '.xlsx';
+        $temp_name = 'stock_' . wp_generate_uuid4() . '.xlsx';
         $temp_path = $temp_dir . '/' . $temp_name;
 
         if (!move_uploaded_file($uploaded['tmp_name'], $temp_path)) {

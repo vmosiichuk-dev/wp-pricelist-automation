@@ -41,7 +41,7 @@ class StockSync_Product_Updater {
         $wc_product->set_catalog_visibility('search');
 
         // 2. Update short description (distributor can override text)
-        $new_excerpt = $distributor->get_unavailable_description($product->product_name);
+        $new_excerpt = wp_kses_post($distributor->get_unavailable_description($product->product_name));
         $wc_product->set_short_description($new_excerpt);
 
         // 3. Remove prices

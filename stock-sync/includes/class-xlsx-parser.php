@@ -37,7 +37,11 @@ class StockSync_XLSX_Parser {
             return new WP_Error('parse_error', __('Cannot read worksheet', 'stock-sync'));
         }
 
-        $xml       = simplexml_load_string($sheet_xml);
+        $xml = simplexml_load_string($sheet_xml);
+        if ($xml === false) {
+            return new WP_Error('parse_error', __('Invalid worksheet XML', 'stock-sync'));
+        }
+
         $products  = [];
         $row_index = 0;
         $col_map   = $this->distributor->get_column_map();
@@ -49,7 +53,8 @@ class StockSync_XLSX_Parser {
                 continue;
             }
 
-            $row_data = [];
+            $row_data  = [];
+            $col_index = 0;
 
             foreach ($row->c as $cell) {
                 $cell_ref = isset($cell['r']) ? (string) $cell['r'] : '';
@@ -103,7 +108,11 @@ class StockSync_XLSX_Parser {
             return [];
         }
 
-        $xml     = simplexml_load_string($strings_xml);
+        $xml = simplexml_load_string($strings_xml);
+        if ($xml === false) {
+            return [];
+        }
+
         $strings = [];
 
         foreach ($xml->si as $si) {

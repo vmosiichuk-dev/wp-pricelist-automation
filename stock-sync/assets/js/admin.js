@@ -144,7 +144,9 @@
             },
             error: function() {
                 stats.errors += 50; // Assume full batch error
-                runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn, runId);
+                showResults(stats, dryRun);
+                $btn.prop('disabled', false).text('Start Sync');
+                alert('Sync stopped: network/transport error');
             }
         });
     }
@@ -370,15 +372,19 @@
                     return;
                 }
 
-                var html = '<ul class="stock-search-list">';
+                var $ul = $('<ul>').addClass('stock-search-list');
                 response.data.products.forEach(function(p) {
-                    html += '<li><a href="#" class="stock-select-product" data-id="' + p.id + '" data-name="' + escapeHtml(p.name) + '" data-sku="' + escapeHtml(p.sku) + '">';
-                    html += '<strong>' + escapeHtml(p.name) + '</strong>';
-                    if (p.sku) html += ' <span class="stock-sku">(' + escapeHtml(p.sku) + ')</span>';
-                    html += '</a></li>';
+                    var $a = $('<a>', { href: '#', class: 'stock-select-product' })
+                        .attr('data-id', p.id)
+                        .attr('data-name', p.name)
+                        .attr('data-sku', p.sku);
+                    $a.append($('<strong>').text(p.name));
+                    if (p.sku) {
+                        $a.append(' ').append($('<span>').addClass('stock-sku').text('(' + p.sku + ')'));
+                    }
+                    $('<li>').append($a).appendTo($ul);
                 });
-                html += '</ul>';
-                $results.html(html);
+                $results.empty().append($ul);
             },
             error: function() {
                 $results.empty().append($('<p>').css('color', 'red').text('Network error.'));
@@ -421,7 +427,7 @@
                 }
 
                 var d = response.data;
-                $('#test-current-id-sku').html('#' + d.id + ' / ' + (d.sku || '—'));
+                $('#test-current-id-sku').text('#' + d.id + ' / ' + (d.sku || '—'));
                 $('#test-current-name').text(d.name);
                 $('#test-current-visibility').text(d.visibility);
                 $('#test-current-price').text(d.price || '—');

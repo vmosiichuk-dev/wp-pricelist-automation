@@ -40,7 +40,7 @@ function stock_sync_activate() {
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die(
             esc_html__('Stock Sync requires WooCommerce to be installed and active.', 'stock-sync'),
-            'Plugin Activation Error',
+            esc_html__('Plugin Activation Error', 'stock-sync'),
             ['back_link' => true]
         );
     }
@@ -87,6 +87,7 @@ function stock_sync_cleanup_temp($file_path) {
 
     $real_file = wp_normalize_path($real_file);
     $real_temp = wp_normalize_path($real_temp);
+    $real_temp = rtrim($real_temp, '/') . '/';
 
     if (strpos($real_file, $real_temp) !== 0) {
         return;
