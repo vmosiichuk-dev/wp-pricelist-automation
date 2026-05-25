@@ -55,7 +55,7 @@ reviews:
   tools:
     phpstan:
       enabled: true
-      level: 5
+      level: "5"
     phpcs:
       enabled: true
       standard: "WordPress"

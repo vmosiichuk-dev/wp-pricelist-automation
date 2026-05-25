@@ -13,6 +13,12 @@ class StockSync_Standard_Product {
     public $is_unavailable;
     public $distributor_slug;
 
+    /**
+     * Initialize standard product properties from data array.
+     *
+     * @param array $data Product data.
+     * @return void
+     */
     public function __construct(array $data = []) {
         $this->distributor_ref  = $data['distributor_ref'] ?? '';
         $this->ean              = $data['ean'] ?? '';

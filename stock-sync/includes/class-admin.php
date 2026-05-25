@@ -6,6 +6,11 @@ class StockSync_Admin {
 
     private $plugin_slug = 'stock-sync';
 
+    /**
+     * Register admin menu, assets and AJAX hooks.
+     *
+     * @return void
+     */
     public function __construct() {
         add_action('admin_menu', [$this, 'add_menu_page']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);

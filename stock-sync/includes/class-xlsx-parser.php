@@ -8,6 +8,13 @@ class StockSync_XLSX_Parser {
     private $file_path;
     private $distributor;
 
+    /**
+     * Set the XLSX file path and distributor config.
+     *
+     * @param string                $file_path   Path to the XLSX file.
+     * @param StockSync_Distributor $distributor Distributor instance.
+     * @return void
+     */
     public function __construct($file_path, StockSync_Distributor $distributor) {
         $this->file_path   = $file_path;
         $this->distributor = $distributor;

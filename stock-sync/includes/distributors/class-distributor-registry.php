@@ -8,8 +8,18 @@ class StockSync_Distributor_Registry {
     private static $instance = null;
     private $distributors = [];
 
+    /**
+     * Private constructor for singleton pattern.
+     *
+     * @return void
+     */
     private function __construct() {}
 
+    /**
+     * Return the singleton registry instance.
+     *
+     * @return StockSync_Distributor_Registry
+     */
     public static function instance() {
         if (self::$instance === null) {
             self::$instance = new self();

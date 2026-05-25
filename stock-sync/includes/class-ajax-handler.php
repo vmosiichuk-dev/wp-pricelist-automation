@@ -4,6 +4,11 @@
  */
 class StockSync_AJAX_Handler {
 
+    /**
+     * Register AJAX action hooks.
+     *
+     * @return void
+     */
     public function __construct() {
         add_action('wp_ajax_stock_sync_init', [$this, 'init_sync']);
         add_action('wp_ajax_stock_sync_batch', [$this, 'process_batch']);

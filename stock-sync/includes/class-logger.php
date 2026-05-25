@@ -8,6 +8,11 @@ class StockSync_Change_Logger {
     private $table_name;
     private $current_sync_run_id = null;
 
+    /**
+     * Set the log table name.
+     *
+     * @return void
+     */
     public function __construct() {
         global $wpdb;
         $this->table_name = $wpdb->prefix . 'stock_sync_log';

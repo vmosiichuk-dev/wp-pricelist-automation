@@ -29,6 +29,12 @@ function stock_sync_woocommerce_active() {
  * Activation hook
  */
 register_activation_hook(__FILE__, 'stock_sync_activate');
+
+/**
+ * Plugin activation hook: verify WooCommerce and create tables.
+ *
+ * @return void
+ */
 function stock_sync_activate() {
     if (!stock_sync_woocommerce_active()) {
         deactivate_plugins(plugin_basename(__FILE__));
@@ -47,6 +53,12 @@ function stock_sync_activate() {
  * Deactivation hook
  */
 register_deactivation_hook(__FILE__, 'stock_sync_deactivate');
+
+/**
+ * Plugin deactivation hook: clear scheduled events.
+ *
+ * @return void
+ */
 function stock_sync_deactivate() {
     wp_clear_scheduled_hook('stock_sync_cron');
 }
@@ -55,6 +67,13 @@ function stock_sync_deactivate() {
  * Cleanup temp files
  */
 add_action('stock_sync_cleanup_temp', 'stock_sync_cleanup_temp');
+
+/**
+ * Delete a temporary uploaded file inside the plugin temp directory.
+ *
+ * @param string $file_path Path to the temp file.
+ * @return void
+ */
 function stock_sync_cleanup_temp($file_path) {
     $upload_dir = wp_upload_dir();
     $temp_dir   = trailingslashit(wp_normalize_path($upload_dir['basedir'])) . 'stock-sync-temp';
@@ -87,6 +106,12 @@ function stock_sync_cleanup_temp($file_path) {
  * Load plugin classes
  */
 add_action('plugins_loaded', 'stock_sync_load');
+
+/**
+ * Load plugin classes and initialize the plugin controller.
+ *
+ * @return void
+ */
 function stock_sync_load() {
     if (!stock_sync_woocommerce_active()) {
         add_action('admin_notices', function () {

@@ -4,6 +4,11 @@
  */
 class StockSync_Database {
 
+    /**
+     * Create the stock sync log database table.
+     *
+     * @return void
+     */
     public static function create_tables() {
         global $wpdb;
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

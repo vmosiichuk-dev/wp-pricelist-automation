@@ -8,6 +8,11 @@ class StockSync_Product_Updater {
 
     private $logger;
 
+    /**
+     * Initialize the change logger.
+     *
+     * @return void
+     */
     public function __construct() {
         $this->logger = new StockSync_Change_Logger();
     }

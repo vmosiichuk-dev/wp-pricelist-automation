@@ -6,6 +6,11 @@ class StockSync_Plugin {
 
     private static $instance = null;
 
+    /**
+     * Return the singleton plugin instance.
+     *
+     * @return StockSync_Plugin
+     */
     public static function instance() {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -13,6 +18,11 @@ class StockSync_Plugin {
         return self::$instance;
     }
 
+    /**
+     * Private constructor for singleton pattern.
+     *
+     * @return void
+     */
     private function __construct() {}
 
     /**
