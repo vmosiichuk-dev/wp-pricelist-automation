@@ -67,6 +67,10 @@ class StockSync_Bootstrap_Matcher {
         $norm_xlsx = $this->normalize_name($xlsx_name);
         $norm_wc   = $this->normalize_name($wc_name);
 
+        if ($norm_xlsx === '' || $norm_wc === '') {
+            return 0;
+        }
+
         if ($norm_xlsx === $norm_wc) {
             return 100;
         }

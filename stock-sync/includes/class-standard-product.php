@@ -27,6 +27,10 @@ class StockSync_Standard_Product {
      * Get the meta key used to store this distributor's reference on a WC product
      */
     public function get_meta_key() {
-        return '_supplier_ref_' . sanitize_key($this->distributor_slug);
+        $slug = sanitize_key($this->distributor_slug);
+        if (empty($slug)) {
+            return null;
+        }
+        return '_supplier_ref_' . $slug;
     }
 }

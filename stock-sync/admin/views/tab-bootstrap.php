@@ -37,7 +37,7 @@
         <table class="widefat striped stock-match-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="check-all-auto" /></th>
+                    <th><input type="checkbox" id="check-all-auto" aria-label="Select all entries" /></th>
                     <th><?php _e('Ref', 'stock-sync'); ?></th>
                     <th><?php _e('XLSX Name', 'stock-sync'); ?></th>
                     <th><?php _e('WC Product', 'stock-sync'); ?></th>

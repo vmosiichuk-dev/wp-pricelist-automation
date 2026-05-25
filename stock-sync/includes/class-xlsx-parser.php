@@ -43,10 +43,14 @@ class StockSync_XLSX_Parser {
             }
 
             $row_data = [];
-            $col_index = 0;
 
             foreach ($row->c as $cell) {
-                $col_index++;
+                $cell_ref = isset($cell['r']) ? (string) $cell['r'] : '';
+                if ($cell_ref) {
+                    $col_index = $this->excel_col_to_index($cell_ref);
+                } else {
+                    $col_index++;
+                }
                 $cell_type = (string) $cell['t'];
 
                 if ($cell_type === 's') {
@@ -108,6 +112,21 @@ class StockSync_XLSX_Parser {
         }
 
         return $strings;
+    }
+
+    /**
+     * Convert Excel cell reference (e.g. "B12") to 1-based column index
+     */
+    private function excel_col_to_index($cell_ref) {
+        preg_match('/([A-Z]+)/', $cell_ref, $matches);
+        $col = $matches[1] ?? 'A';
+
+        $result = 0;
+        $length = strlen($col);
+        for ($i = 0; $i < $length; $i++) {
+            $result = $result * 26 + (ord($col[$i]) - ord('A') + 1);
+        }
+        return $result;
     }
 
     /**

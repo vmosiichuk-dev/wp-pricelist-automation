@@ -77,6 +77,11 @@ class StockSync_Admin {
             wp_send_json_error(__('Upload failed', 'stock-sync'));
         }
 
+        $max_bytes = 5 * 1024 * 1024; // 5 MB
+        if ($uploaded['size'] > $max_bytes) {
+            wp_send_json_error(__('File too large. Maximum size is 5 MB.', 'stock-sync'));
+        }
+
         // Validate MIME type
         $finfo      = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type  = finfo_file($finfo, $uploaded['tmp_name']);

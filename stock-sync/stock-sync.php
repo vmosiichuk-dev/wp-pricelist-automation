@@ -56,8 +56,30 @@ function stock_sync_deactivate() {
  */
 add_action('stock_sync_cleanup_temp', 'stock_sync_cleanup_temp');
 function stock_sync_cleanup_temp($file_path) {
-    if (file_exists($file_path) && strpos($file_path, 'stock_') !== false) {
-        @unlink($file_path);
+    $upload_dir = wp_upload_dir();
+    $temp_dir   = trailingslashit(wp_normalize_path($upload_dir['basedir'])) . 'stock-sync-temp';
+
+    $real_file = realpath($file_path);
+    $real_temp = realpath($temp_dir);
+
+    if (!$real_file || !$real_temp) {
+        return;
+    }
+
+    $real_file = wp_normalize_path($real_file);
+    $real_temp = wp_normalize_path($real_temp);
+
+    if (strpos($real_file, $real_temp) !== 0) {
+        return;
+    }
+
+    $basename = basename($real_file);
+    if (strpos($basename, 'stock_') !== 0) {
+        return;
+    }
+
+    if (file_exists($real_file)) {
+        unlink($real_file);
     }
 }
 

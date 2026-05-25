@@ -21,7 +21,11 @@ class StockSync_Distributor_Registry {
      * Register a distributor instance
      */
     public function register(StockSync_Distributor $distributor) {
-        $this->distributors[$distributor->get_slug()] = $distributor;
+        $slug = $distributor->get_slug();
+        if (isset($this->distributors[$slug])) {
+            throw new InvalidArgumentException(sprintf('Distributor with slug "%s" is already registered.', $slug));
+        }
+        $this->distributors[$slug] = $distributor;
     }
 
     /**

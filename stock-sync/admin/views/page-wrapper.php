@@ -41,12 +41,14 @@
 
     <div class="stock-tab-content">
         <?php
-        $view_file = STOCK_SYNC_PLUGIN_DIR . 'admin/views/tab-' . $active_tab . '.php';
-        if (file_exists($view_file)) {
-            include $view_file;
-        } else {
-            include STOCK_SYNC_PLUGIN_DIR . 'admin/views/tab-sync.php';
-        }
+        $allowed_tabs = [
+            'sync'      => 'tab-sync.php',
+            'test'      => 'tab-test.php',
+            'bootstrap' => 'tab-bootstrap.php',
+            'log'       => 'tab-log.php',
+        ];
+        $view_file = isset($allowed_tabs[$active_tab]) ? $allowed_tabs[$active_tab] : 'tab-sync.php';
+        include STOCK_SYNC_PLUGIN_DIR . 'admin/views/' . $view_file;
         ?>
     </div>
 </div>

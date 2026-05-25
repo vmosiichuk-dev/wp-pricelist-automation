@@ -36,7 +36,7 @@ abstract class StockSync_Distributor {
     /**
      * Determine if a parsed row represents a real product
      *
-     * @param array $row_data Zero-indexed row array from parser
+     * @param array $row_data One-indexed row array from parser
      * @return bool
      */
     abstract public function is_product_row($row_data);
@@ -78,7 +78,7 @@ abstract class StockSync_Distributor {
         $brand = isset($parts[0]) ? $parts[0] : $product_name;
 
         return sprintf(
-            '%s - VININOVA > Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii Steki Grill BBQ. U nas zawsze znajdziesz produkt, ktorego szukasz. Zamow online!',
+            '%s - Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!',
             $brand
         );
     }

@@ -38,14 +38,13 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
     public function is_unavailable($value) {
         $flags = [
             'brak',
-            'brak ',
             'chwilowy brak',
             'chilowy brak',
-            'OS',
-            'OS ',
+            'os',
             'wkrótce',
         ];
-        return in_array(trim($value), $flags, true);
+        $normalized = mb_strtolower(trim($value));
+        return in_array($normalized, $flags, true);
     }
 
     /**

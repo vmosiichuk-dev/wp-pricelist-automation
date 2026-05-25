@@ -87,13 +87,14 @@
                 }
 
                 var total = response.data.total_batches;
+                var runId = response.data.run_id;
                 runBatches(filePath, distributor, dryRun, total, 0, {
                     processed: 0,
                     updated: 0,
                     not_found: 0,
                     errors: 0,
                     details: []
-                }, $btn);
+                }, $btn, runId);
             },
             error: function() {
                 alert('Sync init network error');
@@ -102,7 +103,7 @@
         });
     }
 
-    function runBatches(filePath, distributor, dryRun, total, current, stats, $btn) {
+    function runBatches(filePath, distributor, dryRun, total, current, stats, $btn, runId) {
         if (current >= total) {
             showResults(stats, dryRun);
             $btn.prop('disabled', false).text('Start Sync');
@@ -122,7 +123,8 @@
                 distributor_slug: distributor,
                 file_path: filePath,
                 dry_run: dryRun,
-                offset: current * 50
+                offset: current * 50,
+                run_id: runId
             },
             success: function(response) {
                 if (response.success) {
@@ -132,12 +134,17 @@
                     stats.not_found += r.not_found;
                     stats.errors += r.errors;
                     stats.details = stats.details.concat(r.details);
+                    runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn, runId);
+                } else {
+                    stats.errors += 50; // Assume full batch error
+                    showResults(stats, dryRun);
+                    $btn.prop('disabled', false).text('Start Sync');
+                    alert('Batch failed: ' + (response.data || 'Unknown server error'));
                 }
-                runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn);
             },
             error: function() {
                 stats.errors += 50; // Assume full batch error
-                runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn);
+                runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn, runId);
             }
         });
     }
@@ -161,10 +168,10 @@
             else if (d.status === 'not_found') statusClass = 'status-manual';
             else statusClass = 'status-suggest';
 
-            html += '<tr><td>' + (d.distributor_ref || '-') + '</td><td>' + (d.name || '-') + '</td><td class="' + statusClass + '">' + d.status + '</td></tr>';
+            html += '<tr><td>' + escapeHtml(d.distributor_ref || '-') + '</td><td>' + escapeHtml(d.name || '-') + '</td><td class="' + statusClass + '">' + escapeHtml(d.status) + '</td></tr>';
         });
         if (stats.details.length > 100) {
-            html += '<tr><td colspan="3">... and ' + (stats.details.length - 100) + ' more</td></tr>';
+            html += '<tr><td colspan="3">... and ' + escapeHtml(stats.details.length - 100) + ' more</td></tr>';
         }
         html += '</tbody></table>';
         $('#res-details').html(html);
@@ -231,39 +238,43 @@
 
     function renderBootstrapTable(matches, totalXlsx, totalWc, categoryFilter) {
         $('#stock-bootstrap-results').show();
-        var summary = 'XLSX products: <strong>' + totalXlsx + '</strong> | WC products: <strong>' + totalWc + '</strong>';
+        var $summary = $('#bootstrap-summary').empty();
+        $summary.append(document.createTextNode('XLSX products: '));
+        $summary.append($('<strong>').text(totalXlsx));
+        $summary.append(document.createTextNode(' | WC products: '));
+        $summary.append($('<strong>').text(totalWc));
         if (categoryFilter) {
-            summary += ' | Category filter: <strong>' + categoryFilter + '</strong>';
+            $summary.append(document.createTextNode(' | Category filter: '));
+            $summary.append($('<strong>').text(categoryFilter));
         }
-        $('#bootstrap-summary').html(summary);
 
-        var html = '';
+        var $tbody = $('#bootstrap-matches-body').empty();
         var autoCount = 0;
         var suggestCount = 0;
 
         matches.forEach(function(m) {
-            var checked = '';
+            var checked = false;
             if (m.status === 'auto') {
-                checked = 'checked';
+                checked = true;
                 autoCount++;
             } else if (m.status === 'suggest') {
                 suggestCount++;
             }
 
-            var statusClass = 'status-' + m.status;
+            var validStatus = ['auto', 'suggest', 'manual'].indexOf(m.status) !== -1 ? m.status : 'manual';
+            var statusClass = 'status-' + validStatus;
             var confClass = m.confidence >= 95 ? 'confidence-high' : (m.confidence >= 70 ? 'confidence-medium' : 'confidence-low');
 
-            html += '<tr data-ref="' + (m.distributor_ref || '') + '" data-wc-id="' + (m.wc_id || '') + '">';
-            html += '<td><input type="checkbox" class="match-check" ' + checked + ' /></td>';
-            html += '<td>' + (m.distributor_ref || '-') + '</td>';
-            html += '<td>' + (m.xlsx_name || '-') + '</td>';
-            html += '<td>' + (m.wc_name || '<em>— no match —</em>') + '</td>';
-            html += '<td><span class="confidence-badge ' + confClass + '">' + m.confidence + '%</span></td>';
-            html += '<td class="' + statusClass + '">' + m.status + '</td>';
-            html += '</tr>';
+            var $tr = $('<tr>').attr('data-ref', m.distributor_ref || '').attr('data-wc-id', m.wc_id || '');
+            $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'match-check'}).prop('checked', checked)));
+            $tr.append($('<td>').text(m.distributor_ref || '-'));
+            $tr.append($('<td>').text(m.xlsx_name || '-'));
+            $tr.append($('<td>').text(m.wc_name || '— no match —'));
+            $tr.append($('<td>').append($('<span>').addClass('confidence-badge ' + confClass).text(m.confidence + '%')));
+            $tr.append($('<td>').addClass(statusClass).text(m.status));
+            $tbody.append($tr);
         });
 
-        $('#bootstrap-matches-body').html(html);
         $('#stock-bootstrap-save').prop('disabled', false);
 
         // Check/uncheck all auto
@@ -350,7 +361,7 @@
             },
             success: function(response) {
                 if (!response.success) {
-                    $results.html('<p style="color:red;">Error: ' + response.data + '</p>');
+                    $results.empty().append($('<p>').css('color', 'red').text('Error: ' + response.data));
                     return;
                 }
 
@@ -370,7 +381,7 @@
                 $results.html(html);
             },
             error: function() {
-                $results.html('<p style="color:red;">Network error.</p>');
+                $results.empty().append($('<p>').css('color', 'red').text('Network error.'));
             }
         });
     });
@@ -453,16 +464,16 @@
             success: function(response) {
                 $btn.prop('disabled', false).text('Apply Test Update to This Product');
                 if (response.success) {
-                    $('#stock-test-status').html('<span style="color:green;">' + response.data.message + '</span>');
+                    $('#stock-test-status').empty().append($('<span>').css('color', 'green').text(response.data.message));
                     // Refresh details
                     loadTestProductDetails(selectedTestProductId);
                 } else {
-                    $('#stock-test-status').html('<span style="color:red;">Error: ' + response.data + '</span>');
+                    $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Error: ' + response.data));
                 }
             },
             error: function() {
                 $btn.prop('disabled', false).text('Apply Test Update to This Product');
-                $('#stock-test-status').html('<span style="color:red;">Network error.</span>');
+                $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Network error.'));
             }
         });
     });

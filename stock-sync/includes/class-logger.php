@@ -6,6 +6,7 @@
 class StockSync_Change_Logger {
 
     private $table_name;
+    private $current_sync_run_id = null;
 
     public function __construct() {
         global $wpdb;
@@ -17,6 +18,10 @@ class StockSync_Change_Logger {
      */
     public function log(array $data) {
         global $wpdb;
+
+        if ($this->current_sync_run_id === null) {
+            $this->current_sync_run_id = $this->generate_sync_run_id();
+        }
 
         $defaults = [
             'product_id'       => 0,
@@ -30,7 +35,7 @@ class StockSync_Change_Logger {
             'old_sale_price'   => null,
             'distributor_slug' => null,
             'distributor_ref'  => null,
-            'sync_run_id'      => $this->generate_sync_run_id(),
+            'sync_run_id'      => $this->current_sync_run_id,
             'created_at'       => current_time('mysql'),
         ];
 
@@ -68,6 +73,8 @@ class StockSync_Change_Logger {
     public function get_recent($limit = 50) {
         global $wpdb;
 
+        $limit = max(1, min(intval($limit), 1000));
+
         return $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$this->table_name} ORDER BY created_at DESC LIMIT %d",
             $limit
@@ -79,6 +86,8 @@ class StockSync_Change_Logger {
      */
     public function get_sync_runs($limit = 20) {
         global $wpdb;
+
+        $limit = max(1, min(intval($limit), 1000));
 
         return $wpdb->get_results($wpdb->prepare(
             "SELECT 

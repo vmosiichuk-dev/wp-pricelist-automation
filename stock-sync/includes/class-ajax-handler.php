@@ -15,6 +15,35 @@ class StockSync_AJAX_Handler {
     }
 
     /**
+     * Validate that a file path is inside the plugin's temp uploads dir and is an XLSX
+     */
+    private function validate_uploaded_file_path($file_path) {
+        $upload_dir = wp_upload_dir();
+        $temp_dir   = trailingslashit(wp_normalize_path($upload_dir['basedir'])) . 'stock-sync-temp';
+
+        $real_file = realpath($file_path);
+        $real_temp = realpath($temp_dir);
+
+        if (!$real_file || !$real_temp) {
+            return new WP_Error('invalid_path', __('Invalid file path', 'stock-sync'));
+        }
+
+        $real_file = wp_normalize_path($real_file);
+        $real_temp = wp_normalize_path($real_temp);
+
+        if (strpos($real_file, $real_temp) !== 0) {
+            return new WP_Error('invalid_path', __('File is not in the allowed temp directory', 'stock-sync'));
+        }
+
+        $ext = strtolower(pathinfo($real_file, PATHINFO_EXTENSION));
+        if ($ext !== 'xlsx') {
+            return new WP_Error('invalid_type', __('File must be an XLSX', 'stock-sync'));
+        }
+
+        return $real_file;
+    }
+
+    /**
      * Initialize sync: parse XLSX, filter unavailable, store queue
      */
     public function init_sync() {
@@ -33,11 +62,12 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor: ', 'stock-sync') . $slug);
         }
 
-        if (!file_exists($file_path)) {
-            wp_send_json_error(__('File not found', 'stock-sync'));
+        $validated_path = $this->validate_uploaded_file_path($file_path);
+        if (is_wp_error($validated_path)) {
+            wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($file_path, $distributor);
+        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
@@ -55,13 +85,15 @@ class StockSync_AJAX_Handler {
             }
         }
 
-        $transient_key = 'stock_sync_queue_' . $slug;
+        $run_id        = wp_create_nonce('stock_sync_run_' . $slug);
+        $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
         set_transient($transient_key, $to_process, HOUR_IN_SECONDS);
 
         wp_send_json_success([
             'total_batches' => ceil(count($to_process) / 50),
             'total_items'   => count($to_process),
             'dry_run'       => $dry_run,
+            'run_id'        => $run_id,
         ]);
     }
 
@@ -78,6 +110,7 @@ class StockSync_AJAX_Handler {
         $slug    = sanitize_text_field($_POST['distributor_slug'] ?? '');
         $dry_run = !empty($_POST['dry_run']);
         $offset  = intval($_POST['offset'] ?? 0);
+        $run_id  = sanitize_text_field($_POST['run_id'] ?? '');
         $limit   = 50;
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
@@ -85,7 +118,11 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
-        $transient_key = 'stock_sync_queue_' . $slug;
+        if (empty($run_id)) {
+            wp_send_json_error(__('Missing run ID', 'stock-sync'));
+        }
+
+        $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
         $queue         = get_transient($transient_key);
 
         if (!is_array($queue)) {
@@ -174,11 +211,12 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
-        if (!file_exists($file_path)) {
-            wp_send_json_error(__('File not found', 'stock-sync'));
+        $validated_path = $this->validate_uploaded_file_path($file_path);
+        if (is_wp_error($validated_path)) {
+            wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($file_path, $distributor);
+        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
