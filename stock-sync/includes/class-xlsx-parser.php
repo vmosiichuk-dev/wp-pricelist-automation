@@ -3,8 +3,6 @@
  * XLSX Parser — Core PHP (ZipArchive + SimpleXML)
  * Accepts a distributor config to handle different file structures.
  */
-use WP_Error;
-
 class StockSync_XLSX_Parser {
 
     private $file_path;
