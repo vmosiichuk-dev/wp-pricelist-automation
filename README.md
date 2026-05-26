@@ -20,7 +20,7 @@ composer install
 ### Run Tests
 
 ```bash
-vendor/bin/phpunit
+cd stock-sync && vendor/bin/phpunit
 ```
 
 ### Run Tests with Coverage

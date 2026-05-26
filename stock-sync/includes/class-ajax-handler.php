@@ -97,7 +97,7 @@ class StockSync_AJAX_Handler {
 
         $run_id        = wp_generate_uuid4();
         $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
-        set_transient($transient_key, $to_process, HOUR_IN_SECONDS);
+        $this->transient_store->set($transient_key, $to_process, HOUR_IN_SECONDS);
 
         wp_send_json_success([
             'total_batches' => ceil(count($to_process) / 50),
@@ -133,7 +133,7 @@ class StockSync_AJAX_Handler {
         }
 
         $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
-        $queue         = get_transient($transient_key);
+        $queue         = $this->transient_store->get($transient_key);
 
         if (!is_array($queue)) {
             wp_send_json_error(__('No sync queue found', 'stock-sync'));

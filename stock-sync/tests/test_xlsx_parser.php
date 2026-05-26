@@ -102,10 +102,10 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $distributor = new StockSync_Distributor_Vininova();
         $parser = new StockSync_XLSX_Parser($zipFile, $distributor);
 
-        libxml_use_internal_errors(true);
+        $previous_libxml = libxml_use_internal_errors(true);
         $result = $parser->parse();
         libxml_clear_errors();
-        libxml_use_internal_errors(false);
+        libxml_use_internal_errors($previous_libxml);
 
         unlink($zipFile);
         foreach (glob($tmpDir . '/xl/worksheets/*') as $file) {

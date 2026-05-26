@@ -38,4 +38,11 @@ class StockSync_Service_Factory {
     public static function xlsx_parser($file_path, $distributor) {
         return new StockSync_XLSX_Parser($file_path, $distributor);
     }
+
+    /**
+     * Reset singleton instances. For testing only.
+     */
+    public static function reset() {
+        self::$instances = [];
+    }
 }

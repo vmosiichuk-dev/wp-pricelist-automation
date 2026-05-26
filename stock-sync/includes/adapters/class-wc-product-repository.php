@@ -45,6 +45,9 @@ class StockSync_WC_Product_Repository implements Product_Repository_Interface {
     }
 
     public function find_by_meta($meta_key, $meta_value) {
+        $meta_key   = sanitize_key($meta_key);
+        $meta_value = sanitize_text_field($meta_value);
+
         if (empty($meta_key) || empty($meta_value)) {
             return false;
         }
