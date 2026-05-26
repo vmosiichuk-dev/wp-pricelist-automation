@@ -5,6 +5,13 @@ use Brain\Monkey\Functions;
 
 class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
 
+    /**
+     * Prepare the test environment for each test.
+     *
+     * Calls the parent setup, initializes Brain Monkey, and resets WP_Query's
+     * static test state (`$test_posts`, `$test_have_posts`, `$last_args`) to
+     * their defaults.
+     */
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
@@ -14,6 +21,11 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
         WP_Query::$last_args = [];
     }
 
+    /**
+     * Clean up test doubles and global state after each test.
+     *
+     * Tears down Brain Monkey, closes Mockery expectations and mocks, and then calls the parent tearDown.
+     */
     protected function tearDown(): void {
         Monkey\tearDown();
         Mockery::close();

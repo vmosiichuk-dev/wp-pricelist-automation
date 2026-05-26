@@ -6,6 +6,13 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 
 	private StockSync_Bootstrap_Matcher $matcher;
 
+	/ **
+	 * Prepare the test environment and instantiate a StockSync_Bootstrap_Matcher with a stubbed product repository.
+	 *
+	 * Sets up Brain Monkey and registers stubs for WordPress functions (`update_post_meta`, `sanitize_text_field`),
+	 * provides an in-memory anonymous implementation of Product_Repository_Interface that returns a fixed product list,
+	 * and stores the matcher instance on `$this->matcher` for use in tests.
+	 */
 	protected function setUp(): void {
 		parent::setUp();
 		\Brain\Monkey\setUp();
@@ -33,6 +40,9 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		$this->matcher = new StockSync_Bootstrap_Matcher($repository);
 	}
 
+	/**
+	 * Restore Brain Monkey and invoke the parent teardown to clean up the test environment.
+	 */
 	protected function tearDown(): void {
 		\Brain\Monkey\tearDown();
 		parent::tearDown();
@@ -59,6 +69,10 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		$this->assertSame(90, $this->matcher->calculate_confidence('Red Wine', 'Fine Red Wine'));
 	}
 
+	/**
+	 * Verifies that calculating confidence for two strings with an 80% token overlap
+	 * (Jaccard similarity) returns 80.
+	 */
 	public function test_calculate_confidence_jaccard_80() {
 		$xlsx = 'one two three four five';
 		$wc   = 'one two four three';
@@ -80,10 +94,20 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		$this->assertSame(0, $this->matcher->calculate_confidence('Red Wine', ''));
 	}
 
+	/**
+	 * Verifies that calculate_confidence returns 0 when two strings have no matching characters or tokens.
+	 *
+	 * @return void
+	 */
 	public function test_calculate_confidence_no_match() {
 		$this->assertSame(0, $this->matcher->calculate_confidence('abcdefgh', 'xyz12345'));
 	}
 
+	/**
+	 * Verifies that confidence values map to the expected post-match status.
+	 *
+	 * Confirms the mapping: 100 and 95 => 'auto', 80 and 70 => 'suggest', 60 and 0 => 'manual'.
+	 */
 	public function test_get_status_from_confidence_thresholds() {
 		$method = new ReflectionMethod(StockSync_Bootstrap_Matcher::class, 'get_status_from_confidence');
 
