@@ -8,6 +8,14 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
     private $wpdb;
     private $logger;
 
+    /**
+     * Prepare the test environment for WP database logger tests.
+     *
+     * Sets up the test case and Brain Monkey, stubs WordPress helper functions
+     * used by the logger, provides a mocked `$wpdb` with `prefix` set to `wp_`
+     * and assigned to `$GLOBALS['wpdb']`, and instantiates the `StockSync_WP_Database_Logger`
+     * wrapping a `StockSync_Change_Logger`.
+     */
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
@@ -31,6 +39,11 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
         $this->logger = new StockSync_WP_Database_Logger($inner);
     }
 
+    /**
+     * Restore test environment after each test.
+     *
+     * Tears down Brain Monkey, closes Mockery, unsets the global `$wpdb`, and calls the parent tearDown.
+     */
     protected function tearDown(): void {
         Monkey\tearDown();
         Mockery::close();
@@ -38,6 +51,9 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
         parent::tearDown();
     }
 
+    /**
+     * Verifies that a call to the logger inserts a row into the `wp_stock_sync_log` table with the expected fields and that the logger returns the database insert ID.
+     */
     public function test_log_format() {
         $this->wpdb->shouldReceive('insert')
             ->once()
@@ -106,6 +122,12 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
         $this->assertSame([1, 1000, 50], $capturedLimits);
     }
 
+    /**
+     * Verifies that SQL generated for recent log and sync-run queries contains the expected ORDER BY, GROUP BY and LIMIT clauses.
+     *
+     * Captures the SQL passed to $wpdb->prepare() when calling get_recent(10) and get_sync_runs(10) and asserts the presence
+     * of the specific substrings that define ordering, grouping, and pagination.
+     */
     public function test_log_sql_structure() {
         $capturedQueries = [];
         $this->wpdb->shouldReceive('prepare')

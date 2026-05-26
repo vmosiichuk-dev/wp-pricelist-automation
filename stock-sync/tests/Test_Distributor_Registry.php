@@ -2,12 +2,25 @@
 
 class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 
+	/**
+	 * Reset the StockSync_Distributor_Registry singleton to an uninitialized state.
+	 *
+	 * Sets the registry's internal `instance` property to `null` so a fresh
+	 * instance will be created on next access (used to isolate tests).
+	 */
 	private function reset_singleton() {
 		$ref = new ReflectionClass(StockSync_Distributor_Registry::class);
 		$prop = $ref->getProperty('instance');
 		$prop->setValue(null, null);
 	}
 
+	/**
+	 * Create an anonymous StockSync_Distributor that returns the provided slug and name.
+	 *
+	 * @param string $slug The slug returned by the distributor's get_slug().
+	 * @param string $name The name returned by the distributor's get_name().
+	 * @return StockSync_Distributor An instance configured with the given slug and name implementing the minimal distributor interface.
+	 */
 	private function create_distributor(string $slug, string $name): StockSync_Distributor {
 		return new class($slug, $name) extends StockSync_Distributor {
 			private string $slug;
@@ -27,11 +40,21 @@ class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 		};
 	}
 
+	/**
+	 * Prepare the test environment and reset the distributor registry singleton before each test.
+	 *
+	 * Ensures parent test setup runs and clears StockSync_Distributor_Registry's singleton so each test starts with a fresh registry state.
+	 */
 	protected function setUp(): void {
 		parent::setUp();
 		$this->reset_singleton();
 	}
 
+	/**
+	 * Tear down the test fixture and reset the distributor registry singleton.
+	 *
+	 * Ensures test isolation by resetting the registry singleton and then executing the parent tearDown.
+	 */
 	protected function tearDown(): void {
 		$this->reset_singleton();
 		parent::tearDown();
@@ -50,6 +73,12 @@ class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 		$this->assertSame($distributor, $registry->get('test'));
 	}
 
+	/**
+	 * Verifies that registering a distributor with a slug already present causes an InvalidArgumentException.
+	 *
+	 * Expects the registry to throw an `InvalidArgumentException` with message
+	 * 'Distributor with slug "test" is already registered.' when attempting to register a duplicate slug.
+	 */
 	public function test_duplicate_slug_throws_exception() {
 		$registry = StockSync_Distributor_Registry::instance();
 		$distributor = $this->create_distributor('test', 'Test Dist');
@@ -78,6 +107,11 @@ class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 		$this->assertSame($distributor2, $all['test2']);
 	}
 
+	/**
+	 * Verifies that get_options returns an associative array mapping distributor slugs to their names for registered distributors.
+	 *
+	 * Registers two distributors and asserts the returned options array contains their slugs as keys and names as values.
+	 */
 	public function test_get_options() {
 		$registry = StockSync_Distributor_Registry::instance();
 		$distributor1 = $this->create_distributor('test1', 'Test One');
