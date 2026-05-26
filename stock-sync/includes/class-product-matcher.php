@@ -4,6 +4,11 @@
  * Looks up WooCommerce products by distributor-specific meta key.
  */
 class StockSync_Product_Matcher {
+    private $repository;
+
+    public function __construct(Product_Repository_Interface $repository) {
+        $this->repository = $repository;
+    }
 
     /**
      * Find WC product by distributor reference
@@ -42,7 +47,6 @@ class StockSync_Product_Matcher {
      * Find by SKU (fallback)
      */
     public function find_by_sku($sku) {
-        $product_id = wc_get_product_id_by_sku($sku);
-        return $product_id ? $product_id : false;
+        return $this->repository->find_by_sku($sku);
     }
 }

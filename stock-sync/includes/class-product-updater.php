@@ -13,8 +13,8 @@ class StockSync_Product_Updater {
      *
      * @return void
      */
-    public function __construct() {
-        $this->logger = new StockSync_Change_Logger();
+    public function __construct(Logger_Interface $logger) {
+        $this->logger = $logger;
     }
 
     /**

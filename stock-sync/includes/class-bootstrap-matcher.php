@@ -3,6 +3,11 @@
  * Bootstrap Matcher — One-time fuzzy name matching per distributor
  */
 class StockSync_Bootstrap_Matcher {
+    private $repository;
+
+    public function __construct(Product_Repository_Interface $repository) {
+        $this->repository = $repository;
+    }
 
     /**
      * Get WooCommerce product names + IDs
@@ -10,42 +15,7 @@ class StockSync_Bootstrap_Matcher {
      * @param string|null $category Optional category name to filter by (product_cat taxonomy)
      */
     public function get_all_wc_products($category = null) {
-        $args = [
-            'post_type'              => 'product',
-            'posts_per_page'         => -1,
-            'fields'                 => 'ids',
-            'no_found_rows'          => true,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-        ];
-
-        if (!empty($category)) {
-            $args['tax_query'] = [
-                [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'name',
-                    'terms'    => sanitize_text_field($category),
-                ],
-            ];
-        }
-
-        $query    = new WP_Query($args);
-        $products = [];
-
-        foreach ($query->posts as $product_id) {
-            $product = wc_get_product($product_id);
-            if (!$product) {
-                continue;
-            }
-
-            $products[] = [
-                'id'   => $product_id,
-                'name' => $product->get_name(),
-                'sku'  => $product->get_sku(),
-            ];
-        }
-
-        return $products;
+        return $this->repository->find_all($category);
     }
 
     /**

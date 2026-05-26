@@ -3,13 +3,17 @@
  * AJAX Handler for batch processing
  */
 class StockSync_AJAX_Handler {
+    private $transient_store;
 
     /**
      * Register AJAX action hooks.
      *
+     * @param Transient_Store_Interface|null $transient_store
      * @return void
      */
-    public function __construct() {
+    public function __construct(?Transient_Store_Interface $transient_store = null) {
+        $this->transient_store = $transient_store ?: new StockSync_WP_Transient_Store();
+
         add_action('wp_ajax_stock_sync_init', [$this, 'init_sync']);
         add_action('wp_ajax_stock_sync_batch', [$this, 'process_batch']);
         add_action('wp_ajax_stock_sync_bootstrap_analyze', [$this, 'bootstrap_analyze']);
@@ -73,7 +77,7 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
+        $parser   = StockSync_Service_Factory::xlsx_parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
@@ -136,8 +140,8 @@ class StockSync_AJAX_Handler {
         }
 
         $batch     = array_slice($queue, $offset, $limit);
-        $matcher   = new StockSync_Product_Matcher();
-        $updater   = new StockSync_Product_Updater();
+        $matcher   = StockSync_Service_Factory::product_matcher();
+        $updater   = StockSync_Service_Factory::product_updater();
         $meta_key  = $distributor->get_meta_key();
         $results   = [
             'processed' => 0,
@@ -222,14 +226,14 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
+        $parser   = StockSync_Service_Factory::xlsx_parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
             wp_send_json_error($products->get_error_message());
         }
 
-        $bootstrap = new StockSync_Bootstrap_Matcher();
+        $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $category  = $distributor->get_category_filter();
         $wc_products = $bootstrap->get_all_wc_products($category);
         $matches     = $bootstrap->match_all($products, $wc_products);
@@ -271,7 +275,7 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
-        $bootstrap = new StockSync_Bootstrap_Matcher();
+        $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $saved     = $bootstrap->save_mappings($matches_sanitized, $distributor->get_meta_key());
 
         wp_send_json_success([
@@ -424,7 +428,7 @@ class StockSync_AJAX_Handler {
             'distributor_slug' => $distributor->get_slug(),
         ]);
 
-        $updater = new StockSync_Product_Updater();
+        $updater = StockSync_Service_Factory::product_updater();
         $result  = $updater->mark_unavailable($product_id, $standard, $distributor);
 
         if (is_wp_error($result)) {
