@@ -6,7 +6,7 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 
 	private StockSync_Bootstrap_Matcher $matcher;
 
-	/ **
+	/**
 	 * Prepare the test environment and instantiate a StockSync_Bootstrap_Matcher with a stubbed product repository.
 	 *
 	 * Sets up Brain Monkey and registers stubs for WordPress functions (`update_post_meta`, `sanitize_text_field`),

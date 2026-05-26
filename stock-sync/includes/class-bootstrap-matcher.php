@@ -15,10 +15,11 @@ class StockSync_Bootstrap_Matcher {
     }
 
     /**
-         * Retrieve WooCommerce products, optionally filtered by category.
-         *
-         * @param string|null $category Optional category name used to filter by the `product_cat` taxonomy.
-         * @return array The repository result set of WooCommerce product data.
+     * Retrieve WooCommerce products, optionally filtered by category.
+     *
+     * @param string|null $category Optional category name used to filter by the `product_cat` taxonomy.
+     * @return array The repository result set of WooCommerce product data.
+     */
     public function get_all_wc_products($category = null) {
         return $this->repository->find_all($category);
     }

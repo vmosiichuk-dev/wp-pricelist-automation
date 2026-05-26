@@ -26,7 +26,7 @@ cd stock-sync && vendor/bin/phpunit
 ### Run Tests with Coverage
 
 ```bash
-vendor/bin/phpunit --coverage-html tests/coverage --coverage-clover tests/coverage/coverage.xml
+cd stock-sync && vendor/bin/phpunit --coverage-html tests/coverage --coverage-clover tests/coverage/coverage.xml
 ```
 
 After running coverage, open `stock-sync/tests/coverage/index.html` in your browser to view the detailed coverage report.

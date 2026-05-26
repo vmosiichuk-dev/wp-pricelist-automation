@@ -11,7 +11,7 @@ class StockSync_WC_Product_Repository implements Product_Repository_Interface {
         return wc_get_product($product_id);
     }
 
-    / **
+    /**
      * Retrieve all WooCommerce products, optionally filtered by category name.
      *
      * @param string|null $category Product category name to filter by, or null to include all categories.

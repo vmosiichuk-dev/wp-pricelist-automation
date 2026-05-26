@@ -153,6 +153,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         rmdir($tmpDir);
 
         $this->assertInstanceOf('WP_Error', $result);
+        $this->assertSame('parse_error', $result->get_error_code());
     }
 
     /**
