@@ -4,6 +4,16 @@
  * Looks up WooCommerce products by distributor-specific meta key.
  */
 class StockSync_Product_Matcher {
+    private $repository;
+
+    /**
+     * Store the product repository used for SKU-based product lookups.
+     *
+     * @param Product_Repository_Interface $repository Repository used to resolve product IDs by SKU.
+     */
+    public function __construct(Product_Repository_Interface $repository) {
+        $this->repository = $repository;
+    }
 
     /**
      * Find WC product by distributor reference
@@ -39,10 +49,12 @@ class StockSync_Product_Matcher {
     }
 
     /**
-     * Find by SKU (fallback)
+     * Resolve a product ID from a SKU using the configured product repository.
+     *
+     * @param string $sku The product SKU to look up.
+     * @return int|false The product ID if a product with the given SKU exists, `false` otherwise.
      */
     public function find_by_sku($sku) {
-        $product_id = wc_get_product_id_by_sku($sku);
-        return $product_id ? $product_id : false;
+        return $this->repository->find_by_sku($sku);
     }
 }

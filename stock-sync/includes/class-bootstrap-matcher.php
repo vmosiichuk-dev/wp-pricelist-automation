@@ -3,49 +3,25 @@
  * Bootstrap Matcher — One-time fuzzy name matching per distributor
  */
 class StockSync_Bootstrap_Matcher {
+    private $repository;
 
     /**
-     * Get WooCommerce product names + IDs
+     * Initialize the matcher with a product repository used to retrieve WooCommerce products.
      *
-     * @param string|null $category Optional category name to filter by (product_cat taxonomy)
+     * @param Product_Repository_Interface $repository Repository used to find WooCommerce products.
+     */
+    public function __construct(Product_Repository_Interface $repository) {
+        $this->repository = $repository;
+    }
+
+    /**
+     * Retrieve WooCommerce products, optionally filtered by category.
+     *
+     * @param string|null $category Optional category name used to filter by the `product_cat` taxonomy.
+     * @return array The repository result set of WooCommerce product data.
      */
     public function get_all_wc_products($category = null) {
-        $args = [
-            'post_type'              => 'product',
-            'posts_per_page'         => -1,
-            'fields'                 => 'ids',
-            'no_found_rows'          => true,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-        ];
-
-        if (!empty($category)) {
-            $args['tax_query'] = [
-                [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'name',
-                    'terms'    => sanitize_text_field($category),
-                ],
-            ];
-        }
-
-        $query    = new WP_Query($args);
-        $products = [];
-
-        foreach ($query->posts as $product_id) {
-            $product = wc_get_product($product_id);
-            if (!$product) {
-                continue;
-            }
-
-            $products[] = [
-                'id'   => $product_id,
-                'name' => $product->get_name(),
-                'sku'  => $product->get_sku(),
-            ];
-        }
-
-        return $products;
+        return $this->repository->find_all($category);
     }
 
     /**

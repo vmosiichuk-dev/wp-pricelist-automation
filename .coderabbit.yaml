@@ -63,6 +63,9 @@ reviews:
       enabled: true
     markdownlint:
       enabled: true
+    phpmd:
+      enabled: true
+      ruleset: "phpmd-ruleset.xml"
 chat:
   auto_reply: true
   create_issues: false

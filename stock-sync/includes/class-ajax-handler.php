@@ -3,13 +3,20 @@
  * AJAX Handler for batch processing
  */
 class StockSync_AJAX_Handler {
+    private $transient_store;
 
     /**
-     * Register AJAX action hooks.
+     * Initialize the handler and register WordPress AJAX action hooks.
      *
+     * Initializes the transient store (using the provided implementation or a default)
+     * and registers AJAX endpoints used by the stock sync workflow.
+     *
+     * @param Transient_Store_Interface|null $transient_store Optional transient store implementation; if null a StockSync_WP_Transient_Store is used.
      * @return void
      */
-    public function __construct() {
+    public function __construct(?Transient_Store_Interface $transient_store = null) {
+        $this->transient_store = $transient_store ?: new StockSync_WP_Transient_Store();
+
         add_action('wp_ajax_stock_sync_init', [$this, 'init_sync']);
         add_action('wp_ajax_stock_sync_batch', [$this, 'process_batch']);
         add_action('wp_ajax_stock_sync_bootstrap_analyze', [$this, 'bootstrap_analyze']);
@@ -50,7 +57,22 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Initialize sync: parse XLSX, filter unavailable, store queue
+     * Start an import run by parsing a provided XLSX, collecting products marked unavailable,
+     * storing the work queue in a transient, and returning run metadata.
+     *
+     * Expects POST fields:
+     * - `distributor_slug` (string): distributor identifier.
+     * - `file_path` (string): uploaded XLSX path to validate and parse.
+     * - `dry_run` (truthy): if present, indicates a dry run.
+     *
+     * On success sends a JSON response containing:
+     * - `total_batches` (int): number of 50-item batches.
+     * - `total_items` (int): total queued items.
+     * - `dry_run` (bool): whether the run is a dry run.
+     * - `run_id` (string): UUID for this run (used to retrieve the queue).
+     *
+     * On failure sends a JSON error response for permission checks, unknown distributor,
+     * invalid file path, or parser errors.
      */
     public function init_sync() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
@@ -73,7 +95,7 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
+        $parser   = StockSync_Service_Factory::xlsx_parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
@@ -93,7 +115,7 @@ class StockSync_AJAX_Handler {
 
         $run_id        = wp_generate_uuid4();
         $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
-        set_transient($transient_key, $to_process, HOUR_IN_SECONDS);
+        $this->transient_store->set($transient_key, $to_process, HOUR_IN_SECONDS);
 
         wp_send_json_success([
             'total_batches' => ceil(count($to_process) / 50),
@@ -104,7 +126,22 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Process one batch of 50 products
+     * Handle an AJAX request to process a single batch of distributor products (up to 50) from a stored sync queue.
+     *
+     * Validates the AJAX nonce and that the current user can manage WooCommerce, then reads `distributor_slug`,
+     * `run_id`, `offset` and `dry_run` from POST. Loads the queue transient for the given distributor and run ID,
+     * processes up to 50 items starting at `offset`, and for each item attempts to locate the corresponding WC product
+     * by distributor reference and either records a `not_found` entry, a `would_update` entry when `dry_run` is enabled,
+     * or calls the product updater to mark the product unavailable and records `updated` or `error` entries.
+     *
+     * On error (missing permission, unknown distributor, missing run ID, or missing queue) the handler sends a JSON error.
+     * On success the handler sends a JSON success payload containing an associative array with these keys:
+     * - `processed`: number of items processed
+     * - `updated`: number of items updated (or would be updated when `dry_run` is true)
+     * - `not_found`: number of distributor refs with no matching product
+     * - `errors`: number of update errors
+     * - `dry_run`: boolean echoing the request's dry run flag
+     * - `details`: list of per-item records; each record contains `distributor_ref`, `name`, `status` and, when applicable, `product_id` or `error`.
      */
     public function process_batch() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
@@ -129,15 +166,15 @@ class StockSync_AJAX_Handler {
         }
 
         $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
-        $queue         = get_transient($transient_key);
+        $queue         = $this->transient_store->get($transient_key);
 
         if (!is_array($queue)) {
             wp_send_json_error(__('No sync queue found', 'stock-sync'));
         }
 
         $batch     = array_slice($queue, $offset, $limit);
-        $matcher   = new StockSync_Product_Matcher();
-        $updater   = new StockSync_Product_Updater();
+        $matcher   = StockSync_Service_Factory::product_matcher();
+        $updater   = StockSync_Service_Factory::product_updater();
         $meta_key  = $distributor->get_meta_key();
         $results   = [
             'processed' => 0,
@@ -200,7 +237,17 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Analyze XLSX for bootstrap fuzzy matching
+     * Analyze XLSX for bootstrap fuzzy matching and return mapping suggestions as JSON.
+     *
+     * Validates request nonce and user capability, checks and parses the provided XLSX file,
+     * runs the bootstrap matcher against WooCommerce products (optionally filtered by the
+     * distributor's category), and sends a JSON success response containing:
+     *  - `matches`: suggested mappings between distributor items and WC product IDs
+     *  - `total_xlsx`: count of parsed XLSX items
+     *  - `total_wc`: count of WC products considered
+     *  - `category_filter`: the distributor's category filter used (may be null or empty)
+     *
+     * On validation or processing failures the handler sends a JSON error response with an error message.
      */
     public function bootstrap_analyze() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
@@ -222,14 +269,14 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($validated_path->get_error_message());
         }
 
-        $parser   = new StockSync_XLSX_Parser($validated_path, $distributor);
+        $parser   = StockSync_Service_Factory::xlsx_parser($validated_path, $distributor);
         $products = $parser->parse();
 
         if (is_wp_error($products)) {
             wp_send_json_error($products->get_error_message());
         }
 
-        $bootstrap = new StockSync_Bootstrap_Matcher();
+        $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $category  = $distributor->get_category_filter();
         $wc_products = $bootstrap->get_all_wc_products($category);
         $matches     = $bootstrap->match_all($products, $wc_products);
@@ -243,7 +290,12 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Save confirmed bootstrap mappings
+     * Persist bootstrap match mappings for a distributor and respond with the save result.
+     *
+     * Expects POST fields `distributor_slug` and `matches` (each match must include
+     * `distributor_ref` and `wc_id`). Sanitizes inputs, saves the mappings using the
+     * bootstrap matcher against the distributor's meta key, and returns a JSON
+     * success response containing `saved` with the saver result.
      */
     public function bootstrap_save() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
@@ -271,7 +323,7 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
-        $bootstrap = new StockSync_Bootstrap_Matcher();
+        $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $saved     = $bootstrap->save_mappings($matches_sanitized, $distributor->get_meta_key());
 
         wp_send_json_success([
@@ -396,7 +448,11 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Test: Apply unavailable state to a single product
+     * Apply a distributor-specific "unavailable" state to a single WooCommerce product and return the result as JSON.
+     *
+     * Reads `product_id` and `distributor_slug` from POST, applies the distributor's unavailable transformation to the product,
+     * and sends a JSON success response with the updated product fields (`product_id`, `new_visibility`, `new_price`, `new_sale`, `new_excerpt`).
+     * Sends a JSON error response if the request is unauthorized, the distributor is unknown, the product is not found, or the updater returns an error.
      */
     public function test_apply() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
@@ -424,7 +480,7 @@ class StockSync_AJAX_Handler {
             'distributor_slug' => $distributor->get_slug(),
         ]);
 
-        $updater = new StockSync_Product_Updater();
+        $updater = StockSync_Service_Factory::product_updater();
         $result  = $updater->mark_unavailable($product_id, $standard, $distributor);
 
         if (is_wp_error($result)) {
