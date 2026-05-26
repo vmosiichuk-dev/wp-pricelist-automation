@@ -29,7 +29,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup PHP 8.3
-        uses: shivammathur/setup-php@9e72090525849be5f74789fc49d76c570bb21d22 # v2.33.0
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.3'
           extensions: zip, dom, xml, mbstring
