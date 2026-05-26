@@ -5,18 +5,31 @@ use Brain\Monkey\Functions;
 
 class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
 
+    /**
+     * Prepare the test environment by invoking the parent setup, initializing Brain Monkey, and stubbing translation functions.
+     */
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
         Functions\stubTranslationFunctions();
     }
 
+    /**
+     * Clean up test environment after each test.
+     *
+     * Performs framework and mocking teardown: restores Brain Monkey state, closes Mockery, and invokes the parent tearDown.
+     */
     protected function tearDown(): void {
         Monkey\tearDown();
         Mockery::close();
         parent::tearDown();
     }
 
+    /**
+     * Verifies that the XLSX parser extracts the expected number of products and marks unavailable items.
+     *
+     * Parses the sample-vininova.xlsx for the Vininova distributor, asserts parsing succeeded, that exactly 4 products are returned, and that 3 of them have a truthy `is_unavailable` property.
+     */
     public function test_parses_correct_number_of_products() {
         $distributor = new StockSync_Distributor_Vininova();
         $parser = new StockSync_XLSX_Parser(
@@ -36,6 +49,16 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertCount(3, $unavailable);
     }
 
+    /**
+     * Verifies that the XLSX parser maps missing (sparse) cell values to empty strings.
+     *
+     * Parses the sample Vininova spreadsheet, asserts exactly four products are returned,
+     * and checks that for distributor refs `CD456`, `EF789`, and `AB124` the `ean`,
+     * `product_name`, and `vintage` fields respectively are empty strings when the
+     * source cells are missing.
+     *
+     * @return void
+     */
     public function test_sparse_row_handling() {
         $distributor = new StockSync_Distributor_Vininova();
         $parser = new StockSync_XLSX_Parser(
@@ -81,6 +104,13 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertInstanceOf('WP_Error', $result);
     }
 
+    /**
+     * Verifies that parsing an .xlsx containing malformed worksheet XML produces a WP_Error.
+     *
+     * Creates a temporary .xlsx with an intentionally broken worksheet XML, enables libxml
+     * internal error handling for the parse, invokes the parser, cleans up created files,
+     * and asserts the result is an instance of `WP_Error`.
+     */
     public function test_malformed_xml_returns_wp_error() {
         $tmpDir = sys_get_temp_dir() . '/stock_sync_test_' . uniqid();
         mkdir($tmpDir, 0777, true);
@@ -125,6 +155,12 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertInstanceOf('WP_Error', $result);
     }
 
+    /**
+     * Verifies that only rows representing valid products are kept when parsing an XLSX worksheet.
+     *
+     * Builds a minimal .xlsx containing header and candidate rows, parses it with StockSync_XLSX_Parser,
+     * and asserts that exactly one product is returned with `distributor_ref` equal to "AB123".
+     */
     public function test_is_product_row_filtering() {
         $tmpDir = sys_get_temp_dir() . '/stock_sync_test_' . uniqid();
         mkdir($tmpDir, 0777, true);

@@ -4,6 +4,11 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 
 	private StockSync_Distributor_Vininova $distributor;
 
+	/**
+	 * Prepare the test fixture by instantiating the Vininova distributor.
+	 *
+	 * Assigns a new StockSync_Distributor_Vininova to $this->distributor before each test.
+	 */
 	protected function setUp(): void {
 		parent::setUp();
 		$this->distributor = new StockSync_Distributor_Vininova();
@@ -40,6 +45,15 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		$this->assertFalse($this->distributor->is_product_row([1 => 'A1']));
 	}
 
+	/**
+	 * Verifies that is_unavailable identifies strings that indicate unavailability and rejects available-state strings.
+	 *
+	 * Tests multiple variants including case differences and surrounding whitespace (e.g. 'brak', 'BRak', '  brak  ')
+	 * as well as related phrases (e.g. 'chwilowy brak', 'chilowy brak', 'os', 'wkrótce'), and ensures common available
+	 * descriptors (e.g. 'dostępny', 'w magazynie') are not treated as unavailable.
+	 *
+	 * @return void
+	 */
 	public function test_is_unavailable_all_flag_variants() {
 		$this->assertTrue($this->distributor->is_unavailable('brak'));
 		$this->assertTrue($this->distributor->is_unavailable('chwilowy brak'));

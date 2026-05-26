@@ -5,15 +5,20 @@
 class StockSync_Bootstrap_Matcher {
     private $repository;
 
+    /**
+     * Initialize the matcher with a product repository used to retrieve WooCommerce products.
+     *
+     * @param Product_Repository_Interface $repository Repository used to find WooCommerce products.
+     */
     public function __construct(Product_Repository_Interface $repository) {
         $this->repository = $repository;
     }
 
     /**
-     * Get WooCommerce product names + IDs
-     *
-     * @param string|null $category Optional category name to filter by (product_cat taxonomy)
-     */
+         * Retrieve WooCommerce products, optionally filtered by category.
+         *
+         * @param string|null $category Optional category name used to filter by the `product_cat` taxonomy.
+         * @return array The repository result set of WooCommerce product data.
     public function get_all_wc_products($category = null) {
         return $this->repository->find_all($category);
     }

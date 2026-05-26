@@ -5,6 +5,12 @@ use Brain\Monkey\Functions;
 
 class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 
+    /**
+     * Prepare the test environment before each test.
+     *
+     * Initializes Brain Monkey and stubs WordPress translation-related helpers,
+     * forcing `wp_kses_post` to return the fixed value `'test excerpt'`.
+     */
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
@@ -12,12 +18,31 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
         Functions\when('wp_kses_post')->justReturn('test excerpt');
     }
 
+    /**
+     * Tear down the test environment and restore global state after each test.
+     *
+     * Calls out to test helpers to remove any stubs/mocks and then invokes the parent tearDown.
+     *
+     * @return void
+     */
     protected function tearDown(): void {
         Monkey\tearDown();
         Mockery::close();
         parent::tearDown();
     }
 
+    /**
+     * Verifies that mark_unavailable updates a product's visibility, excerpt and prices, saves the product, and logs a `marked_unavailable` event with expected product and distributor details.
+     *
+     * The test expects:
+     * - catalog visibility set to `search`
+     * - short description replaced with the distributor-provided unavailable description
+     * - regular and sale prices cleared
+     * - `save()` called on the product
+     * - logger called once with an array containing product id, SKU, action, old/new visibility, old/new excerpts, old prices, and distributor slug/ref.
+     *
+     * @return void
+     */
     public function test_mark_unavailable_calls_correct_setters() {
         $mockProduct = Mockery::mock('WC_Product');
         $mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');

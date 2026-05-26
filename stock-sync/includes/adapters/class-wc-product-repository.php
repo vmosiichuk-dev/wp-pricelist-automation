@@ -1,10 +1,25 @@
 <?php
 class StockSync_WC_Product_Repository implements Product_Repository_Interface {
 
+    /**
+     * Fetches the WooCommerce product for the given product ID.
+     *
+     * @param int $product_id The product ID.
+     * @return \WC_Product|false|null The `WC_Product` instance for the ID, or `false`/`null` if not found.
+     */
     public function find_by_id($product_id) {
         return wc_get_product($product_id);
     }
 
+    / **
+     * Retrieve all WooCommerce products, optionally filtered by category name.
+     *
+     * @param string|null $category Product category name to filter by, or null to include all categories.
+     * @return array[] List of product summary arrays. Each array contains:
+     *                 - 'id'   (int)           Product ID.
+     *                 - 'name' (string)        Product name.
+     *                 - 'sku'  (string|null)   Product SKU (or null if not set).
+     */
     public function find_all($category = null) {
         $args = [
             'post_type'              => 'product',
@@ -44,6 +59,15 @@ class StockSync_WC_Product_Repository implements Product_Repository_Interface {
         return $products;
     }
 
+    /**
+     * Find a product ID by a post meta key/value pair.
+     *
+     * Searches products for the first post whose meta key equals the provided value and returns its ID.
+     *
+     * @param string $meta_key   Meta key to match.
+     * @param string $meta_value Meta value to match.
+     * @return int|false Product ID of the first matching product, or `false` if no match is found or if either parameter is empty.
+     */
     public function find_by_meta($meta_key, $meta_value) {
         $meta_key   = sanitize_key($meta_key);
         $meta_value = sanitize_text_field($meta_value);
@@ -77,11 +101,22 @@ class StockSync_WC_Product_Repository implements Product_Repository_Interface {
         return false;
     }
 
+    /**
+     * Finds a WooCommerce product ID by SKU.
+     *
+     * @param string $sku The product SKU to look up.
+     * @return int|false The product ID if found, `false` otherwise.
+     */
     public function find_by_sku($sku) {
         $product_id = wc_get_product_id_by_sku($sku);
         return $product_id ? $product_id : false;
     }
 
+    /**
+     * Persist changes made to a WooCommerce product.
+     *
+     * @param \WC_Product $product The product instance to save.
+     */
     public function save($product) {
         $product->save();
     }

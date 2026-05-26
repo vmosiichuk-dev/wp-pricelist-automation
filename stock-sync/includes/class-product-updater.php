@@ -9,9 +9,9 @@ class StockSync_Product_Updater {
     private $logger;
 
     /**
-     * Initialize the change logger.
+     * Create a product updater configured with the provided logger.
      *
-     * @return void
+     * @param Logger_Interface $logger Logger used to record product change events.
      */
     public function __construct(Logger_Interface $logger) {
         $this->logger = $logger;
