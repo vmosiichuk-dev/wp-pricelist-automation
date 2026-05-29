@@ -47,6 +47,7 @@ class StockSync_Plugin {
     private function init_modules() {
         new StockSync_Admin();
         new StockSync_AJAX_Handler();
+        new StockSync_Product_Meta();
     }
 
     /**

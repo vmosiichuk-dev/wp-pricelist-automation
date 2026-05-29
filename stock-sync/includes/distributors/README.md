@@ -89,7 +89,7 @@ Done. The admin dropdown and sync tabs will automatically recognize the new dist
 | Method | Default | Override When... |
 |--------|---------|-------------------|
 | `get_sheet_name()` | `xl/worksheets/sheet1.xml` | Data is on a different sheet |
-| `get_unavailable_description($name)` | Generic text | You want custom messaging per distributor |
+| `get_unavailable_suffix($product_id)` | Generic text | You want custom messaging per distributor |
 | `get_category_filter()` | `null` (no filter) | You want to limit bootstrap matching to a specific WC product category |
 
 ## Testing a New Distributor

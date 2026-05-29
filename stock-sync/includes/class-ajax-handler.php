@@ -433,18 +433,10 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
-        $new_excerpt = $distributor->get_unavailable_description($product->get_name());
+        $distributor_ref = get_post_meta($product_id, $distributor->get_meta_key(), true);
+        $preview = $this->compute_preview($product, $distributor, $distributor_ref);
 
-        wp_send_json_success([
-            'id'           => $product_id,
-            'name'         => $product->get_name(),
-            'sku'          => $product->get_sku(),
-            'visibility'   => $product->get_catalog_visibility(),
-            'price'        => $product->get_regular_price(),
-            'sale_price'   => $product->get_sale_price(),
-            'excerpt'      => $product->get_short_description(),
-            'new_excerpt'  => $new_excerpt,
-        ]);
+        wp_send_json_success($preview);
     }
 
     /**
@@ -474,8 +466,10 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Product not found', 'stock-sync'));
         }
 
+        $distributor_ref = get_post_meta($product_id, $distributor->get_meta_key(), true);
+
         $standard = new StockSync_Standard_Product([
-            'distributor_ref'  => '',
+            'distributor_ref'  => $distributor_ref,
             'product_name'     => $product->get_name(),
             'distributor_slug' => $distributor->get_slug(),
         ]);
@@ -491,12 +485,100 @@ class StockSync_AJAX_Handler {
         $updated = wc_get_product($product_id);
 
         wp_send_json_success([
-            'message'     => __('Product updated successfully.', 'stock-sync'),
-            'product_id'  => $product_id,
+            'message'        => __('Product updated successfully.', 'stock-sync'),
+            'product_id'     => $product_id,
             'new_visibility' => $updated->get_catalog_visibility(),
-            'new_price'   => $updated->get_regular_price(),
-            'new_sale'    => $updated->get_sale_price(),
-            'new_excerpt' => $updated->get_short_description(),
+            'new_price'      => $updated->get_regular_price(),
+            'new_sale'       => $updated->get_sale_price(),
+            'new_excerpt'    => $updated->get_short_description(),
+            'new_name'       => $updated->get_name(),
+            'new_slug'       => $updated->get_slug(),
         ]);
+    }
+
+    /**
+     * Compute preview values for the Test Product tab.
+     *
+     * @param \WC_Product $product
+     * @param StockSync_Distributor $distributor
+     * @param string $distributor_ref
+     * @return array
+     */
+    private function compute_preview($product, $distributor, $distributor_ref) {
+        $current_name   = $product->get_name();
+        $new_name       = $this->clean_name_preview($current_name);
+        $new_slug       = sanitize_title($new_name);
+        $cat_url        = $this->find_product_category_url($product->get_id());
+        $suffix         = wp_kses_post($distributor->get_unavailable_suffix($product->get_id(), $cat_url));
+        $new_excerpt    = $this->build_new_excerpt_preview($product->get_short_description(), $new_name, $suffix);
+
+        return [
+            'id'            => $product->get_id(),
+            'name'          => $current_name,
+            'new_name'      => $new_name,
+            'slug'          => $product->get_slug(),
+            'new_slug'      => $new_slug,
+            'sku'           => $product->get_sku(),
+            'visibility'    => $product->get_catalog_visibility(),
+            'price'         => $product->get_regular_price(),
+            'sale_price'    => $product->get_sale_price(),
+            'excerpt'       => $product->get_short_description(),
+            'new_excerpt'   => $new_excerpt,
+        ];
+    }
+
+    /**
+     * Preview-only name cleaner.
+     *
+     * @param string $name
+     * @return string
+     */
+    private function clean_name_preview($name) {
+        $name = preg_replace('/\s*-\s*\d+(?:,\d+)?\s*zł\.\*\*\s*$/iu', '', $name);
+        $name = preg_replace('/^\d+(?:,\d+)?\s*zł\.\*\*\s*/iu', '', $name);
+        return trim($name);
+    }
+
+    /**
+     * Preview-only excerpt builder.
+     *
+     * @param string $current_excerpt
+     * @param string $product_name
+     * @param string $suffix
+     * @return string
+     */
+    private function build_new_excerpt_preview($current_excerpt, $product_name, $suffix) {
+        $prefix = '';
+        if (preg_match('/^(.*?)\s*(?:>|&gt;)\s*/u', $current_excerpt, $matches)) {
+            $prefix = trim($matches[1]);
+        }
+
+        if (empty($prefix)) {
+            $prefix = $product_name;
+        }
+
+        return $prefix . ' > ' . $suffix;
+    }
+
+    /**
+     * Get the URL of the first product category assigned to a product.
+     *
+     * @param int $product_id WooCommerce product ID.
+     * @return string|false Category URL or false if not found.
+     */
+    private function find_product_category_url($product_id) {
+        $terms = get_the_terms($product_id, 'product_cat');
+        if (empty($terms) || is_wp_error($terms)) {
+            return false;
+        }
+
+        foreach ($terms as $term) {
+            $url = get_term_link($term, 'product_cat');
+            if (!is_wp_error($url)) {
+                return $url;
+            }
+        }
+
+        return false;
     }
 }

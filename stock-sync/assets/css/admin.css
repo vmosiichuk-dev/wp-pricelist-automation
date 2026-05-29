@@ -182,3 +182,61 @@
     color: #646970;
     font-style: italic;
 }
+
+/* Bootstrap unmatched collapsible section */
+.stock-unmatched-details {
+    margin-top: 15px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.stock-unmatched-details summary {
+    padding: 10px 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f6f7f7;
+    border-bottom: 1px solid #c3c4c7;
+    border-radius: 4px 4px 0 0;
+    list-style: none;
+}
+
+.stock-unmatched-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.stock-unmatched-details summary::before {
+    content: '▸ ';
+    display: inline-block;
+    margin-right: 5px;
+    transition: transform 0.2s;
+}
+
+.stock-unmatched-details[open] summary::before {
+    content: '▾ ';
+}
+
+.stock-unmatched-details .stock-unmatched-count {
+    color: #646970;
+    font-weight: 400;
+    margin-left: 5px;
+}
+
+.stock-unmatched-details table {
+    margin: 0;
+    border: none;
+}
+
+.stock-unmatched-details table thead th {
+    background: #f6f7f7;
+}
+
+/* Auto-save notice */
+.stock-bootstrap-panel .stock-auto-save-notice {
+    margin: 15px 0;
+    padding: 12px 15px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    color: #155724;
+}

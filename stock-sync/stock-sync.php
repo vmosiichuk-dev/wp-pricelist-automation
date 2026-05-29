@@ -3,7 +3,7 @@
  * Plugin Name: Stock Sync
  * Description: Automate WooCommerce product availability updates from distributor price lists. Multi-distributor support.
  * Version: 1.0.0
- * Author: OpenCode
+ * Author: vmosiichuk.dev
  * Text Domain: stock-sync
  * Requires at least: 5.8
  * Requires PHP: 7.4
@@ -139,6 +139,7 @@ function stock_sync_load() {
         'includes/class-product-matcher.php',
         'includes/class-bootstrap-matcher.php',
         'includes/class-product-updater.php',
+        'includes/class-product-meta.php',
         'includes/class-logger.php',
         'includes/class-database.php',
         'includes/class-ajax-handler.php',

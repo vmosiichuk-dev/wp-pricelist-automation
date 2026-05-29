@@ -31,7 +31,7 @@
     </div>
 
     <div id="stock-bootstrap-results" style="display:none;">
-        <h3><?php _e('Review Matches', 'stock-sync'); ?></h3>
+        <h3 id="bootstrap-results-title"><?php _e('Review Matches', 'stock-sync'); ?></h3>
         <p id="bootstrap-summary"></p>
 
         <table class="widefat striped stock-match-table">
@@ -48,6 +48,27 @@
             <tbody id="bootstrap-matches-body">
             </tbody>
         </table>
+
+        <details id="bootstrap-unmatched-details" class="stock-unmatched-details">
+            <summary id="bootstrap-unmatched-summary">
+                <?php _e('Unmatched positions', 'stock-sync'); ?>
+                <span class="stock-unmatched-count"></span>
+            </summary>
+            <table class="widefat striped stock-match-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="check-all-unmatched" aria-label="Select all unmatched entries" /></th>
+                        <th><?php _e('Ref', 'stock-sync'); ?></th>
+                        <th><?php _e('XLSX Name', 'stock-sync'); ?></th>
+                        <th><?php _e('WC Product', 'stock-sync'); ?></th>
+                        <th><?php _e('Confidence', 'stock-sync'); ?></th>
+                        <th><?php _e('Status', 'stock-sync'); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="bootstrap-unmatched-body">
+                </tbody>
+            </table>
+        </details>
 
         <p class="submit">
             <button type="button" class="button button-primary" id="stock-bootstrap-save" disabled>
