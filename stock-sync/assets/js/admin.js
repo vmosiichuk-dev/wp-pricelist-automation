@@ -240,6 +240,7 @@
 
     function renderBootstrapTable(matches, totalXlsx, totalWc, categoryFilter) {
         $('#stock-bootstrap-results').show();
+        $('#bootstrap-results-title').text('Review Matches');
         var $summary = $('#bootstrap-summary').empty();
         $summary.append(document.createTextNode('XLSX products: '));
         $summary.append($('<strong>').text(totalXlsx));
@@ -251,16 +252,16 @@
         }
 
         var $tbody = $('#bootstrap-matches-body').empty();
-        var autoCount = 0;
-        var suggestCount = 0;
+        var $unmatchedBody = $('#bootstrap-unmatched-body').empty();
+        var highCount = 0;
+        var lowCount = 0;
 
         matches.forEach(function(m) {
-            var checked = false;
-            if (m.status === 'auto') {
-                checked = true;
-                autoCount++;
-            } else if (m.status === 'suggest') {
-                suggestCount++;
+            var checked = m.confidence >= 70;
+            if (checked) {
+                highCount++;
+            } else {
+                lowCount++;
             }
 
             var validStatus = ['auto', 'suggest', 'manual'].indexOf(m.status) !== -1 ? m.status : 'manual';
@@ -274,29 +275,50 @@
             $tr.append($('<td>').text(m.wc_name || '— no match —'));
             $tr.append($('<td>').append($('<span>').addClass('confidence-badge ' + confClass).text(m.confidence + '%')));
             $tr.append($('<td>').addClass(statusClass).text(m.status));
-            $tbody.append($tr);
+
+            if (checked) {
+                $tbody.append($tr);
+            } else {
+                $unmatchedBody.append($tr);
+            }
         });
+
+        var $details = $('#bootstrap-unmatched-details');
+        if (lowCount === 0) {
+            $details.hide();
+        } else {
+            $details.show();
+            $details.find('.stock-unmatched-count').text('(' + lowCount + ')');
+        }
 
         $('#stock-bootstrap-save').prop('disabled', false);
 
-        // Check/uncheck all auto
+        // Check/uncheck all high-confidence matches
         $('#check-all-auto').prop('checked', true).off('change').on('change', function() {
             var isChecked = $(this).prop('checked');
-            $('#bootstrap-matches-body tr').each(function() {
-                var status = $(this).find('td:eq(5)').text().trim();
-                if (status === 'auto') {
-                    $(this).find('.match-check').prop('checked', isChecked);
-                }
-            });
+            $('#bootstrap-matches-body tr .match-check').prop('checked', isChecked);
         });
+
+        // Check/uncheck all unmatched
+        $('#check-all-unmatched').prop('checked', false).off('change').on('change', function() {
+            var isChecked = $(this).prop('checked');
+            $('#bootstrap-unmatched-body tr .match-check').prop('checked', isChecked);
+        });
+
+        // Auto-save when every match is 70%+
+        if (lowCount === 0 && highCount > 0) {
+            var $notice = $('<div class="stock-auto-save-notice">').text('All matches are high confidence — saving automatically...');
+            $('#stock-bootstrap-results').prepend($notice);
+            saveBootstrapMappings(true);
+        }
     }
 
-    $('#stock-bootstrap-save').on('click', function() {
-        var $btn = $(this);
+    function saveBootstrapMappings(autoSave) {
+        var $btn = $('#stock-bootstrap-save');
         var distributor = getDistributorSlug();
         var matches = [];
 
-        $('#bootstrap-matches-body tr').each(function() {
+        $('#bootstrap-matches-body tr, #bootstrap-unmatched-body tr').each(function() {
             var $row = $(this);
             if ($row.find('.match-check').prop('checked')) {
                 matches.push({
@@ -307,7 +329,9 @@
         });
 
         if (matches.length === 0) {
-            alert('Please select at least one match to save.');
+            if (!autoSave) {
+                alert('Please select at least one match to save.');
+            }
             return;
         }
 
@@ -325,7 +349,10 @@
             success: function(response) {
                 $btn.prop('disabled', false).text('Confirm & Save Mappings');
                 if (response.success) {
-                    alert('Saved ' + response.data.saved + ' mappings successfully!');
+                    if (!autoSave) {
+                        alert('Saved ' + response.data.saved + ' mappings successfully!');
+                    }
+                    showMappedOnly();
                 } else {
                     alert('Save failed: ' + response.data);
                 }
@@ -335,6 +362,41 @@
                 alert('Save network error');
             }
         });
+    }
+
+    function showMappedOnly() {
+        $('#bootstrap-results-title').text('Mapped Positions');
+
+        // Move checked unmatched rows into the main table so they remain visible
+        $('#bootstrap-unmatched-body tr').each(function() {
+            var $row = $(this);
+            if ($row.find('.match-check').prop('checked')) {
+                $row.detach().appendTo('#bootstrap-matches-body');
+            } else {
+                $row.remove();
+            }
+        });
+        $('#bootstrap-unmatched-details').hide();
+
+        // Keep only checked rows in the main table
+        var mappedCount = 0;
+        $('#bootstrap-matches-body tr').each(function() {
+            var $row = $(this);
+            if ($row.find('.match-check').prop('checked')) {
+                $row.addClass('mapped-row');
+                mappedCount++;
+            } else {
+                $row.remove();
+            }
+        });
+
+        $('#bootstrap-summary').empty().text('Mapped: ' + mappedCount + ' positions');
+        $('#stock-bootstrap-save').prop('disabled', true).text('Saved');
+        $('.stock-auto-save-notice').remove();
+    }
+
+    $('#stock-bootstrap-save').on('click', function() {
+        saveBootstrapMappings(false);
     });
 
     // ===== TEST PRODUCT TAB =====
@@ -429,6 +491,9 @@
                 var d = response.data;
                 $('#test-current-id-sku').text('#' + d.id + ' / ' + (d.sku || '—'));
                 $('#test-current-name').text(d.name);
+                $('#test-new-name').text(d.new_name);
+                $('#test-current-slug').text(d.slug || '—');
+                $('#test-new-slug').text(d.new_slug);
                 $('#test-current-visibility').text(d.visibility);
                 $('#test-current-price').text(d.price || '—');
                 $('#test-current-sale').text(d.sale_price || '—');

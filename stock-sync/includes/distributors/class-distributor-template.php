@@ -106,10 +106,10 @@ class StockSync_Distributor_Template extends StockSync_Distributor {
     }
 
     /**
-     * Optional: Override the unavailable description text
+     * Optional: Override the unavailable description suffix text
      * If not overridden, uses the default from StockSync_Distributor
      */
-    public function get_unavailable_description($product_name) {
-        return parent::get_unavailable_description($product_name);
+    public function get_unavailable_suffix($product_id = 0, $category_url = null) {
+        return parent::get_unavailable_suffix($product_id, $category_url);
     }
 }

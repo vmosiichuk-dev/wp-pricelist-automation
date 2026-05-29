@@ -37,7 +37,12 @@
                 <tr>
                     <td><?php _e('Name', 'stock-sync'); ?></td>
                     <td id="test-current-name">—</td>
-                    <td class="stock-unchanged"><?php _e('— (no change)', 'stock-sync'); ?></td>
+                    <td id="test-new-name">—</td>
+                </tr>
+                <tr>
+                    <td><?php _e('Slug', 'stock-sync'); ?></td>
+                    <td id="test-current-slug">—</td>
+                    <td id="test-new-slug">—</td>
                 </tr>
                 <tr>
                     <td><?php _e('Visibility', 'stock-sync'); ?></td>
