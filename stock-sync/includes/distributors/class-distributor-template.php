@@ -74,13 +74,23 @@ class StockSync_Distributor_Template extends StockSync_Distributor {
     public function is_product_row($row_data) {
         $ref = isset($row_data[1]) ? trim($row_data[1]) : '';
 
-        // Example: require non-empty reference starting with letters
-        return !empty($ref) && preg_match('/^[A-Z]{2}/', $ref);
+        // Must have a value in the reference column.
+        if (empty($ref)) {
+            return false;
+        }
 
-        // Alternative examples:
-        // return !empty($ref); // Any non-empty first column
-        // return is_numeric($ref); // Numeric SKU
-        // return strlen($ref) >= 3; // Minimum length
+        // Reject section headers (country/producer names) that are pure text and long.
+        // This allows reference formats to change without breaking the sync.
+        if (preg_match('/^[\p{L}\s]+$/u', $ref) && mb_strlen($ref) > 5) {
+            return false;
+        }
+
+        return true;
+
+        // Alternative examples for stricter matching:
+        // return preg_match('/^[A-Z]{2}/', $ref); // Must start with two uppercase letters
+        // return is_numeric($ref);                  // Numeric SKU only
+        // return strlen($ref) >= 3;                 // Minimum length
     }
 
     /**

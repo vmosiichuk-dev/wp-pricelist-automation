@@ -7,6 +7,7 @@ class StockSync_XLSX_Parser {
 
     private $file_path;
     private $distributor;
+    private $unrecognized_availability = [];
 
     /**
      * Set the XLSX file path and distributor config.
@@ -18,6 +19,15 @@ class StockSync_XLSX_Parser {
     public function __construct($file_path, StockSync_Distributor $distributor) {
         $this->file_path   = $file_path;
         $this->distributor = $distributor;
+    }
+
+    /**
+     * Get unrecognized availability values encountered during parsing.
+     *
+     * @return array
+     */
+    public function get_unrecognized_availability() {
+        return array_keys($this->unrecognized_availability);
     }
 
     /**
@@ -51,10 +61,45 @@ class StockSync_XLSX_Parser {
         $row_index = 0;
         $col_map   = $this->distributor->get_column_map();
 
+        $expected_labels = $this->distributor->get_header_labels();
+        $header_found    = empty($expected_labels);
+        $header_row_num  = $this->distributor->get_header_row();
+        $max_scan_rows   = 20;
+
         foreach ($xml->sheetData->row as $row) {
             $row_index++;
+            $row_num = isset($row['r']) ? (int) $row['r'] : $row_index;
 
-            if ($row_index <= $this->distributor->get_header_row()) {
+            if (!$header_found) {
+                if ($row_index > $max_scan_rows) {
+                    return new WP_Error(
+                        'header_not_found',
+                        sprintf(
+                            /* translators: 1: number of rows scanned, 2: comma-separated expected labels */
+                            __('Header row not found. Scanned first %1$d rows for labels: %2$s.', 'stock-sync'),
+                            $max_scan_rows,
+                            implode(', ', $expected_labels)
+                        )
+                    );
+                }
+
+                $found = 0;
+                foreach ($row->c as $cell) {
+                    $value = $this->clean_value($this->get_cell_value($cell, $shared_strings));
+                    if (in_array($value, $expected_labels, true)) {
+                        $found++;
+                    }
+                }
+
+                $min_required = max(2, ceil(count($expected_labels) / 2));
+                if ($found >= $min_required) {
+                    $header_found   = true;
+                    $header_row_num = $row_num;
+                }
+                continue;
+            }
+
+            if ($row_num <= $header_row_num) {
                 continue;
             }
 
@@ -68,18 +113,9 @@ class StockSync_XLSX_Parser {
                 } else {
                     $col_index++;
                 }
-                $cell_type = (string) $cell['t'];
 
-                if ($cell_type === 's') {
-                    $string_index = (int) $cell->v;
-                    $value = isset($shared_strings[$string_index])
-                        ? $shared_strings[$string_index]
-                        : '';
-                } else {
-                    $value = isset($cell->v) ? (string) $cell->v : '';
-                }
-
-                $row_data[$col_index] = $this->clean_value($value);
+                $value = $this->clean_value($this->get_cell_value($cell, $shared_strings));
+                $row_data[$col_index] = $value;
             }
 
             if (!$this->distributor->is_product_row($row_data)) {
@@ -90,6 +126,10 @@ class StockSync_XLSX_Parser {
                 ? $row_data[$col_map['availability']]
                 : '';
 
+            if ($availability !== '' && !$this->distributor->is_unavailable($availability)) {
+                $this->unrecognized_availability[$availability] = true;
+            }
+
             $products[] = new StockSync_Standard_Product([
                 'distributor_ref'  => isset($row_data[$col_map['distributor_ref']]) ? $row_data[$col_map['distributor_ref']] : '',
                 'ean'              => isset($row_data[$col_map['ean']]) ? $row_data[$col_map['ean']] : '',
@@ -99,6 +139,25 @@ class StockSync_XLSX_Parser {
                 'is_unavailable'   => $this->distributor->is_unavailable($availability),
                 'distributor_slug' => $this->distributor->get_slug(),
             ]);
+        }
+
+        if (!$header_found) {
+            return new WP_Error(
+                'header_not_found',
+                sprintf(
+                    /* translators: 1: number of rows scanned, 2: comma-separated expected labels */
+                    __('Header row not found. Scanned first %1$d rows for labels: %2$s.', 'stock-sync'),
+                    $max_scan_rows,
+                    implode(', ', $expected_labels)
+                )
+            );
+        }
+
+        if (empty($products)) {
+            return new WP_Error(
+                'no_products',
+                __('No valid product rows found after the header. The reference format or file structure may have changed.', 'stock-sync')
+            );
         }
 
         return $products;
@@ -133,6 +192,18 @@ class StockSync_XLSX_Parser {
         }
 
         return $strings;
+    }
+
+    /**
+     * Read the value of a single cell, handling shared strings.
+     */
+    private function get_cell_value($cell, $shared_strings) {
+        $cell_type = (string) $cell['t'];
+        if ($cell_type === 's') {
+            $string_index = (int) $cell->v;
+            return isset($shared_strings[$string_index]) ? $shared_strings[$string_index] : '';
+        }
+        return isset($cell->v) ? (string) $cell->v : '';
     }
 
     /**

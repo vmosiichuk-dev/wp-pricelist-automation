@@ -9,6 +9,14 @@
         return params.get('distributor') || 'vininova';
     }
 
+    function showWarnings(containerSelector, warnings) {
+        $(containerSelector).siblings('.stock-sync-warning').remove();
+        if (warnings && warnings.length) {
+            var html = '<div class="stock-sync-warning notice notice-warning"><p>' + escapeHtml(warnings.join(' ')) + '</p></div>';
+            $(containerSelector).before(html);
+        }
+    }
+
     // ===== UTILS =====
 
     function uploadFile(fileInput, onSuccess, onError) {
@@ -38,12 +46,13 @@
 
     // ===== SYNC TAB =====
 
+    var currentSyncFilePath = null;
+
     $('#stock-sync-form').on('submit', function(e) {
         e.preventDefault();
 
         var $form = $(this);
         var $file = $form.find('input[name="xlsx_file"]')[0];
-        var mode = $form.find('input[name="sync_mode"]:checked').val();
         var $btn = $form.find('button[type="submit"]');
 
         if (!$file.files.length) {
@@ -54,20 +63,21 @@
         $btn.prop('disabled', true).text('Uploading...');
         $('#stock-sync-progress').show();
         $('#stock-sync-results').hide();
+        $('#stock-sync-apply').hide();
 
         uploadFile($file, function(uploadData) {
-            $btn.text('Processing...');
-            startSync(uploadData.file_path, mode, $btn);
+            currentSyncFilePath = uploadData.file_path;
+            $btn.text('Scanning...');
+            startScan(uploadData.file_path, $btn);
         }, function(error) {
             alert('Upload error: ' + error);
-            $btn.prop('disabled', false).text('Start Sync');
+            $btn.prop('disabled', false).text('Upload & Scan');
             $('#stock-sync-progress').hide();
         });
     });
 
-    function startSync(filePath, mode, $btn) {
+    function startScan(filePath, $btn) {
         var distributor = getDistributorSlug();
-        var dryRun = (mode === 'preview');
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -77,7 +87,75 @@
                 nonce: stockSync.nonce,
                 distributor_slug: distributor,
                 file_path: filePath,
-                dry_run: dryRun
+                dry_run: true
+            },
+            success: function(response) {
+                if (!response.success) {
+                    alert('Scan failed: ' + response.data);
+                    $btn.prop('disabled', false).text('Upload & Scan');
+                    return;
+                }
+
+                showWarnings('#stock-sync-form', response.data.warnings);
+
+                var total = response.data.total_batches;
+                var runId = response.data.run_id;
+                runBatches(filePath, distributor, true, total, 0, {
+                    processed: 0,
+                    updated: 0,
+                    not_found: 0,
+                    errors: 0,
+                    details: []
+                }, $btn, runId, function(stats) {
+                    $btn.prop('disabled', false).text('Upload & Scan');
+                    showResults(stats, true);
+
+                    if (stats.updated > 0) {
+                        $('#stock-sync-apply').show();
+                    } else {
+                        $('#stock-sync-apply').hide();
+                        $('#res-details').append('<p class="stock-sync-info">' + escapeHtml('No products would be updated. Start Sync is not needed.') + '</p>');
+                    }
+                });
+            },
+            error: function() {
+                alert('Scan network error');
+                $btn.prop('disabled', false).text('Upload & Scan');
+            }
+        });
+    }
+
+    $('#stock-sync-apply').on('click', function() {
+        var $btn = $(this);
+
+        if (!currentSyncFilePath) {
+            alert('No file uploaded. Please upload and scan first.');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to apply these changes to your products?')) {
+            return;
+        }
+
+        $btn.prop('disabled', true).text('Syncing...');
+        $('#stock-sync-progress').show();
+        $('#stock-sync-results').hide();
+
+        runActualSync(currentSyncFilePath, $btn);
+    });
+
+    function runActualSync(filePath, $btn) {
+        var distributor = getDistributorSlug();
+
+        $.ajax({
+            url: stockSync.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'stock_sync_init',
+                nonce: stockSync.nonce,
+                distributor_slug: distributor,
+                file_path: filePath,
+                dry_run: false
             },
             success: function(response) {
                 if (!response.success) {
@@ -86,15 +164,21 @@
                     return;
                 }
 
+                showWarnings('#stock-sync-form', response.data.warnings);
+
                 var total = response.data.total_batches;
                 var runId = response.data.run_id;
-                runBatches(filePath, distributor, dryRun, total, 0, {
+                runBatches(filePath, distributor, false, total, 0, {
                     processed: 0,
                     updated: 0,
                     not_found: 0,
                     errors: 0,
                     details: []
-                }, $btn, runId);
+                }, $btn, runId, function(stats) {
+                    $btn.prop('disabled', false).text('Start Sync');
+                    showResults(stats, false);
+                    $('#stock-sync-apply').hide();
+                });
             },
             error: function() {
                 alert('Sync init network error');
@@ -103,10 +187,9 @@
         });
     }
 
-    function runBatches(filePath, distributor, dryRun, total, current, stats, $btn, runId) {
+    function runBatches(filePath, distributor, dryRun, total, current, stats, $btn, runId, onComplete) {
         if (current >= total) {
-            showResults(stats, dryRun);
-            $btn.prop('disabled', false).text('Start Sync');
+            onComplete(stats);
             return;
         }
 
@@ -134,18 +217,18 @@
                     stats.not_found += r.not_found;
                     stats.errors += r.errors;
                     stats.details = stats.details.concat(r.details);
-                    runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn, runId);
+                    runBatches(filePath, distributor, dryRun, total, current + 1, stats, $btn, runId, onComplete);
                 } else {
                     stats.errors += 50; // Assume full batch error
-                    showResults(stats, dryRun);
-                    $btn.prop('disabled', false).text('Start Sync');
+                    onComplete(stats);
+                    $btn.prop('disabled', false);
                     alert('Batch failed: ' + (response.data || 'Unknown server error'));
                 }
             },
             error: function() {
                 stats.errors += 50; // Assume full batch error
-                showResults(stats, dryRun);
-                $btn.prop('disabled', false).text('Start Sync');
+                onComplete(stats);
+                $btn.prop('disabled', false);
                 alert('Sync stopped: network/transport error');
             }
         });
@@ -160,8 +243,11 @@
         $('#res-notfound').text(stats.not_found);
         $('#res-errors').text(stats.errors);
 
+        var title = dryRun ? 'Scan Preview' : 'Sync Results';
+        $('#stock-sync-results-title').text(title);
+
         var modeLabel = dryRun ? 'Would Update' : 'Updated';
-        $('#res-updated').prev().text(modeLabel);
+        $('#res-updated-label').text(modeLabel);
 
         var html = '<table class="widefat striped"><thead><tr><th>Ref</th><th>Name</th><th>Status</th></tr></thead><tbody>';
         stats.details.slice(0, 100).forEach(function(d) {
@@ -227,6 +313,8 @@
                     alert('Analysis failed: ' + response.data);
                     return;
                 }
+
+                showWarnings('#stock-bootstrap-form', response.data.warnings);
 
                 renderBootstrapTable(response.data.matches, response.data.total_xlsx, response.data.total_wc, response.data.category_filter);
             },

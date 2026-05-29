@@ -50,10 +50,10 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 	}
 
 	public function test_is_product_row_with_invalid_ref() {
-		$this->assertFalse($this->distributor->is_product_row([1 => '123']));
-		$this->assertFalse($this->distributor->is_product_row([1 => 'aB123']));
 		$this->assertFalse($this->distributor->is_product_row([1 => '']));
-		$this->assertFalse($this->distributor->is_product_row([1 => 'A1']));
+		$this->assertFalse($this->distributor->is_product_row([1 => 'Włochy']));
+		$this->assertFalse($this->distributor->is_product_row([1 => 'Francja']));
+		$this->assertFalse($this->distributor->is_product_row([1 => 'Antinori']));
 	}
 
 	/**
