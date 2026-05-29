@@ -204,6 +204,19 @@ class StockSync_XLSX_Parser {
             $string_index = (int) $cell->v;
             return isset($shared_strings[$string_index]) ? $shared_strings[$string_index] : '';
         }
+        if ($cell_type === 'inlineStr') {
+            if (isset($cell->is->t)) {
+                return (string) $cell->is->t;
+            }
+            if (isset($cell->is->r)) {
+                $text = '';
+                foreach ($cell->is->r as $run) {
+                    $text .= (string) $run->t;
+                }
+                return $text;
+            }
+            return '';
+        }
         return isset($cell->v) ? (string) $cell->v : '';
     }
 
