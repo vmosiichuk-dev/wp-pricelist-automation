@@ -107,7 +107,7 @@ abstract class StockSync_Distributor {
 	 * @return string
 	 */
 	public function get_unavailable_suffix($product_id = 0, $category_url = null) {
-		$link_text = esc_html(__('Wina ' . $this->get_name(), 'stock-sync'));
+		$link_text = sprintf(__('Wina %s', 'stock-sync'), $this->get_name());
 
 		if ($category_url) {
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
