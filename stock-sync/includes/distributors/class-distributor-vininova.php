@@ -56,10 +56,14 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
     }
 
     /**
-     * Determine if a parsed row represents a real product.
+     * Determine whether a parsed row represents a product row.
      *
-     * @param array $row_data One-indexed row array from parser.
-     * @return bool
+     * Uses the trimmed value of column A (one-indexed $row_data[1]). Returns false for empty values
+     * and for rows whose column A consists only of letters and whitespace and is longer than 5
+     * characters (treated as section headers such as country or producer names).
+     *
+     * @param array $row_data One-indexed row array from parser; column A is $row_data[1].
+     * @return bool `true` if the row represents a product, `false` otherwise.
      */
     public function is_product_row($row_data) {
         $ref = isset($row_data[1]) ? trim($row_data[1]) : '';
@@ -92,16 +96,18 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
     }
 
     /**
-     * Bootstrap only against Vininova wine category
+     * Provide the category filter used to select Vininova products.
+     *
+     * @return string The category filter string "A - Oferta Vininova".
      */
     public function get_category_filter() {
         return 'A - Oferta Vininova';
     }
 
     /**
-     * Return expected header column labels for auto-detection.
+     * Provide expected header column labels used for auto-detection.
      *
-     * @return array
+     * @return string[] Array of expected header labels in worksheet order: 'NR_REF', 'STR. W KAT.'.
      */
     public function get_header_labels() {
         return ['NR_REF', 'STR. W KAT.'];

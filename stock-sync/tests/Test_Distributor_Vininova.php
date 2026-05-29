@@ -49,6 +49,11 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		$this->assertTrue($this->distributor->is_product_row([1 => 'XY999']));
 	}
 
+	/**
+	 * Verifies that is_product_row() rejects rows whose distributor reference is not a valid product reference.
+	 *
+	 * Asserts the method returns `false` for an empty string and for non-reference values such as country or producer names (e.g. "Włochy", "Francja", "Antinori").
+	 */
 	public function test_is_product_row_with_invalid_ref() {
 		$this->assertFalse($this->distributor->is_product_row([1 => '']));
 		$this->assertFalse($this->distributor->is_product_row([1 => 'Włochy']));

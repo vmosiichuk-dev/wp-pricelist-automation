@@ -4,11 +4,22 @@
 (function($) {
     'use strict';
 
+    /**
+     * Get the distributor slug from the current page URL.
+     *
+     * Looks for the `distributor` query parameter and falls back to `'vininova'` when absent.
+     * @returns {string} The distributor slug from the `distributor` URL parameter, or `'vininova'` if not present.
+     */
     function getDistributorSlug() {
         var params = new URLSearchParams(window.location.search);
         return params.get('distributor') || 'vininova';
     }
 
+    /**
+     * Display warning notice(s) adjacent to a given container, replacing any existing warning.
+     * @param {string|HTMLElement|jQuery} containerSelector - Selector, DOM element, or jQuery object identifying the container before which the warning should be inserted.
+     * @param {string[]|null|undefined} warnings - Array of warning messages; when non-empty the messages are joined with a space, HTML-escaped, and rendered in a warning notice. If falsy or empty, no notice is inserted.
+     */
     function showWarnings(containerSelector, warnings) {
         $(containerSelector).siblings('.stock-sync-warning').remove();
         if (warnings && warnings.length) {
@@ -17,7 +28,12 @@
         }
     }
 
-    // ===== UTILS =====
+    /**
+     * Uploads the first selected XLSX file via AJAX and forwards the server response to the provided callbacks.
+     * @param {HTMLInputElement} fileInput - File input element; its first selected file is sent as `xlsx_file`.
+     * @param {function(Object):void} onSuccess - Called with `response.data` when the server responds with success.
+     * @param {function(string|Object):void} onError - Called with an error message or response data when upload or network errors occur.
+     */
 
     function uploadFile(fileInput, onSuccess, onError) {
         var formData = new FormData();
@@ -76,6 +92,14 @@
         });
     });
 
+    /**
+     * Initiates a dry-run stock scan for an uploaded XLSX file, runs server-side batches to collect scan statistics, and renders the scan results.
+     *
+     * On completion the function displays warnings (if any), updates the UI with scan statistics and details, and shows the "Apply" control when the scan indicates there are updates to perform; if no updates are found it hides the apply control and appends an informational message. Network or server failures surface an alert and re-enable the provided button.
+     *
+     * @param {string} filePath - Server path to the uploaded XLSX file to scan.
+     * @param {jQuery} $btn - jQuery button element that will be disabled while the scan runs and re-enabled afterwards; its text is also updated to reflect the current action.
+     */
     function startScan(filePath, $btn) {
         var distributor = getDistributorSlug();
 
@@ -144,6 +168,12 @@
         runActualSync(currentSyncFilePath, $btn);
     });
 
+    /**
+     * Start a real (non-dry-run) stock synchronization for the given uploaded file.
+     *
+     * @param {string} filePath - Server path to the uploaded XLSX file to sync.
+     * @param {jQuery} $btn - jQuery-wrapped button element that will be re-enabled and have its label updated when the sync completes or fails.
+     */
     function runActualSync(filePath, $btn) {
         var distributor = getDistributorSlug();
 
@@ -187,6 +217,22 @@
         });
     }
 
+    /**
+     * Process sync batches for a file by sending repeated AJAX batch requests and aggregating the results.
+     *
+     * Updates the progress UI while iterating through batches; on completion (all batches processed or on error)
+     * invokes `onComplete` with the aggregated `stats`.
+     *
+     * @param {string} filePath - Path to the uploaded XLSX file on the server.
+     * @param {string} distributor - Distributor slug used for the server request.
+     * @param {boolean} dryRun - If true, runs a preview scan; if false, performs the actual sync.
+     * @param {number} total - Total number of batches to process.
+     * @param {number} current - Zero-based index of the batch to process next.
+     * @param {Object} stats - Aggregated statistics object; expected properties: `processed`, `updated`, `not_found`, `errors`, `details` (array). This object is mutated in place.
+     * @param {jQuery} $btn - jQuery-wrapped button element that will be re-enabled if a fatal error occurs.
+     * @param {string|number} runId - Identifier for the server-side run/session.
+     * @param {function(Object):void} onComplete - Callback invoked with the final `stats` when processing finishes or stops due to an error.
+     */
     function runBatches(filePath, distributor, dryRun, total, current, stats, $btn, runId, onComplete) {
         if (current >= total) {
             onComplete(stats);
@@ -234,6 +280,22 @@
         });
     }
 
+    /**
+     * Render stock sync summary and detail rows into the admin UI.
+     *
+     * Updates result counters, result title, updated-label text, and injects a table of up to the first 100 detail rows (with an overflow row if more exist).
+     *
+     * @param {Object} stats - Aggregated statistics and detail items from a sync run.
+     * @param {number} stats.processed - Total items processed.
+     * @param {number} stats.updated - Total items that would be or were updated.
+     * @param {number} stats.not_found - Total items not found.
+     * @param {number} stats.errors - Total errors encountered.
+     * @param {Array<Object>} stats.details - Detail entries for individual items.
+     * @param {string} stats.details[].distributor_ref - Distributor reference for the item.
+     * @param {string} stats.details[].name - Item name from the XLSX.
+     * @param {string} stats.details[].status - Item status (e.g., 'updated', 'would_update', 'not_found', etc.).
+     * @param {boolean} dryRun - When true, renders a scan preview and uses the "Would Update" label; when false, renders actual sync results and "Updated" label.
+     */
     function showResults(stats, dryRun) {
         $('#stock-sync-progress').hide();
         $('#stock-sync-results').show();
@@ -293,6 +355,15 @@
         });
     });
 
+    /**
+     * Request server-side analysis of the uploaded XLSX file and render bootstrap match results and warnings.
+     *
+     * Sends an AJAX request to analyze the provided file for bootstrap matching; on success it displays any
+     * server-provided warnings and renders the matches table. On failure it resets the UI and shows an alert.
+     *
+     * @param {string} filePath - Path to the uploaded XLSX file to be analyzed.
+     * @param {jQuery} $btn - jQuery button element that will be re-enabled and have its label reset when the request completes or fails.
+     */
     function analyzeBootstrap(filePath, $btn) {
         var distributor = getDistributorSlug();
 

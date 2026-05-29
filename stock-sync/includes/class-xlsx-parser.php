@@ -22,16 +22,22 @@ class StockSync_XLSX_Parser {
     }
 
     /**
-     * Get unrecognized availability values encountered during parsing.
+     * Retrieve distinct availability strings encountered during parsing that the distributor did not mark as unavailable.
      *
-     * @return array
+     * @return string[] An array of distinct availability strings recorded during parsing.
      */
     public function get_unrecognized_availability() {
         return array_keys($this->unrecognized_availability);
     }
 
     /**
-     * Parse the XLSX and return an array of StockSync_Standard_Product objects
+     * Parse the XLSX file and extract product rows into StockSync_Standard_Product objects.
+     *
+     * Populates the parser's unrecognized availability map with any non-empty availability
+     * strings that the distributor does not classify as unavailable.
+     *
+     * @return StockSync_Standard_Product[]|WP_Error Array of product objects on success, or a WP_Error on failure
+     *         (e.g., cannot open file, invalid XML, header not found, or no products found).
      */
     public function parse() {
         $zip = new ZipArchive();
@@ -164,8 +170,13 @@ class StockSync_XLSX_Parser {
     }
 
     /**
-     * Extract shared strings from XLSX
-     */
+         * Load the workbook's shared strings from the XLSX ZIP and return them as an indexed array.
+         *
+         * Reads xl/sharedStrings.xml from the given ZIP archive and extracts each shared string.
+         *
+         * @param ZipArchive $zip ZIP archive instance opened for the XLSX file.
+         * @return string[]|WP_Error An indexed array of shared strings if present; an empty array if the shared strings part is missing; or a WP_Error with code `parse_error` when the shared strings XML cannot be parsed.
+         */
     private function get_shared_strings($zip) {
         $strings_xml = $zip->getFromName('xl/sharedStrings.xml');
         if (!$strings_xml) {
@@ -195,7 +206,11 @@ class StockSync_XLSX_Parser {
     }
 
     /**
-     * Read the value of a single cell, handling shared strings.
+     * Retrieve the textual value of a worksheet cell, resolving shared-string references.
+     *
+     * @param SimpleXMLElement $cell Cell XML element from the worksheet.
+     * @param string[] $shared_strings Array of shared strings indexed by position.
+     * @return string The cell text, or an empty string if the cell is empty or the shared-string index is not found.
      */
     private function get_cell_value($cell, $shared_strings) {
         $cell_type = (string) $cell['t'];

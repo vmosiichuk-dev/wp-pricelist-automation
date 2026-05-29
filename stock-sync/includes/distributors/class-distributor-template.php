@@ -61,15 +61,14 @@ class StockSync_Distributor_Template extends StockSync_Distributor {
     }
 
     /**
-     * Determine if a parsed row represents a real product
+     * Determine whether a parsed row represents a product row.
      *
-     * Return false for:
-     *   - Region/producer headers
-     *   - Empty rows
-     *   - Totals/summary rows
+     * Evaluates the value in column 1 (reference) and returns false for empty references
+     * or for references made up only of letters and whitespace longer than five characters
+     * (typical section/producer/header rows).
      *
-     * @param array $row_data Zero-indexed row array from parser (keys are 1-based column indices)
-     * @return bool
+     * @param array $row_data Row data array where keys are 1-based column indices.
+     * @return bool `true` if the row appears to be a product row, `false` otherwise.
      */
     public function is_product_row($row_data) {
         $ref = isset($row_data[1]) ? trim($row_data[1]) : '';
