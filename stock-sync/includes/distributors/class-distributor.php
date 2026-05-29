@@ -69,6 +69,16 @@ abstract class StockSync_Distributor {
 	}
 
 	/**
+	 * Return expected header column labels for auto-detection.
+	 * Return empty array to disable auto-detection and use get_header_row() directly.
+	 *
+	 * @return array
+	 */
+	public function get_header_labels() {
+		return [];
+	}
+
+	/**
 	 * Return the cached category URL for this distributor's wine category.
 	 * Only performs the WordPress lookup once per distributor instance.
 	 *

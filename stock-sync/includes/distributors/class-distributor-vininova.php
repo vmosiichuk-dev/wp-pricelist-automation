@@ -62,8 +62,15 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
      * @return bool
      */
     public function is_product_row($row_data) {
-        $nr_ref = isset($row_data[1]) ? $row_data[1] : '';
-        return (bool) preg_match('/^[A-Z]{2}/', $nr_ref);
+        $ref = isset($row_data[1]) ? trim($row_data[1]) : '';
+        if (empty($ref)) {
+            return false;
+        }
+        // Reject section headers (country/producer names) that are pure text and long.
+        if (preg_match('/^[\p{L}\s]+$/u', $ref) && mb_strlen($ref) > 5) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -89,5 +96,14 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
      */
     public function get_category_filter() {
         return 'A - Oferta Vininova';
+    }
+
+    /**
+     * Return expected header column labels for auto-detection.
+     *
+     * @return array
+     */
+    public function get_header_labels() {
+        return ['NR_REF', 'STR. W KAT.'];
     }
 }

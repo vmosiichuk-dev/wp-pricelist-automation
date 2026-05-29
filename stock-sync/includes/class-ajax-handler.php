@@ -102,6 +102,22 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($products->get_error_message());
         }
 
+        $warnings = [];
+        $unrecognized = $parser->get_unrecognized_availability();
+        if (!empty($unrecognized)) {
+            $warnings[] = sprintf(
+                /* translators: 1: count, 2: comma-separated list */
+                _n(
+                    'Warning: unrecognized availability value found: %2$s. These products were treated as available.',
+                    'Warning: unrecognized availability values found (%1$d): %2$s. These products were treated as available.',
+                    count($unrecognized),
+                    'stock-sync'
+                ),
+                count($unrecognized),
+                implode(', ', $unrecognized)
+            );
+        }
+
         $to_process = [];
         foreach ($products as $product) {
             if ($product->is_unavailable) {
@@ -122,6 +138,7 @@ class StockSync_AJAX_Handler {
             'total_items'   => count($to_process),
             'dry_run'       => $dry_run,
             'run_id'        => $run_id,
+            'warnings'      => $warnings,
         ]);
     }
 
@@ -276,6 +293,22 @@ class StockSync_AJAX_Handler {
             wp_send_json_error($products->get_error_message());
         }
 
+        $warnings = [];
+        $unrecognized = $parser->get_unrecognized_availability();
+        if (!empty($unrecognized)) {
+            $warnings[] = sprintf(
+                /* translators: 1: count, 2: comma-separated list */
+                _n(
+                    'Warning: unrecognized availability value found: %2$s. These products were treated as available.',
+                    'Warning: unrecognized availability values found (%1$d): %2$s. These products were treated as available.',
+                    count($unrecognized),
+                    'stock-sync'
+                ),
+                count($unrecognized),
+                implode(', ', $unrecognized)
+            );
+        }
+
         $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $category  = $distributor->get_category_filter();
         $wc_products = $bootstrap->get_all_wc_products($category);
@@ -286,6 +319,7 @@ class StockSync_AJAX_Handler {
             'total_xlsx'      => count($products),
             'total_wc'        => count($wc_products),
             'category_filter' => $category,
+            'warnings'        => $warnings,
         ]);
     }
 

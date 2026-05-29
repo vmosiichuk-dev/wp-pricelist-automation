@@ -18,24 +18,11 @@ $upload_url = admin_url('admin-post.php');
                     <input type="file" name="xlsx_file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
                 </td>
             </tr>
-            <tr>
-                <th scope="row"><?php _e('Mode', 'stock-sync'); ?></th>
-                <td>
-                    <label>
-                        <input type="radio" name="sync_mode" value="preview" checked />
-                        <?php _e('Preview (dry-run)', 'stock-sync'); ?>
-                    </label><br/>
-                    <label>
-                        <input type="radio" name="sync_mode" value="apply" />
-                        <?php _e('Apply Changes', 'stock-sync'); ?>
-                    </label>
-                </td>
-            </tr>
         </table>
 
         <p class="submit">
-            <button type="submit" class="button button-primary" id="stock-sync-start">
-                <?php _e('Start Sync', 'stock-sync'); ?>
+            <button type="submit" class="button button-primary" id="stock-sync-upload">
+                <?php _e('Upload & Scan', 'stock-sync'); ?>
             </button>
         </p>
     </form>
@@ -48,15 +35,21 @@ $upload_url = admin_url('admin-post.php');
     </div>
 
     <div id="stock-sync-results" class="stock-results" style="display:none;">
-        <h3><?php _e('Sync Results', 'stock-sync'); ?></h3>
+        <h3 id="stock-sync-results-title"><?php _e('Scan Preview', 'stock-sync'); ?></h3>
         <table class="widefat">
             <tbody>
                 <tr><td><?php _e('Total Processed', 'stock-sync'); ?></td><td id="res-total">0</td></tr>
-                <tr><td><?php _e('Updated', 'stock-sync'); ?></td><td id="res-updated">0</td></tr>
+                <tr><td id="res-updated-label"><?php _e('Would Update', 'stock-sync'); ?></td><td id="res-updated">0</td></tr>
                 <tr><td><?php _e('Not Found', 'stock-sync'); ?></td><td id="res-notfound">0</td></tr>
                 <tr><td><?php _e('Errors', 'stock-sync'); ?></td><td id="res-errors">0</td></tr>
             </tbody>
         </table>
         <div id="res-details"></div>
+
+        <p class="submit">
+            <button type="button" class="button button-primary" id="stock-sync-apply" style="display:none;">
+                <?php _e('Start Sync', 'stock-sync'); ?>
+            </button>
+        </p>
     </div>
 </div>

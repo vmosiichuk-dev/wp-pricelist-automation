@@ -14,7 +14,7 @@ if (!defined('STOCK_SYNC_PLUGIN_URL')) {
     define('STOCK_SYNC_PLUGIN_URL', 'http://example.com/wp-content/plugins/stock-sync/');
 }
 if (!defined('STOCK_SYNC_VERSION')) {
-    define('STOCK_SYNC_VERSION', '1.0.0');
+    define('STOCK_SYNC_VERSION', '0.3.0');
 }
 if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);
