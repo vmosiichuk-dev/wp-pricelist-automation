@@ -34,6 +34,7 @@ class StockSync_XLSX_Parser {
      * Parse the XLSX and return an array of StockSync_Standard_Product objects
      */
     public function parse() {
+        $this->unrecognized_availability = [];
         $zip = new ZipArchive();
         if ($zip->open($this->file_path) !== true) {
             return new WP_Error('parse_error', __('Cannot open XLSX file', 'stock-sync'));

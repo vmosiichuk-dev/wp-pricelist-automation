@@ -92,6 +92,7 @@
             success: function(response) {
                 if (!response.success) {
                     alert('Scan failed: ' + response.data);
+                    $('#stock-sync-progress').hide();
                     $btn.prop('disabled', false).text('Upload & Scan');
                     return;
                 }
@@ -120,6 +121,7 @@
             },
             error: function() {
                 alert('Scan network error');
+                $('#stock-sync-progress').hide();
                 $btn.prop('disabled', false).text('Upload & Scan');
             }
         });
@@ -160,6 +162,7 @@
             success: function(response) {
                 if (!response.success) {
                     alert('Sync init failed: ' + response.data);
+                    $('#stock-sync-progress').hide();
                     $btn.prop('disabled', false).text('Start Sync');
                     return;
                 }
@@ -182,6 +185,7 @@
             },
             error: function() {
                 alert('Sync init network error');
+                $('#stock-sync-progress').hide();
                 $btn.prop('disabled', false).text('Start Sync');
             }
         });

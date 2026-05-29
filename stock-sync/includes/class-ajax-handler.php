@@ -114,7 +114,7 @@ class StockSync_AJAX_Handler {
                     'stock-sync'
                 ),
                 count($unrecognized),
-                implode(', ', array_map('esc_html', $unrecognized))
+                implode(', ', $unrecognized)
             );
         }
 
@@ -305,7 +305,7 @@ class StockSync_AJAX_Handler {
                     'stock-sync'
                 ),
                 count($unrecognized),
-                implode(', ', array_map('esc_html', $unrecognized))
+                implode(', ', $unrecognized)
             );
         }
 
