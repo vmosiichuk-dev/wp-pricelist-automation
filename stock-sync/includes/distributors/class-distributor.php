@@ -107,12 +107,13 @@ abstract class StockSync_Distributor {
 	 * @return string
 	 */
 	public function get_unavailable_suffix($product_id = 0, $category_url = null) {
-		$link_text = 'Wina ' . $this->get_name();
+		$link_text = esc_html(__('Wina ' . $this->get_name(), 'stock-sync'));
 
 		if ($category_url) {
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
-				'Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!',
+				/* translators: %s: link to category */
+				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
 				$link
 			);
 		}
@@ -122,11 +123,12 @@ abstract class StockSync_Distributor {
 		if ($category_url) {
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
-				'Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!',
+				/* translators: %s: link to category */
+				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
 				$link
 			);
 		}
 
-		return 'Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!';
+		return __('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!', 'stock-sync');
 	}
 }

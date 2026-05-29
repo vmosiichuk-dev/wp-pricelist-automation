@@ -16,6 +16,7 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		parent::setUp();
 		Monkey\setUp();
 		Functions\stubEscapeFunctions();
+		Functions\stubTranslationFunctions();
 		$this->distributor = new StockSync_Distributor_Vininova();
 	}
 
@@ -126,7 +127,7 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		$fakeTerm->term_id = 99;
 
 		$callCount = 0;
-		Functions\when('get_term_by')->alias(function () use (&$callCount) {
+		Functions\when('get_term_by')->alias(function () use (&$callCount, $fakeTerm) {
 			$callCount++;
 			return $fakeTerm;
 		});

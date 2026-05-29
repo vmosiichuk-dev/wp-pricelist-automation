@@ -29,7 +29,7 @@ class StockSync_Product_Updater {
 		$wc_product = wc_get_product($product_id);
 
 		if (!$wc_product) {
-			return new WP_Error('product_not_found', __('Product not found: ', 'stock-sync') . $product_id);
+			return new WP_Error('product_not_found', sprintf(__('Product not found: %d', 'stock-sync'), $product_id));
 		}
 
 		$old_visibility = $wc_product->get_catalog_visibility();
@@ -64,10 +64,18 @@ class StockSync_Product_Updater {
 		// 6. Update slug AFTER save to prevent WooCommerce from reverting it
 		$new_slug = sanitize_title($new_name);
 		if ($new_slug !== $old_slug) {
-			wp_update_post([
+			$result = wp_update_post([
 				'ID'        => $product_id,
 				'post_name' => $new_slug,
 			]);
+
+			if (is_wp_error($result)) {
+				return $result;
+			}
+
+			if (!$result) {
+				return new WP_Error('slug_update_failed', __('Failed to update product slug.', 'stock-sync'));
+			}
 		}
 
 		// 7. Log

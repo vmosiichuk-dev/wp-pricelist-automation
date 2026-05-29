@@ -98,6 +98,10 @@ class StockSync_Product_Meta {
             return;
         }
 
+        if (!check_admin_referer('woocommerce_save_data', 'woocommerce_meta_nonce')) {
+            return;
+        }
+
         $registry     = StockSync_Distributor_Registry::instance();
         $distributors = $registry->get_all();
 
