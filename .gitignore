@@ -1,4 +1,5 @@
 .idea/
+.opencode/
 .DS_Store
 
 # Wordpress - ignore core, configuration, examples, uploads and logs.
