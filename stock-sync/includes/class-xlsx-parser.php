@@ -62,7 +62,7 @@ class StockSync_XLSX_Parser {
         $row_index = 0;
         $col_map   = $this->distributor->get_column_map();
 
-        $expected_labels = $this->distributor->get_effective_header_labels();
+        $expected_labels = array_map([$this, 'clean_value'], $this->distributor->get_effective_header_labels());
         $header_found    = empty($expected_labels);
         $header_row_num  = $this->distributor->get_header_row();
         $max_scan_rows   = 20;

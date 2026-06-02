@@ -328,29 +328,36 @@ class StockSync_AJAX_Handler {
         $unmapped    = [];
         $already_mapped_items = [];
 
-        foreach ($products as $product) {
-            $existing = get_posts([
-                'post_type'      => 'product',
-                'posts_per_page' => 1,
-                'fields'         => 'ids',
-                'meta_query'     => [
-                    [
-                        'key'     => $meta_key,
-                        'value'   => $product->distributor_ref,
-                        'compare' => '=',
-                    ],
+        // Preload all mapped products in a single query to avoid N+1
+        $all_refs = array_map(fn($p) => $p->distributor_ref, $products);
+        $existing_posts = get_posts([
+            'post_type'      => 'product',
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                [
+                    'key'     => $meta_key,
+                    'value'   => $all_refs,
+                    'compare' => 'IN',
                 ],
-                'no_found_rows' => true,
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-            ]);
+            ],
+            'no_found_rows'          => true,
+            'update_post_term_cache' => false,
+        ]);
 
-            if (!empty($existing)) {
-                $wc_product = wc_get_product($existing[0]);
+        $ref_map = [];
+        foreach ($existing_posts as $post) {
+            $ref = get_post_meta($post->ID, $meta_key, true);
+            $ref_map[$ref] = (int) $post->ID;
+        }
+
+        foreach ($products as $product) {
+            if (isset($ref_map[$product->distributor_ref])) {
+                $post_id    = $ref_map[$product->distributor_ref];
+                $wc_product = wc_get_product($post_id);
                 $already_mapped_items[] = [
                     'distributor_ref' => $product->distributor_ref,
                     'xlsx_name'       => $product->product_name,
-                    'wc_id'           => $existing[0],
+                    'wc_id'           => $post_id,
                     'wc_name'         => $wc_product ? $wc_product->get_name() : '',
                     'wc_sku'          => $wc_product ? $wc_product->get_sku() : '',
                     'confidence'      => 100,

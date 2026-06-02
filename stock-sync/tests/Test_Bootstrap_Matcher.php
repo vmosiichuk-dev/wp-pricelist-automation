@@ -77,6 +77,7 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		$xlsx = 'Domus Riserva';
 		$wc   = 'Selection Nova Domus Terlaner Cuvee Riserva Alto Adige DOC';
 		$this->assertSame(85, $this->matcher->calculate_confidence($xlsx, $wc));
+		$this->assertSame(85, $this->matcher->calculate_confidence($wc, $xlsx));
 	}
 
 	/**
