@@ -47,7 +47,7 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
      */
     public function get_column_map() {
         return [
-            'distributor_ref' => 1,  // Column A: NR_REF
+            'distributor_ref' => 1,  // Column A: NR REF
             'ean'             => 2,  // Column B: KOD_KRESKOWY
             'availability'    => 3,  // Column C
             'product_name'    => 4,  // Column D
@@ -92,6 +92,34 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
     }
 
     /**
+     * Recognize stock counts, category markers and "new" labels so they
+     * are not reported as unrecognized availability values.
+     *
+     * @param string $value Raw availability string.
+     * @return bool
+     */
+    public function is_known_availability($value) {
+        $normalized = mb_strtolower(trim($value));
+
+        // Pure numeric stock counts (e.g. "7", "308")
+        if (preg_match('/^\d+$/', $normalized)) {
+            return true;
+        }
+
+        // "nowość" by itself or with a leading number (e.g. "244 nowość", "309 nowość")
+        if (preg_match('/^(\d+\s+)?nowość$/u', $normalized)) {
+            return true;
+        }
+
+        // Category / brand marker that appears in the availability column
+        if ($normalized === 'vini natural') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Bootstrap only against Vininova wine category
      */
     public function get_category_filter() {
@@ -104,6 +132,6 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
      * @return array
      */
     public function get_header_labels() {
-        return ['NR_REF', 'STR. W KAT.'];
+        return ['NR REF', 'STR. W KAT.'];
     }
 }
