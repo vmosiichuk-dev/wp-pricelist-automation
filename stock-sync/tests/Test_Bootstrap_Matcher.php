@@ -70,6 +70,16 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Verifies that all words from the shorter name appearing in the longer name
+	 * (in any order) returns 85.
+	 */
+	public function test_calculate_confidence_word_set_containment() {
+		$xlsx = 'Domus Riserva';
+		$wc   = 'Selection Nova Domus Terlaner Cuvee Riserva Alto Adige DOC';
+		$this->assertSame(85, $this->matcher->calculate_confidence($xlsx, $wc));
+	}
+
+	/**
 	 * Verifies that calculating confidence for two strings with an 80% token overlap
 	 * (Jaccard similarity) returns 80.
 	 */
@@ -112,10 +122,10 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		$method = new ReflectionMethod(StockSync_Bootstrap_Matcher::class, 'get_status_from_confidence');
 
 		$this->assertSame('auto', $method->invoke($this->matcher, 100));
-		$this->assertSame('auto', $method->invoke($this->matcher, 95));
-		$this->assertSame('suggest', $method->invoke($this->matcher, 80));
+		$this->assertSame('auto', $method->invoke($this->matcher, 90));
+		$this->assertSame('suggest', $method->invoke($this->matcher, 89));
 		$this->assertSame('suggest', $method->invoke($this->matcher, 70));
-		$this->assertSame('manual', $method->invoke($this->matcher, 60));
+		$this->assertSame('manual', $method->invoke($this->matcher, 69));
 		$this->assertSame('manual', $method->invoke($this->matcher, 0));
 	}
 

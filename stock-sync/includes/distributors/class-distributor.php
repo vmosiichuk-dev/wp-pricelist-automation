@@ -8,6 +8,13 @@ abstract class StockSync_Distributor {
 	private $category_url_cache = null;
 
 	/**
+	 * Custom header labels set from the UI before scanning.
+	 *
+	 * @var array
+	 */
+	private $custom_header_labels = [];
+
+	/**
 	 * Human-readable distributor name
 	 */
 	abstract public function get_name();
@@ -52,6 +59,17 @@ abstract class StockSync_Distributor {
 	abstract public function is_unavailable($value);
 
 	/**
+	 * Determine if an availability value is a known indicator (available, new, stock count, etc.)
+	 * and should NOT be tracked as unrecognized.
+	 *
+	 * @param string $value Raw availability string from XLSX
+	 * @return bool
+	 */
+	public function is_known_availability($value) {
+		return false;
+	}
+
+	/**
 	 * Get the meta key used to store supplier reference on WC products
 	 */
 	public function get_meta_key() {
@@ -76,6 +94,29 @@ abstract class StockSync_Distributor {
 	 */
 	public function get_header_labels() {
 		return [];
+	}
+
+	/**
+	 * Set custom header labels to override get_header_labels() during scanning.
+	 *
+	 * @param array $labels Array of header label strings.
+	 * @return void
+	 */
+	public function set_header_labels(array $labels) {
+		$this->custom_header_labels = $labels;
+	}
+
+	/**
+	 * Return the effective header labels for scanning.
+	 * Uses custom labels when set via the UI, otherwise falls back to get_header_labels().
+	 *
+	 * @return array
+	 */
+	public function get_effective_header_labels() {
+		if (!empty($this->custom_header_labels)) {
+			return $this->custom_header_labels;
+		}
+		return $this->get_header_labels();
 	}
 
 	/**

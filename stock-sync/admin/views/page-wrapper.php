@@ -29,10 +29,6 @@
            class="nav-tab <?php echo $active_tab === 'test' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Test Product', 'stock-sync'); ?>
         </a>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=stock-sync&tab=bootstrap&distributor=' . $current_dist)); ?>"
-           class="nav-tab <?php echo $active_tab === 'bootstrap' ? 'nav-tab-active' : ''; ?>">
-            <?php _e('Bootstrap Mapping', 'stock-sync'); ?>
-        </a>
         <a href="<?php echo esc_url(admin_url('admin.php?page=stock-sync&tab=log&distributor=' . $current_dist)); ?>"
            class="nav-tab <?php echo $active_tab === 'log' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Sync Log', 'stock-sync'); ?>
@@ -42,10 +38,9 @@
     <div class="stock-tab-content">
         <?php
         $allowed_tabs = [
-            'sync'      => 'tab-sync.php',
-            'test'      => 'tab-test.php',
-            'bootstrap' => 'tab-bootstrap.php',
-            'log'       => 'tab-log.php',
+            'sync' => 'tab-sync.php',
+            'test' => 'tab-test.php',
+            'log'  => 'tab-log.php',
         ];
         $view_file = isset($allowed_tabs[$active_tab]) ? $allowed_tabs[$active_tab] : 'tab-sync.php';
         include STOCK_SYNC_PLUGIN_DIR . 'admin/views/' . $view_file;

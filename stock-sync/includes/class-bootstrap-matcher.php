@@ -55,8 +55,8 @@ class StockSync_Bootstrap_Matcher {
             return 90;
         }
 
-        $xlsx_words = array_filter(explode(' ', $norm_xlsx));
-        $wc_words   = array_filter(explode(' ', $norm_wc));
+        $xlsx_words = array_values(array_filter(explode(' ', $norm_xlsx)));
+        $wc_words   = array_values(array_filter(explode(' ', $norm_wc)));
 
         if (empty($xlsx_words) || empty($wc_words)) {
             return 0;
@@ -71,6 +71,14 @@ class StockSync_Bootstrap_Matcher {
         }
         if ($jaccard >= 0.6) {
             return 60;
+        }
+
+        // Tier 2b: all words from the shorter name appear in the longer name (any order)
+        $short_words = count($xlsx_words) <= count($wc_words) ? $xlsx_words : $wc_words;
+        $long_words  = count($xlsx_words) <= count($wc_words) ? $wc_words : $xlsx_words;
+        $short_in_long = count(array_intersect($short_words, $long_words));
+        if ($short_in_long === count($short_words)) {
+            return 85;
         }
 
         if (strlen($norm_xlsx) < 100 && strlen($norm_wc) < 100) {
@@ -122,9 +130,13 @@ class StockSync_Bootstrap_Matcher {
 
     /**
      * Translate confidence to status label
+     *
+     * >= 90: auto (silent, pre-checked)
+     * 70-89: suggest (shown in review table, unchecked)
+     * < 70: manual (shown in unmatched section)
      */
     private function get_status_from_confidence($score) {
-        if ($score >= 95) {
+        if ($score >= 90) {
             return 'auto';
         }
         if ($score >= 70) {

@@ -180,7 +180,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '        <row r="8"/>' . "\n" .
             '        <row r="9"/>' . "\n" .
             '        <row r="10">' . "\n" .
-            '            <c r="A10"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A10"><v>NR REF</v></c>' . "\n" .
             '            <c r="B10"><v>KOD_KRESKOWY</v></c>' . "\n" .
             '            <c r="C10"><v>STR. W KAT.</v></c>' . "\n" .
             '            <c r="D10"><v>NAZWA</v></c>' . "\n" .
@@ -252,7 +252,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '        <row r="2"/>' . "\n" .
             '        <row r="3"/>' . "\n" .
             '        <row r="4">' . "\n" .
-            '            <c r="A4"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A4"><v>NR REF</v></c>' . "\n" .
             '            <c r="B4"><v>KOD_KRESKOWY</v></c>' . "\n" .
             '            <c r="C4"><v>STR. W KAT.</v></c>' . "\n" .
             '            <c r="D4"><v>NAZWA</v></c>' . "\n" .
@@ -369,7 +369,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
             '    <sheetData>' . "\n" .
             '        <row r="1">' . "\n" .
-            '            <c r="A1"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A1"><v>NR REF</v></c>' . "\n" .
             '            <c r="C1"><v>STR. W KAT.</v></c>' . "\n" .
             '        </row>' . "\n" .
             '        <row r="2">' . "\n" .
@@ -427,7 +427,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
             '    <sheetData>' . "\n" .
             '        <row r="1">' . "\n" .
-            '            <c r="A1"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A1"><v>NR REF</v></c>' . "\n" .
             '            <c r="C1"><v>STR. W KAT.</v></c>' . "\n" .
             '        </row>' . "\n" .
             '        <row r="2">' . "\n" .

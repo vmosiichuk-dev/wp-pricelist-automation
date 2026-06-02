@@ -21,6 +21,7 @@ class StockSync_AJAX_Handler {
         add_action('wp_ajax_stock_sync_batch', [$this, 'process_batch']);
         add_action('wp_ajax_stock_sync_bootstrap_analyze', [$this, 'bootstrap_analyze']);
         add_action('wp_ajax_stock_sync_bootstrap_save', [$this, 'bootstrap_save']);
+        add_action('wp_ajax_stock_sync_filter_queue', [$this, 'filter_queue']);
         add_action('wp_ajax_stock_sync_test_search', [$this, 'test_search']);
         add_action('wp_ajax_stock_sync_test_get_product', [$this, 'test_get_product']);
         add_action('wp_ajax_stock_sync_test_apply', [$this, 'test_apply']);
@@ -83,7 +84,7 @@ class StockSync_AJAX_Handler {
 
         $slug      = sanitize_text_field($_POST['distributor_slug'] ?? '');
         $file_path = sanitize_text_field($_POST['file_path'] ?? '');
-        $dry_run   = !empty($_POST['dry_run']);
+        $dry_run   = isset($_POST['dry_run']) ? filter_var($_POST['dry_run'], FILTER_VALIDATE_BOOLEAN) : false;
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
@@ -168,7 +169,7 @@ class StockSync_AJAX_Handler {
         }
 
         $slug    = sanitize_text_field($_POST['distributor_slug'] ?? '');
-        $dry_run = !empty($_POST['dry_run']);
+        $dry_run = isset($_POST['dry_run']) ? filter_var($_POST['dry_run'], FILTER_VALIDATE_BOOLEAN) : false;
         $offset  = intval($_POST['offset'] ?? 0);
         $run_id  = sanitize_text_field($_POST['run_id'] ?? '');
         $limit   = 50;
@@ -281,6 +282,19 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Unknown distributor', 'stock-sync'));
         }
 
+        $custom_labels = [];
+        $header_ref    = isset($_POST['header_label_ref']) ? sanitize_text_field($_POST['header_label_ref']) : '';
+        $header_avail  = isset($_POST['header_label_avail']) ? sanitize_text_field($_POST['header_label_avail']) : '';
+        if ($header_ref !== '') {
+            $custom_labels[] = $header_ref;
+        }
+        if ($header_avail !== '') {
+            $custom_labels[] = $header_avail;
+        }
+        if (!empty($custom_labels)) {
+            $distributor->set_header_labels($custom_labels);
+        }
+
         $validated_path = $this->validate_uploaded_file_path($file_path);
         if (is_wp_error($validated_path)) {
             wp_send_json_error($validated_path->get_error_message());
@@ -309,17 +323,63 @@ class StockSync_AJAX_Handler {
             );
         }
 
+        // Separate already-mapped from unmapped products
+        $meta_key    = $distributor->get_meta_key();
+        $unmapped    = [];
+        $already_mapped_items = [];
+
+        foreach ($products as $product) {
+            $existing = get_posts([
+                'post_type'      => 'product',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'meta_query'     => [
+                    [
+                        'key'     => $meta_key,
+                        'value'   => $product->distributor_ref,
+                        'compare' => '=',
+                    ],
+                ],
+                'no_found_rows' => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+            ]);
+
+            if (!empty($existing)) {
+                $wc_product = wc_get_product($existing[0]);
+                $already_mapped_items[] = [
+                    'distributor_ref' => $product->distributor_ref,
+                    'xlsx_name'       => $product->product_name,
+                    'wc_id'           => $existing[0],
+                    'wc_name'         => $wc_product ? $wc_product->get_name() : '',
+                    'wc_sku'          => $wc_product ? $wc_product->get_sku() : '',
+                    'confidence'      => 100,
+                    'status'          => 'auto',
+                ];
+                continue;
+            }
+
+            $unmapped[] = $product;
+        }
+
         $bootstrap = StockSync_Service_Factory::bootstrap_matcher();
         $category  = $distributor->get_category_filter();
         $wc_products = $bootstrap->get_all_wc_products($category);
-        $matches     = $bootstrap->match_all($products, $wc_products);
+        $matches     = $bootstrap->match_all($unmapped, $wc_products);
+
+        // Drop 0% confidence matches entirely — nothing to show or auto-save
+        $matches = array_values(array_filter($matches, function ($m) {
+            return $m['confidence'] > 0;
+        }));
 
         wp_send_json_success([
-            'matches'         => $matches,
-            'total_xlsx'      => count($products),
-            'total_wc'        => count($wc_products),
-            'category_filter' => $category,
-            'warnings'        => $warnings,
+            'matches'              => $matches,
+            'total_xlsx'           => count($products),
+            'total_wc'             => count($wc_products),
+            'category_filter'      => $category,
+            'warnings'             => $warnings,
+            'already_mapped_count' => count($already_mapped_items),
+            'already_mapped_items' => $already_mapped_items,
         ]);
     }
 
@@ -361,7 +421,63 @@ class StockSync_AJAX_Handler {
         $saved     = $bootstrap->save_mappings($matches_sanitized, $distributor->get_meta_key());
 
         wp_send_json_success([
-            'saved' => $saved,
+            'saved'   => $saved,
+            'matches' => $matches_sanitized,
+        ]);
+    }
+
+    /**
+     * Filter a sync queue to only the selected refs and return a new run_id.
+     *
+     * Reads the original queue transient, keeps only items whose distributor_ref is
+     * in the include_refs list, stores the subset under a new run_id, and returns
+     * the new run_id and batch count.
+     */
+    public function filter_queue() {
+        check_ajax_referer('stock_sync_nonce', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(__('Permission denied', 'stock-sync'));
+        }
+
+        $slug         = sanitize_text_field($_POST['distributor_slug'] ?? '');
+        $run_id       = sanitize_text_field($_POST['run_id'] ?? '');
+        $include_refs = isset($_POST['include_refs']) ? (array) $_POST['include_refs'] : [];
+
+        $distributor = StockSync_Distributor_Registry::instance()->get($slug);
+        if (!$distributor) {
+            wp_send_json_error(__('Unknown distributor', 'stock-sync'));
+        }
+
+        if (empty($run_id)) {
+            wp_send_json_error(__('Missing run ID', 'stock-sync'));
+        }
+
+        $transient_key = 'stock_sync_queue_' . $slug . '_' . $run_id;
+        $queue         = $this->transient_store->get($transient_key);
+
+        if (!is_array($queue)) {
+            wp_send_json_error(__('No sync queue found', 'stock-sync'));
+        }
+
+        $allowed_refs = array_map('sanitize_text_field', $include_refs);
+        $allowed_set  = array_flip($allowed_refs);
+
+        $filtered = [];
+        foreach ($queue as $item) {
+            if (isset($allowed_set[$item['distributor_ref']])) {
+                $filtered[] = $item;
+            }
+        }
+
+        $new_run_id        = wp_generate_uuid4();
+        $new_transient_key = 'stock_sync_queue_' . $slug . '_' . $new_run_id;
+        $this->transient_store->set($new_transient_key, $filtered, HOUR_IN_SECONDS);
+
+        wp_send_json_success([
+            'run_id'        => $new_run_id,
+            'total_batches' => ceil(count($filtered) / 50),
+            'total_items'   => count($filtered),
         ]);
     }
 
