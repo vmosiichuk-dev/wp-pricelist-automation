@@ -649,7 +649,6 @@ class StockSync_AJAX_Handler {
             'new_sale'       => $updated->get_sale_price(),
             'new_excerpt'    => $updated->get_short_description(),
             'new_name'       => $updated->get_name(),
-            'new_slug'       => $updated->get_slug(),
         ]);
     }
 
@@ -664,17 +663,16 @@ class StockSync_AJAX_Handler {
     private function compute_preview($product, $distributor, $distributor_ref) {
         $current_name   = $product->get_name();
         $new_name       = $this->clean_name_preview($current_name);
-        $new_slug       = sanitize_title($new_name);
-        $cat_url        = $this->find_product_category_url($product->get_id());
-        $suffix         = wp_kses_post($distributor->get_unavailable_suffix($product->get_id(), $cat_url));
+        $cat_term       = $this->find_product_category($product->get_id());
+        $cat_url        = $cat_term ? $cat_term['url'] : null;
+        $cat_name       = $cat_term ? $cat_term['name'] : null;
+        $suffix         = wp_kses_post($distributor->get_unavailable_suffix($product->get_id(), $cat_url, $cat_name));
         $new_excerpt    = $this->build_new_excerpt_preview($product->get_short_description(), $new_name, $suffix);
 
         return [
             'id'            => $product->get_id(),
             'name'          => $current_name,
             'new_name'      => $new_name,
-            'slug'          => $product->get_slug(),
-            'new_slug'      => $new_slug,
             'sku'           => $product->get_sku(),
             'visibility'    => $product->get_catalog_visibility(),
             'price'         => $product->get_regular_price(),
@@ -718,12 +716,12 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Get the URL of the first product category assigned to a product.
+     * Get the first product category assigned to a product.
      *
      * @param int $product_id WooCommerce product ID.
-     * @return string|false Category URL or false if not found.
+     * @return array|false Array with 'url' and 'name' keys, or false if not found.
      */
-    private function find_product_category_url($product_id) {
+    private function find_product_category($product_id) {
         $terms = get_the_terms($product_id, 'product_cat');
         if (empty($terms) || is_wp_error($terms)) {
             return false;
@@ -732,7 +730,10 @@ class StockSync_AJAX_Handler {
         foreach ($terms as $term) {
             $url = get_term_link($term, 'product_cat');
             if (!is_wp_error($url)) {
-                return $url;
+                return [
+                    'url'  => $url,
+                    'name' => $term->name,
+                ];
             }
         }
 

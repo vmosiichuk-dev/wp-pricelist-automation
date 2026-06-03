@@ -37,7 +37,6 @@ class StockSync_Product_Updater {
 		$old_price      = $wc_product->get_regular_price();
 		$old_sale_price = $wc_product->get_sale_price();
 		$old_name       = $wc_product->get_name();
-		$old_slug       = $wc_product->get_slug();
 
 		// 1. Clean name and update
 		$new_name = $this->clean_name($old_name);
@@ -46,8 +45,10 @@ class StockSync_Product_Updater {
 		}
 
 		// 2. Build new excerpt preserving prefix, replacing suffix
-		$cat_url     = $this->find_product_category_url($product_id);
-		$suffix      = wp_kses_post($distributor->get_unavailable_suffix($product_id, $cat_url));
+		$cat_term    = $this->find_first_product_category($product_id);
+		$cat_url     = $cat_term ? $cat_term['url'] : null;
+		$cat_name    = $cat_term ? $cat_term['name'] : null;
+		$suffix      = wp_kses_post($distributor->get_unavailable_suffix($product_id, $cat_url, $cat_name));
 		$new_excerpt = $this->build_new_excerpt($old_excerpt, $new_name, $suffix);
 		$wc_product->set_short_description($new_excerpt);
 
@@ -58,27 +59,10 @@ class StockSync_Product_Updater {
 		$wc_product->set_regular_price('');
 		$wc_product->set_sale_price('');
 
-		// 5. Save (must happen before slug update so save() doesn't overwrite post_name)
+		// 5. Save
 		$wc_product->save();
 
-		// 6. Update slug AFTER save to prevent WooCommerce from reverting it
-		$new_slug = sanitize_title($new_name);
-		if ($new_slug !== $old_slug) {
-			$result = wp_update_post([
-				'ID'        => $product_id,
-				'post_name' => $new_slug,
-			]);
-
-			if (is_wp_error($result)) {
-				return $result;
-			}
-
-			if (!$result) {
-				return new WP_Error('slug_update_failed', __('Failed to update product slug.', 'stock-sync'));
-			}
-		}
-
-		// 7. Log
+		// 6. Log
 		$this->logger->log([
 			'product_id'       => $product_id,
 			'sku'              => $wc_product->get_sku(),
@@ -91,8 +75,6 @@ class StockSync_Product_Updater {
 			'old_sale_price'   => $old_sale_price,
 			'old_name'         => $old_name,
 			'new_name'         => $new_name,
-			'old_slug'         => $old_slug,
-			'new_slug'         => $new_slug,
 			'distributor_slug' => $product->distributor_slug,
 			'distributor_ref'  => $product->distributor_ref,
 		]);
@@ -136,12 +118,12 @@ class StockSync_Product_Updater {
 	}
 
 	/**
-	 * Get the URL of the first product category assigned to a product.
+	 * Get the first product category assigned to a product.
 	 *
 	 * @param int $product_id WooCommerce product ID.
-	 * @return string|false Category URL or false if not found.
+	 * @return array|false Array with 'url' and 'name' keys, or false if not found.
 	 */
-	private function find_product_category_url($product_id) {
+	private function find_first_product_category($product_id) {
 		$terms = get_the_terms($product_id, 'product_cat');
 		if (empty($terms) || is_wp_error($terms)) {
 			return false;
@@ -150,7 +132,10 @@ class StockSync_Product_Updater {
 		foreach ($terms as $term) {
 			$url = get_term_link($term, 'product_cat');
 			if (!is_wp_error($url)) {
-				return $url;
+				return [
+					'url'  => $url,
+					'name' => $term->name,
+				];
 			}
 		}
 
