@@ -1,4 +1,9 @@
 <?php
+/**
+ * Service Factory
+ * Provides cached singleton instances for core plugin services.
+ */
+
 class StockSync_Service_Factory {
     private static $instances = [];
 

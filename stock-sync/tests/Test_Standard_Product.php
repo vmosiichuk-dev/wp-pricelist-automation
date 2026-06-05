@@ -1,6 +1,10 @@
 <?php
 
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_Standard_Product.
+ */
+
 
 class Test_Standard_Product extends PHPUnit\Framework\TestCase {
 
@@ -29,6 +33,9 @@ class Test_Standard_Product extends PHPUnit\Framework\TestCase {
 		\Brain\Monkey\tearDown();
 		parent::tearDown();
 	}
+    /**
+     * Verify that a valid distributor slug produces the correct meta key.
+     */
 
 	public function test_get_meta_key_with_valid_slug() {
 		$product = new StockSync_Standard_Product([
@@ -36,6 +43,9 @@ class Test_Standard_Product extends PHPUnit\Framework\TestCase {
 		]);
 		$this->assertSame('_supplier_ref_vininova', $product->get_meta_key());
 	}
+    /**
+     * Verify that an empty distributor slug returns null.
+     */
 
 	public function test_get_meta_key_with_empty_slug() {
 		$product = new StockSync_Standard_Product([

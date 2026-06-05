@@ -21,7 +21,10 @@ if (!defined('HOUR_IN_SECONDS')) {
 }
 
 if (!class_exists('WP_Error')) {
-    class WP_Error {
+    /**
+ * Stub WP_Error for unit tests.
+ */
+class WP_Error {
         public $code;
         public $message;
         /**
@@ -42,14 +45,22 @@ if (!class_exists('WP_Error')) {
         public function get_error_message() {
             return $this->message;
         }
-        public function get_error_code() {
+        /**
+     * Retrieve the error code.
+     *
+     * @return mixed The error code.
+     */
+    public function get_error_code() {
             return $this->code;
         }
     }
 }
 
 if (!class_exists('WP_Query')) {
-    class WP_Query {
+    /**
+ * Stub WP_Query for unit tests.
+ */
+class WP_Query {
         public $posts = [];
         public static $test_posts = [];
         public static $test_have_posts = false;

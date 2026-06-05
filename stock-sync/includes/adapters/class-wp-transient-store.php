@@ -1,4 +1,9 @@
 <?php
+/**
+ * WordPress Transient Store
+ * Adapts WordPress transients to the Transient_Store_Interface.
+ */
+
 class StockSync_WP_Transient_Store implements Transient_Store_Interface {
 
     /**

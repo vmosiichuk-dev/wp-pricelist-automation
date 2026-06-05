@@ -1,4 +1,8 @@
 <?php
+/**
+ * Tests for StockSync_Distributor_Registry.
+ */
+
 
 class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 
@@ -59,12 +63,18 @@ class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 		$this->reset_singleton();
 		parent::tearDown();
 	}
+    /**
+     * Verify that the registry returns the same instance on repeated calls.
+     */
 
 	public function test_singleton() {
 		$instance1 = StockSync_Distributor_Registry::instance();
 		$instance2 = StockSync_Distributor_Registry::instance();
 		$this->assertSame($instance1, $instance2);
 	}
+    /**
+     * Verify that a distributor can be registered and retrieved by slug.
+     */
 
 	public function test_register() {
 		$registry = StockSync_Distributor_Registry::instance();
@@ -88,11 +98,17 @@ class Test_Distributor_Registry extends PHPUnit\Framework\TestCase {
 		$this->expectExceptionMessage('Distributor with slug "test" is already registered.');
 		$registry->register($distributor);
 	}
+    /**
+     * Verify that an unknown slug returns null.
+     */
 
 	public function test_get_returns_null_for_unknown_slug() {
 		$registry = StockSync_Distributor_Registry::instance();
 		$this->assertNull($registry->get('unknown'));
 	}
+    /**
+     * Verify that get_all returns every registered distributor.
+     */
 
 	public function test_get_all() {
 		$registry = StockSync_Distributor_Registry::instance();

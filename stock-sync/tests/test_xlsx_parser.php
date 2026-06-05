@@ -2,6 +2,10 @@
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_XLSX_Parser.
+ */
+
 
 class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
 
@@ -89,6 +93,9 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($ab124);
         $this->assertSame('', $ab124->vintage);
     }
+    /**
+     * Verify that a non-zip file returns a WP_Error.
+     */
 
     public function test_invalid_zip_returns_wp_error() {
         $tmpFile = tempnam(sys_get_temp_dir(), 'stock_sync_test_');

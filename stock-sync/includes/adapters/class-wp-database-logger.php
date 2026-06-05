@@ -1,4 +1,9 @@
 <?php
+/**
+ * WordPress Database Logger
+ * Adapts the StockSync_Change_Logger to the Logger_Interface.
+ */
+
 class StockSync_WP_Database_Logger implements Logger_Interface {
     private $logger;
 
