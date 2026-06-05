@@ -199,9 +199,13 @@
             onFileChosen(droppedFile);
 
             // Assign dropped file to the input so HTML5 validation passes on submit
-            var dataTransfer = new DataTransfer();
-            dataTransfer.items.add(droppedFile);
-            document.getElementById('stock-xlsx-file').files = dataTransfer.files;
+            try {
+                var dataTransfer = new DataTransfer();
+                dataTransfer.items.add(droppedFile);
+                document.getElementById('stock-xlsx-file').files = dataTransfer.files;
+            } catch (e) {
+                // Older browsers may not support DataTransfer; upload still works via droppedFile
+            }
         }
     });
 
