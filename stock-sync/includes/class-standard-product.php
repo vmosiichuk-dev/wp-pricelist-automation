@@ -12,6 +12,8 @@ class StockSync_Standard_Product {
     public $availability_raw;
     public $is_unavailable;
     public $distributor_slug;
+    public $base_ref;       // Ref with variant suffix stripped, e.g. WO5502
+    public $variant_year;   // 4-digit year from ref suffix, or null (informational only)
 
     /**
      * Initialize standard product properties from data array.
@@ -27,6 +29,8 @@ class StockSync_Standard_Product {
         $this->availability_raw = $data['availability_raw'] ?? '';
         $this->is_unavailable   = $data['is_unavailable'] ?? false;
         $this->distributor_slug = $data['distributor_slug'] ?? '';
+        $this->base_ref      = $data['base_ref']    ?? $this->compute_base_ref();
+        $this->variant_year = $data['variant_year'] ?? null;
     }
 
     /**
@@ -38,5 +42,9 @@ class StockSync_Standard_Product {
             return null;
         }
         return '_supplier_ref_' . $slug;
+    }
+
+    private function compute_base_ref() {
+        return preg_replace('/-\d{2,4}$/', '', $this->distributor_ref);
     }
 }

@@ -150,4 +150,194 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 		];
 		$this->assertSame(2, $this->matcher->save_mappings($matches, '_supplier_ref_test'));
 	}
+
+	public function test_extract_years_from_name() {
+		$this->assertSame(['2012'], $this->matcher->extract_years_from_name('Brunello 2012'));
+		$this->assertSame([], $this->matcher->extract_years_from_name('No year'));
+		$this->assertSame(['2007'], $this->matcher->extract_years_from_name('Ribolla 3781 2007'));
+	}
+
+	public function test_extract_years_from_name_cleans_prices() {
+		$this->assertSame(['2016'], $this->matcher->extract_years_from_name('Chateau Nenin 2016 - 108 zł.**'));
+		$this->assertSame(['2018'], $this->matcher->extract_years_from_name('57,72 zł.** Chateau Nenin 2018'));
+	}
+
+	public function test_reversed_match_year_hit() {
+		$repository = new class implements Product_Repository_Interface {
+			public function find_by_id($product_id) { return null; }
+			public function find_all($category = null) {
+				return [
+					['id' => 1, 'name' => 'Chateau Nenin 2016', 'sku' => 'CN2016'],
+				];
+			}
+			public function find_by_meta($meta_key, $meta_value) { return null; }
+			public function find_by_sku($sku) { return null; }
+			public function save($product) { return true; }
+		};
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'FR001',
+				'product_name'     => 'Chateau Nenin',
+				'vintage'          => '2016',
+				'distributor_slug' => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		$this->assertCount(1, $results);
+		$this->assertSame('FR001', $results[0]['distributor_ref']);
+		$this->assertSame(1, $results[0]['wc_id']);
+		$this->assertGreaterThan(0, $results[0]['confidence']);
+	}
+
+	public function test_reversed_match_year_miss() {
+		$repository = new class implements Product_Repository_Interface {
+			public function find_by_id($product_id) { return null; }
+			public function find_all($category = null) {
+				return [
+					['id' => 1, 'name' => 'Chateau Nenin 2016', 'sku' => 'CN2016'],
+				];
+			}
+			public function find_by_meta($meta_key, $meta_value) { return null; }
+			public function find_by_sku($sku) { return null; }
+			public function save($product) { return true; }
+		};
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'FR001',
+				'product_name'     => 'Chateau Nenin',
+				'vintage'          => '2018',
+				'distributor_slug' => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		$this->assertCount(1, $results);
+		$this->assertSame('FR001', $results[0]['distributor_ref']);
+		// Should be unmatched because year mismatch
+		$this->assertNull($results[0]['wc_id']);
+	}
+
+	public function test_reversed_match_no_year_no_penalty() {
+		$repository = new class implements Product_Repository_Interface {
+			public function find_by_id($product_id) { return null; }
+			public function find_all($category = null) {
+				return [
+					['id' => 1, 'name' => 'Radikon Sivi Venezia Giulia IGT', 'sku' => 'RS001'],
+				];
+			}
+			public function find_by_meta($meta_key, $meta_value) { return null; }
+			public function find_by_sku($sku) { return null; }
+			public function save($product) { return true; }
+		};
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'WO5501',
+				'product_name'     => 'Radikon Sivi Venezia Giulia IGT',
+				'vintage'          => '2021',
+				'distributor_slug' => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		$this->assertCount(1, $results);
+		$this->assertSame('WO5501', $results[0]['distributor_ref']);
+		$this->assertSame(1, $results[0]['wc_id']);
+		$this->assertGreaterThan(0, $results[0]['confidence']);
+	}
+
+	public function test_reversed_conflict_downgrade() {
+		$repository = new class implements Product_Repository_Interface {
+			public function find_by_id($product_id) { return null; }
+			public function find_all($category = null) {
+				return [
+					['id' => 1, 'name' => 'Chateau Nenin 2016', 'sku' => 'CN2016'],
+					['id' => 2, 'name' => 'Chateau Nenin 2016 Special', 'sku' => 'CN2016S'],
+				];
+			}
+			public function find_by_meta($meta_key, $meta_value) { return null; }
+			public function find_by_sku($sku) { return null; }
+			public function save($product) { return true; }
+		};
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'FR001',
+				'product_name'     => 'Chateau Nenin',
+				'vintage'          => '2016',
+				'distributor_slug' => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		// Should return 2 conflict rows, both manual
+		$conflict_rows = array_filter($results, function($r) {
+			return $r['wc_id'] !== null && $r['status'] === 'manual' && $r['confidence'] === 0;
+		});
+		$this->assertCount(2, $conflict_rows);
+	}
+
+	public function test_reversed_prefer_generic_ref() {
+		$repository = new class implements Product_Repository_Interface {
+			public function find_by_id($product_id) { return null; }
+			public function find_all($category = null) {
+				return [
+					['id' => 1, 'name' => 'Radikon Sivi Venezia Giulia IGT', 'sku' => 'RS001'],
+				];
+			}
+			public function find_by_meta($meta_key, $meta_value) { return null; }
+			public function find_by_sku($sku) { return null; }
+			public function save($product) { return true; }
+		};
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		// Generic ref and variant ref have the same name, so same fuzzy score
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'WO5501',
+				'base_ref'           => 'WO5501',
+				'product_name'       => 'Radikon Sivi Venezia Giulia IGT',
+				'vintage'            => '',
+				'distributor_slug'   => 'vininova',
+			]),
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'WO5501-21',
+				'base_ref'           => 'WO5501',
+				'product_name'       => 'Radikon Sivi Venezia Giulia IGT',
+				'vintage'            => '2021',
+				'distributor_slug'   => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		// Find the row that got matched (should be the generic one)
+		$matched = array_filter($results, function($r) {
+			return $r['wc_id'] !== null;
+		});
+		$this->assertCount(1, $matched);
+		$first = array_values($matched)[0];
+		$this->assertSame('WO5501', $first['distributor_ref']);
+	}
 }

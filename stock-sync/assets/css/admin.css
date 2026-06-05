@@ -1303,3 +1303,17 @@
     min-width: 200px;
     max-width: 320px;
 }
+
+/* Duplicate notice overflow fix (user request) */
+.stock-duplicate-notice {
+    overflow-y: auto;
+    max-height: 70px;
+}
+
+/* Duplicate row highlight */
+.stock-row-duplicate td:first-child {
+    border-left: 3px solid #dc3232;
+}
+.stock-row-duplicate {
+    background-color: #fff5f5;
+}

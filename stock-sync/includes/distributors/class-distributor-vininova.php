@@ -66,8 +66,9 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
         if (empty($ref)) {
             return false;
         }
-        // Reject section headers (country/producer names) that are pure text and long.
-        if (preg_match('/^[\p{L}\s]+$/u', $ref) && mb_strlen($ref) > 5) {
+        // Reject region/producer headers and any row without a valid ref pattern.
+        // Valid refs always start with 2 letters followed by digits.
+        if (!preg_match('/^[A-Z]{2}\d+/i', $ref)) {
             return false;
         }
         return true;
