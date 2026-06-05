@@ -18,15 +18,20 @@ interface Transient_Store_Interface {
     /**
      * Retrieve the value stored for the given transient key.
      *
+     * Matches WordPress get_transient() semantics.
+     *
      * @param string $key The key identifying the stored value.
-     * @return mixed|null The stored value if found, or `null` if the key does not exist.
+     * @return mixed|false The stored value if found, or false if the transient does not exist or has expired.
      */
     public function get($key);
 
     /**
      * Remove the stored value identified by the given key.
      *
+     * Matches WordPress delete_transient() semantics.
+     *
      * @param string $key The key of the entry to remove from the transient store.
+     * @return bool True if deletion succeeded, false otherwise.
      */
     public function delete($key);
 }

@@ -10,7 +10,7 @@ interface Product_Repository_Interface {
      * Retrieve a product by its identifier.
      *
      * @param int|string $product_id The product identifier.
-     * @return object|null The product object if found, or null if no matching product exists.
+     * @return object|false|null The product object if found, false or null if no matching product exists.
      */
     public function find_by_id($product_id);
 
@@ -23,19 +23,19 @@ interface Product_Repository_Interface {
     public function find_all($category = null);
 
     /**
-     * Retrieve products that match a given metadata key and value.
+     * Retrieve the first product ID that matches a given metadata key and value.
      *
      * @param string $meta_key Metadata key to match.
      * @param mixed  $meta_value Metadata value to compare against.
-     * @return array Array of product entities that match the provided metadata (may be empty).
+     * @return int|false The product ID if found, false if no match exists or parameters are empty.
      */
     public function find_by_meta($meta_key, $meta_value);
 
     /**
-     * Retrieve a product by its SKU.
+     * Retrieve a product ID by its SKU.
      *
      * @param string $sku The product SKU to look up.
-     * @return object|null The product matching the SKU, or `null` if no product was found.
+     * @return int|false The product ID if found, false if no product was found.
      */
     public function find_by_sku($sku);
 
