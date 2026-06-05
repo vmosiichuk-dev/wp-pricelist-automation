@@ -103,7 +103,7 @@
                 <?php esc_html_e('Start new sync', 'stock-sync'); ?>
             </button>
             <h2 class="stock-card-title"><?php esc_html_e('Review Product Mappings', 'stock-sync'); ?></h2>
-            <p class="stock-card-desc"><?php esc_html_e('Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync'); ?></p>
+            <p class="stock-card-desc"><?php echo wp_kses_post(__('Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync')); ?></p>
             <div id="sync-auto-mapped-notice" class="stock-success-notice" role="status" aria-live="polite" style="display:none;"></div>
 
             <table class="stock-card-table stock-match-table" id="sync-mapping-table">
@@ -163,7 +163,7 @@
             </button>
 
             <h2 class="stock-card-title"><?php esc_html_e('Sync Preview', 'stock-sync'); ?></h2>
-            <p class="stock-card-desc"><?php esc_html_e('Review the products that will be updated.<br>Uncheck any you want to exclude, then apply the sync.', 'stock-sync'); ?></p>
+            <p class="stock-card-desc"><?php echo wp_kses_post(__('Review the products that will be updated.<br>Uncheck any you want to exclude, then apply the sync.', 'stock-sync')); ?></p>
 
             <div id="stock-sync-progress" class="stock-progress" style="display:none;">
                 <div class="stock-progress-bar">
