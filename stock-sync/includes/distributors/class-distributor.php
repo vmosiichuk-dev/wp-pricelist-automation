@@ -148,19 +148,22 @@ abstract class StockSync_Distributor {
 	/**
 	 * Generate the suffix text used after the '>' in the unavailable short description.
 	 *
-	 * The link text is always "Wina {distributor_name}".
-	 * When a product-specific category URL is provided (from the product's own terms),
-	 * it is used directly. Otherwise falls back to the cached distributor-level category,
+	 * When a product-specific category URL and name are provided (from the product's own terms),
+	 * the link text is "Wina {distributor_name}" only if the category name starts with "A - ",
+	 * otherwise the category name is used as-is.
+	 * Otherwise falls back to the cached distributor-level category,
 	 * and finally to a generic text without a link.
 	 *
-	 * @param int    $product_id     Unused, kept for future per-product overrides.
-	 * @param string $category_url   Optional URL of the product's category.
+	 * @param int    $product_id      Unused, kept for future per-product overrides.
+	 * @param string $category_url    Optional URL of the product's category.
+	 * @param string $category_name   Optional name of the product's category.
 	 * @return string
 	 */
-	public function get_unavailable_suffix($product_id = 0, $category_url = null) {
-		$link_text = sprintf(__('Wina %s', 'stock-sync'), $this->get_name());
-
-		if ($category_url) {
+	public function get_unavailable_suffix($product_id = 0, $category_url = null, $category_name = null) {
+		if ($category_url && $category_name) {
+			$link_text = (strpos($category_name, 'A - ') === 0)
+				? sprintf(__('Wina %s', 'stock-sync'), $this->get_name())
+				: $category_name;
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
 				/* translators: %s: link to category */
@@ -172,6 +175,7 @@ abstract class StockSync_Distributor {
 		$category_url = $this->get_category_url();
 
 		if ($category_url) {
+			$link_text = sprintf(__('Wina %s', 'stock-sync'), $this->get_name());
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
 				/* translators: %s: link to category */
