@@ -180,7 +180,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '        <row r="8"/>' . "\n" .
             '        <row r="9"/>' . "\n" .
             '        <row r="10">' . "\n" .
-            '            <c r="A10"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A10"><v>NR REF</v></c>' . "\n" .
             '            <c r="B10"><v>KOD_KRESKOWY</v></c>' . "\n" .
             '            <c r="C10"><v>STR. W KAT.</v></c>' . "\n" .
             '            <c r="D10"><v>NAZWA</v></c>' . "\n" .
@@ -252,7 +252,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '        <row r="2"/>' . "\n" .
             '        <row r="3"/>' . "\n" .
             '        <row r="4">' . "\n" .
-            '            <c r="A4"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A4"><v>NR REF</v></c>' . "\n" .
             '            <c r="B4"><v>KOD_KRESKOWY</v></c>' . "\n" .
             '            <c r="C4"><v>STR. W KAT.</v></c>' . "\n" .
             '            <c r="D4"><v>NAZWA</v></c>' . "\n" .
@@ -369,7 +369,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
             '    <sheetData>' . "\n" .
             '        <row r="1">' . "\n" .
-            '            <c r="A1"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A1"><v>NR REF</v></c>' . "\n" .
             '            <c r="C1"><v>STR. W KAT.</v></c>' . "\n" .
             '        </row>' . "\n" .
             '        <row r="2">' . "\n" .
@@ -427,7 +427,7 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
             '    <sheetData>' . "\n" .
             '        <row r="1">' . "\n" .
-            '            <c r="A1"><v>NR_REF</v></c>' . "\n" .
+            '            <c r="A1"><v>NR REF</v></c>' . "\n" .
             '            <c r="C1"><v>STR. W KAT.</v></c>' . "\n" .
             '        </row>' . "\n" .
             '        <row r="2">' . "\n" .
@@ -473,5 +473,72 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertNotInstanceOf('WP_Error', $products);
         $this->assertCount(1, $products);
         $this->assertSame(['mystery_status'], $parser->get_unrecognized_availability());
+    }
+
+    /**
+     * Verifies that a runtime header-label override allows the parser to locate
+     * the header row and still return product rows when the XLSX uses non-default
+     * header spellings.
+     */
+    public function test_runtime_header_label_override() {
+        $tmpDir = sys_get_temp_dir() . '/stock_sync_test_' . uniqid();
+        mkdir($tmpDir, 0777, true);
+        mkdir($tmpDir . '/xl/worksheets', 0777, true);
+
+        $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
+            '    <sheetData>' . "\n" .
+            '        <row r="1">' . "\n" .
+            '            <c r="A1"><v>NR. REFERENCJI</v></c>' . "\n" .
+            '            <c r="B1"><v>KOD_KRESKOWY</v></c>' . "\n" .
+            '            <c r="C1"><v>STAN KATALOGU</v></c>' . "\n" .
+            '            <c r="D1"><v>NAZWA</v></c>' . "\n" .
+            '            <c r="E1"><v>ROCZNIK</v></c>' . "\n" .
+            '        </row>' . "\n" .
+            '        <row r="2">' . "\n" .
+            '            <c r="A2"><v>AB123</v></c>' . "\n" .
+            '            <c r="C2"><v>brak</v></c>' . "\n" .
+            '            <c r="D2"><v>Alpha</v></c>' . "\n" .
+            '        </row>' . "\n" .
+            '    </sheetData>' . "\n" .
+            '</worksheet>';
+
+        file_put_contents($tmpDir . '/xl/worksheets/sheet1.xml', $sheetXml);
+        file_put_contents(
+            $tmpDir . '/xl/sharedStrings.xml',
+            '<?xml version="1.0"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"></sst>'
+        );
+
+        $zipFile = $tmpDir . '.xlsx';
+        $zip = new ZipArchive();
+        $zip->open($zipFile, ZipArchive::CREATE);
+        $zip->addFile($tmpDir . '/xl/worksheets/sheet1.xml', 'xl/worksheets/sheet1.xml');
+        $zip->addFile($tmpDir . '/xl/sharedStrings.xml', 'xl/sharedStrings.xml');
+        $zip->close();
+
+        $distributor = new StockSync_Distributor_Vininova();
+        $distributor->set_header_labels(['NR. REFERENCJI', 'STAN KATALOGU']);
+        $parser = new StockSync_XLSX_Parser($zipFile, $distributor);
+
+        $products = $parser->parse();
+
+        unlink($zipFile);
+        foreach (glob($tmpDir . '/xl/worksheets/*') as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        foreach (glob($tmpDir . '/xl/*') as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        rmdir($tmpDir . '/xl/worksheets');
+        rmdir($tmpDir . '/xl');
+        rmdir($tmpDir);
+
+        $this->assertNotInstanceOf('WP_Error', $products);
+        $this->assertCount(1, $products);
+        $this->assertSame('AB123', $products[0]->distributor_ref);
     }
 }

@@ -40,6 +40,7 @@ class StockSync_XLSX_Parser {
      *         (e.g., cannot open file, invalid XML, header not found, or no products found).
      */
     public function parse() {
+        $this->unrecognized_availability = [];
         $zip = new ZipArchive();
         if ($zip->open($this->file_path) !== true) {
             return new WP_Error('parse_error', __('Cannot open XLSX file', 'stock-sync'));
@@ -67,7 +68,7 @@ class StockSync_XLSX_Parser {
         $row_index = 0;
         $col_map   = $this->distributor->get_column_map();
 
-        $expected_labels = $this->distributor->get_header_labels();
+        $expected_labels = array_map([$this, 'clean_value'], $this->distributor->get_effective_header_labels());
         $header_found    = empty($expected_labels);
         $header_row_num  = $this->distributor->get_header_row();
         $max_scan_rows   = 20;
@@ -132,7 +133,7 @@ class StockSync_XLSX_Parser {
                 ? $row_data[$col_map['availability']]
                 : '';
 
-            if ($availability !== '' && !$this->distributor->is_unavailable($availability)) {
+            if ($availability !== '' && !$this->distributor->is_unavailable($availability) && !$this->distributor->is_known_availability($availability)) {
                 $this->unrecognized_availability[$availability] = true;
             }
 
@@ -217,6 +218,19 @@ class StockSync_XLSX_Parser {
         if ($cell_type === 's') {
             $string_index = (int) $cell->v;
             return isset($shared_strings[$string_index]) ? $shared_strings[$string_index] : '';
+        }
+        if ($cell_type === 'inlineStr') {
+            if (isset($cell->is->t)) {
+                return (string) $cell->is->t;
+            }
+            if (isset($cell->is->r)) {
+                $text = '';
+                foreach ($cell->is->r as $run) {
+                    $text .= (string) $run->t;
+                }
+                return $text;
+            }
+            return '';
         }
         return isset($cell->v) ? (string) $cell->v : '';
     }
