@@ -125,6 +125,7 @@
     var currentDryRunStats = null;
     var globalTotalBatches = 0;
     var globalCurrentBatch = 0;
+    var requestGenerationToken = 0;
 
     // ===== PROGRESS BAR =====
 
@@ -168,6 +169,7 @@
     }
 
     $('#stock-xlsx-file').on('change', function() {
+        droppedFile = null;
         onFileChosen(this.files[0]);
     });
 
@@ -224,12 +226,15 @@
         globalTotalBatches = 0;
         globalCurrentBatch = 0;
 
+        var thisGen = requestGenerationToken;
         uploadFile(file, function(uploadData) {
+            if (thisGen !== requestGenerationToken) return;
             currentSyncFilePath = uploadData.file_path;
             $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
             $('#stock-xlsx-file').prop('disabled', false);
             analyzeAndMap(uploadData.file_path, $btn);
         }, function(error) {
+            if (thisGen !== requestGenerationToken) return;
             showToast('Upload error: ' + error, 'error');
             $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
             $('#stock-xlsx-file').prop('disabled', false);
@@ -258,12 +263,14 @@
     }
 
     $(document).on('click', '.stock-reset-btn', function() {
+        requestGenerationToken++;
         resetAllSteps();
     });
 
     // ===== STEP 2: ANALYZE & MAP =====
 
     function analyzeAndMap(filePath, $btn) {
+        var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
         var headerRef   = $('#header_label_ref').val().trim();
         var headerAvail = $('#header_label_avail').val().trim();
@@ -287,6 +294,7 @@
             type: 'POST',
             data: ajaxData,
             success: function(response) {
+                if (thisGen !== requestGenerationToken) return;
                 if (!response.success) {
                     $toastContainer.empty();
                     showUploadError(response.data);
@@ -319,6 +327,7 @@
                 }
             },
             error: function() {
+                if (thisGen !== requestGenerationToken) return;
                 $toastContainer.empty();
                 showUploadError('Network error while reading the file. Please try again.');
                 hideProgress();
@@ -781,10 +790,13 @@
     // ===== STEP 3: DRY-RUN PREVIEW =====
 
     function startDryRun(filePath) {
+        $('#sync-step-upload').hide();
+        $('#sync-step-mapping').hide();
         $('#sync-step-preview').show();
         updateStepper(3);
         $('#sync-preview-body').empty();
 
+        var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
 
         $.ajax({
@@ -798,6 +810,7 @@
                 dry_run: true
             },
             success: function(response) {
+                if (thisGen !== requestGenerationToken) return;
                 if (!response.success) {
                     showToast('Scan failed: ' + response.data, 'error');
                     hideProgress();
@@ -818,11 +831,13 @@
                     errors: 0,
                     details: []
                 }, null, runId, function(stats) {
+                    if (thisGen !== requestGenerationToken) return;
                     currentDryRunStats = stats;
                     showPreviewResults(stats);
                 });
             },
             error: function() {
+                if (thisGen !== requestGenerationToken) return;
                 showToast('Scan network error', 'error');
                 hideProgress();
             }
@@ -902,6 +917,7 @@
     });
 
     function filterAndApply(includeRefs, $btn) {
+        var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
 
         $.ajax({
@@ -915,6 +931,7 @@
                 include_refs: includeRefs
             },
             success: function(response) {
+                if (thisGen !== requestGenerationToken) return;
                 if (!response.success) {
                     showToast('Filter failed: ' + response.data, 'error');
                     $btn.prop('disabled', false).text('Apply Sync');
@@ -934,12 +951,14 @@
                     errors: 0,
                     details: []
                 }, $btn, newRunId, function(stats) {
+                    if (thisGen !== requestGenerationToken) return;
                     $btn.prop('disabled', false).text('Apply Sync');
                     hideProgress();
                     showFinalResults(stats);
                 });
             },
             error: function() {
+                if (thisGen !== requestGenerationToken) return;
                 showToast('Filter network error', 'error');
                 $btn.prop('disabled', false).text('Apply Sync');
                 hideProgress();
@@ -955,6 +974,7 @@
             return;
         }
 
+        var thisGen = requestGenerationToken;
         globalCurrentBatch++;
         var progress = globalTotalBatches > 0 ? (globalCurrentBatch / globalTotalBatches) * 100 : 0;
         var phaseText = dryRun ? 'Scanning batch ' + (current + 1) + ' of ' + total : 'Syncing batch ' + (current + 1) + ' of ' + total;
@@ -973,6 +993,7 @@
                 run_id: runId
             },
             success: function(response) {
+                if (thisGen !== requestGenerationToken) return;
                 if (response.success) {
                     var r = response.data;
                     stats.processed += r.processed;
@@ -989,6 +1010,7 @@
                 }
             },
             error: function() {
+                if (thisGen !== requestGenerationToken) return;
                 stats.errors += 50;
                 onComplete(stats);
                 if ($btn) $btn.prop('disabled', false);
@@ -1039,7 +1061,7 @@
 
         var distributor = getDistributorSlug();
         var $results = $('#stock-test-search-results');
-        $results.html('<p>Searching...</p>').show();
+        $results.html('<p>Searching...</p>').removeClass('hidden');
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -1091,7 +1113,7 @@
     $(document).on('click', '.stock-select-product', function(e) {
         e.preventDefault();
         selectedTestProductId = $(this).data('id');
-        $('#stock-test-search-results').hide();
+        $('#stock-test-search-results').addClass('hidden');
         $('#stock-test-search').val('');
         loadTestProductDetails(selectedTestProductId);
     });
@@ -1127,9 +1149,9 @@
                 $('#test-current-excerpt').text(d.excerpt || '—');
                 $('#test-new-excerpt').text(d.new_excerpt);
 
-                $('#stock-test-selected').show();
+                $('#stock-test-selected').removeClass('hidden');
                 $('#stock-test-apply').prop('disabled', false);
-                $('#stock-test-success').hide().empty();
+                $('#stock-test-success').addClass('hidden').empty();
                 $('#stock-test-status').text('');
             },
             error: function() {
@@ -1163,7 +1185,7 @@
             success: function(response) {
                 $btn.text('Apply Update to This Product');
                 if (response.success) {
-                    $('#stock-test-success').html('<p>' + escapeHtml(response.data.message) + '</p>').show();
+                    $('#stock-test-success').html('<p>' + escapeHtml(response.data.message) + '</p>').removeClass('hidden');
                 } else {
                     $btn.prop('disabled', false);
                     $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Error: ' + response.data));

@@ -98,17 +98,18 @@
     <!-- STEP 2: Mapping Review (hidden by default) -->
     <div id="sync-step-mapping" style="display:none;">
         <div class="stock-card">
-            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-mapping" title="<?php _e('Start new sync', 'stock-sync'); ?>">
+            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-mapping" title="<?php esc_attr_e('Start new sync', 'stock-sync'); ?>">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                 <?php _e('Start new sync', 'stock-sync'); ?>
             </button>
             <h2 class="stock-card-title"><?php _e('Review Product Mappings', 'stock-sync'); ?></h2>
             <p class="stock-card-desc"><?php _e('Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync'); ?></p>
+            <div id="sync-auto-mapped-notice" class="stock-success-notice" role="status" aria-live="polite" style="display:none;"></div>
 
             <table class="stock-card-table stock-match-table" id="sync-mapping-table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="check-all-mapping" checked aria-label="Select all entries" /></th>
+                        <th><input type="checkbox" id="check-all-mapping" checked aria-label="<?php esc_attr_e('Select all entries', 'stock-sync'); ?>" /></th>
                         <th><?php _e('Ref', 'stock-sync'); ?></th>
                         <th><?php _e('Distributor name', 'stock-sync'); ?></th>
                         <th><?php _e('Product name', 'stock-sync'); ?></th>
@@ -128,7 +129,7 @@
                 <table class="stock-card-table stock-match-table">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="check-all-unmatched" aria-label="Select all unmatched entries" /></th>
+                            <th><input type="checkbox" id="check-all-unmatched" aria-label="<?php esc_attr_e('Select all unmatched entries', 'stock-sync'); ?>" /></th>
                             <th><?php _e('Ref', 'stock-sync'); ?></th>
                             <th><?php _e('Distributor name', 'stock-sync'); ?></th>
                             <th><?php _e('Product name', 'stock-sync'); ?></th>
@@ -156,7 +157,7 @@
     <!-- STEP 3: Sync Preview (hidden by default) -->
     <div id="sync-step-preview" style="display:none;">
         <div class="stock-card">
-            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-preview" title="<?php _e('Start new sync', 'stock-sync'); ?>">
+            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-preview" title="<?php esc_attr_e('Start new sync', 'stock-sync'); ?>">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                 <?php _e('Start new sync', 'stock-sync'); ?>
             </button>
@@ -174,7 +175,7 @@
             <table class="stock-card-table" id="sync-preview-table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="check-all-preview" checked aria-label="Select all preview entries" /></th>
+                        <th><input type="checkbox" id="check-all-preview" checked aria-label="<?php esc_attr_e('Select all preview entries', 'stock-sync'); ?>" /></th>
                         <th><?php _e('Ref', 'stock-sync'); ?></th>
                         <th><?php _e('Name', 'stock-sync'); ?></th>
                         <th><?php _e('Status', 'stock-sync'); ?></th>
@@ -195,7 +196,7 @@
     <!-- STEP 4: Results (hidden by default) -->
     <div id="stock-sync-results" class="stock-results" style="display:none;">
         <div class="stock-card">
-            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-results" title="<?php _e('Start new sync', 'stock-sync'); ?>">
+            <button type="button" class="button stock-reset-btn" id="stock-sync-reset-results" title="<?php esc_attr_e('Start new sync', 'stock-sync'); ?>">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                 <?php _e('Start new sync', 'stock-sync'); ?>
             </button>

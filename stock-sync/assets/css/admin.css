@@ -78,7 +78,7 @@
     display: inline-block;
     padding: 6px 14px;
     border-radius: 20px;
-    outline: 1px solid currentColor;
+    outline: 1px solid currentcolor;
     font-size: 13px;
     font-weight: 500;
     color: #3c434a;
@@ -655,6 +655,18 @@
     margin-block: 36px 20px;
 }
 
+@media (max-width: 782px) {
+    .stock-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stock-stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .stock-stat-item {
     background: #f6f7f7;
     border-radius: 12px;
@@ -1080,7 +1092,7 @@
     border-left: 4px solid var(--wp-admin-theme-color, #2271b1);
     animation: stock-toast-in 0.3s ease;
     max-width: 360px;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .stock-toast.success { border-left-color: #46b450; }
@@ -1275,6 +1287,14 @@
     background: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
+}
+
+.hidden {
+    display: none;
+}
+
+.stock-test-status {
+    margin-left: 10px;
 }
 
 /* ---------- Misc ---------- */

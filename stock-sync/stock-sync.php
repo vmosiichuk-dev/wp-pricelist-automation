@@ -138,6 +138,7 @@ function stock_sync_load() {
         'includes/class-service-factory.php',
         'includes/class-product-matcher.php',
         'includes/class-bootstrap-matcher.php',
+        'includes/class-product-utils.php',
         'includes/class-product-updater.php',
         'includes/class-product-meta.php',
         'includes/class-logger.php',
