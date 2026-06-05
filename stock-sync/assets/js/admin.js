@@ -4,11 +4,22 @@
 (function($) {
     'use strict';
 
+    /**
+     * Get the distributor slug from the current page URL.
+     *
+     * Looks for the `distributor` query parameter and falls back to `'vininova'` when absent.
+     * @returns {string} The distributor slug from the `distributor` URL parameter, or `'vininova'` if not present.
+     */
     function getDistributorSlug() {
         var params = new URLSearchParams(window.location.search);
         return params.get('distributor') || 'vininova';
     }
 
+    /**
+     * Display warning notice(s) adjacent to a given container, replacing any existing warning.
+     * @param {string|HTMLElement|jQuery} containerSelector - Selector, DOM element, or jQuery object identifying the container before which the warning should be inserted.
+     * @param {string[]|null|undefined} warnings - Array of warning messages; when non-empty the messages are joined with a space, HTML-escaped, and rendered in a warning notice. If falsy or empty, no notice is inserted.
+     */
     function showWarnings(containerSelector, warnings) {
         $(containerSelector).siblings('.stock-sync-warning').remove();
         if (warnings && warnings.length) {
@@ -22,9 +33,13 @@
         div.appendChild(document.createTextNode(text));
         return div.innerHTML;
     }
-
-    // ===== UTILS =====
-
+  
+    /**
+     * Uploads the first selected XLSX file via AJAX and forwards the server response to the provided callbacks.
+     * @param {HTMLInputElement} fileInput - File input element; its first selected file is sent as `xlsx_file`.
+     * @param {function(Object):void} onSuccess - Called with `response.data` when the server responds with success.
+     * @param {function(string|Object):void} onError - Called with an error message or response data when upload or network errors occur.
+     */
     function uploadFile(file, onSuccess, onError) {
         var formData = new FormData();
         formData.append('xlsx_file', file);

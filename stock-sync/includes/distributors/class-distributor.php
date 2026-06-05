@@ -77,20 +77,21 @@ abstract class StockSync_Distributor {
 	}
 
 	/**
-	 * Get the WooCommerce product category to filter by during bootstrap.
-	 * Return null to match against all products.
+	 * Provide the product category name used to filter products during bootstrap.
 	 *
-	 * @return string|null Category name (exact match against product_cat taxonomy)
+	 * @return string|null Category name (exact match against the `product_cat` taxonomy), or `null` to match all products.
 	 */
 	public function get_category_filter() {
 		return null;
 	}
 
 	/**
-	 * Return expected header column labels for auto-detection.
-	 * Return empty array to disable auto-detection and use get_header_row() directly.
+	 * Provide expected header column labels for XLSX header auto-detection.
 	 *
-	 * @return array
+	 * If the returned array is empty, auto-detection is disabled and get_header_row()
+	 * will be used directly.
+	 *
+	 * @return string[] Array of expected header labels (empty to disable auto-detection).
 	 */
 	public function get_header_labels() {
 		return [];

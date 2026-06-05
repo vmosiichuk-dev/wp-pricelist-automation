@@ -255,17 +255,16 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Analyze XLSX for bootstrap fuzzy matching and return mapping suggestions as JSON.
+     * Produce fuzzy-match suggestions from an uploaded XLSX and return them as a JSON response.
      *
-     * Validates request nonce and user capability, checks and parses the provided XLSX file,
-     * runs the bootstrap matcher against WooCommerce products (optionally filtered by the
-     * distributor's category), and sends a JSON success response containing:
+     * Parses the provided XLSX for distributor items, runs the bootstrap matcher against
+     * WooCommerce products (optionally filtered by the distributor's category), and sends a
+     * JSON success payload containing:
      *  - `matches`: suggested mappings between distributor items and WC product IDs
-     *  - `total_xlsx`: count of parsed XLSX items
-     *  - `total_wc`: count of WC products considered
+     *  - `total_xlsx`: number of parsed XLSX items
+     *  - `total_wc`: number of WC products considered
      *  - `category_filter`: the distributor's category filter used (may be null or empty)
-     *
-     * On validation or processing failures the handler sends a JSON error response with an error message.
+     *  - `warnings`: array of parser warnings (e.g., unrecognized availability values)
      */
     public function bootstrap_analyze() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
