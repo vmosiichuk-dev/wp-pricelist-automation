@@ -28,6 +28,9 @@
                     </option>
                 <?php endforeach; ?>
             </select>
+            <button type="button" class="button" id="stock-erase-refs-btn">
+                <?php esc_html_e('Erase All Supplier References', 'stock-sync'); ?>
+            </button>
         </form>
     </div>
 
@@ -104,24 +107,49 @@
             </button>
             <h2 class="stock-card-title"><?php esc_html_e('Review Product Mappings', 'stock-sync'); ?></h2>
             <p class="stock-card-desc"><?php echo wp_kses_post(__('Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync')); ?></p>
-            <div id="sync-auto-mapped-notice" class="stock-success-notice" role="status" aria-live="polite" style="display:none;"></div>
+            <details id="sync-mapping-details" class="stock-mapping-details" open>
+                <summary id="sync-mapping-summary">
+                    <?php esc_html_e('Suggested matches', 'stock-sync'); ?>
+                    <span class="stock-mapping-count"></span>
+                </summary>
+                <table class="stock-card-table stock-match-table" id="sync-mapping-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="check-all-mapping" checked aria-label="<?php esc_attr_e('Select all entries', 'stock-sync'); ?>" /></th>
+                            <th><?php esc_html_e('Ref', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Distributor name', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Product name', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Match', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Action', 'stock-sync'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sync-mapping-body">
+                    </tbody>
+                </table>
+            </details>
 
-            <table class="stock-card-table stock-match-table" id="sync-mapping-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="check-all-mapping" checked aria-label="<?php esc_attr_e('Select all entries', 'stock-sync'); ?>" /></th>
-                        <th><?php esc_html_e('Ref', 'stock-sync'); ?></th>
-                        <th><?php esc_html_e('Distributor name', 'stock-sync'); ?></th>
-                        <th><?php esc_html_e('Product name', 'stock-sync'); ?></th>
-                        <th><?php esc_html_e('Match', 'stock-sync'); ?></th>
-                        <th><?php esc_html_e('Action', 'stock-sync'); ?></th>
-                    </tr>
-                </thead>
-                <tbody id="sync-mapping-body">
-                </tbody>
-            </table>
+            <details id="sync-already-mapped-details" class="stock-already-mapped-details hidden">
+                <summary id="sync-already-mapped-summary">
+                    <?php esc_html_e('Already mapped', 'stock-sync'); ?>
+                    <span class="stock-already-mapped-count"></span>
+                </summary>
+                <table class="stock-card-table stock-match-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="check-all-already" checked disabled aria-label="<?php esc_attr_e('Select all already mapped entries', 'stock-sync'); ?>" /></th>
+                            <th><?php esc_html_e('Ref', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Distributor name', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Product name', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Match', 'stock-sync'); ?></th>
+                            <th><?php esc_html_e('Action', 'stock-sync'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sync-already-mapped-body">
+                    </tbody>
+                </table>
+            </details>
 
-            <details id="sync-unmatched-details" class="stock-unmatched-details" style="display:none;">
+            <details id="sync-unmatched-details" class="stock-unmatched-details hidden" open>
                 <summary id="sync-unmatched-summary">
                     <?php esc_html_e('Unmatched positions', 'stock-sync'); ?>
                     <span class="stock-unmatched-count"></span>
@@ -176,9 +204,10 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" id="check-all-preview" checked aria-label="<?php esc_attr_e('Select all preview entries', 'stock-sync'); ?>" /></th>
+                        <th><?php esc_html_e('SKU', 'stock-sync'); ?></th>
                         <th><?php esc_html_e('Ref', 'stock-sync'); ?></th>
                         <th><?php esc_html_e('Name', 'stock-sync'); ?></th>
-                        <th><?php esc_html_e('Status', 'stock-sync'); ?></th>
+                        <th><?php esc_html_e('Action', 'stock-sync'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="sync-preview-body">
@@ -204,22 +233,23 @@
             <h2 class="stock-card-title" id="stock-sync-results-title"><?php esc_html_e('Sync Results', 'stock-sync'); ?></h2>
 
             <div class="stock-stat-grid">
-                <div class="stock-stat-item">
+                <div class="stock-stat-item neutral">
                     <div class="stock-stat-value" id="res-total">0</div>
                     <div class="stock-stat-label"><?php esc_html_e('Total Processed', 'stock-sync'); ?></div>
                 </div>
-                <div class="stock-stat-item success">
-                    <div class="stock-stat-value" id="res-updated">0</div>
-                    <div class="stock-stat-label" id="res-updated-label"><?php esc_html_e('Updated', 'stock-sync'); ?></div>
+                <div class="stock-stat-item delisted">
+                    <div class="stock-stat-value" id="res-delisted">0</div>
+                    <div class="stock-stat-label" id="res-delisted-label"><?php esc_html_e('Delisted', 'stock-sync'); ?></div>
                 </div>
-                <div class="stock-stat-item warning">
-                    <div class="stock-stat-value" id="res-notfound">0</div>
-                    <div class="stock-stat-label"><?php esc_html_e('Not Found', 'stock-sync'); ?></div>
+                <div class="stock-stat-item listed">
+                    <div class="stock-stat-value" id="res-listed">0</div>
+                    <div class="stock-stat-label"><?php esc_html_e('Listed', 'stock-sync'); ?></div>
                 </div>
-                <div class="stock-stat-item warning">
+                <div class="stock-stat-item stat-error">
                     <div class="stock-stat-value" id="res-errors">0</div>
                     <div class="stock-stat-label"><?php esc_html_e('Errors', 'stock-sync'); ?></div>
                 </div>
+
             </div>
 
             <div id="res-details"></div>

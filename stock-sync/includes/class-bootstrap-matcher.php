@@ -93,17 +93,17 @@ class StockSync_Bootstrap_Matcher {
     }
 
     /**
-     * Extract all 4-digit years starting with "20" from a product name.
+     * Extract all 4-digit years (19xx and 20xx) from a product name.
      * Returns an empty array if none found.
      *
-     * We only accept years starting with "20" because this is a wine distributor
-     * and no pre-2000 vintages are sold. This prevents false positives from
-     * other 4-digit numbers (e.g. "3781" in "Ribolla 3781").
+     * Both pre-2000 and post-2000 vintages are accepted. The regex still
+     * prevents false positives from other 4-digit numbers (e.g. "3781" in
+     * "Ribolla 3781") by requiring a proper year boundary.
      */
     public function extract_years_from_name($name) {
         $cleaned = $this->clean_name_for_year_extraction($name);
-        if (preg_match_all('/\b20\d{2}\b/', $cleaned, $matches)) {
-            return $matches[0]; // Array of strings like ['2016', '2018']
+        if (preg_match_all('/\b(?:19|20)\d{2}\b/', $cleaned, $matches)) {
+            return $matches[0]; // Array of strings like ['1998', '2016', '2018']
         }
         return [];
     }
@@ -137,8 +137,8 @@ class StockSync_Bootstrap_Matcher {
                 // YEAR GUARD
                 if (!empty($xlsx_product->vintage) && !empty($wc_years)) {
                     $xlsx_year = $xlsx_product->vintage;
-                    // Vintage must be a 4-digit year starting with 20
-                    if (preg_match('/^20\d{2}$/', $xlsx_year)) {
+                    // Vintage must be a 4-digit year starting with 19 or 20
+                    if (preg_match('/^(?:19|20)\d{2}$/', $xlsx_year)) {
                         if (!in_array($xlsx_year, $wc_years, true)) {
                             $score = 0; // Hard discard — year mismatch
                         }
