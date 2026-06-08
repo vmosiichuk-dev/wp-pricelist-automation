@@ -275,9 +275,9 @@
         $('#sync-already-mapped-body').empty();
         $('#sync-unmatched-body').empty();
         $('#sync-preview-body').empty();
-        $('#sync-mapping-details').hide();
-        $('#sync-already-mapped-details').hide();
-        $('#sync-unmatched-details').hide();
+        $('#sync-mapping-details').addClass('hidden');
+        $('#sync-already-mapped-details').addClass('hidden');
+        $('#sync-unmatched-details').addClass('hidden');
         currentRunId = null;
         currentDryRunStats = null;
         globalTotalBatches = 0;
@@ -442,27 +442,27 @@
         // Show/hide mapping section
         var $mappingDetails = $('#sync-mapping-details');
         if (suggestCount === 0) {
-            $mappingDetails.hide();
+            $mappingDetails.addClass('hidden');
         } else {
-            $mappingDetails.show();
+            $mappingDetails.removeClass('hidden');
             $mappingDetails.find('.stock-mapping-count').text('(' + suggestCount + ')');
         }
 
         // Show/hide already mapped section
         var $alreadyDetails = $('#sync-already-mapped-details');
         if (alreadyMappedItems.length === 0) {
-            $alreadyDetails.hide();
+            $alreadyDetails.addClass('hidden');
         } else {
-            $alreadyDetails.show();
+            $alreadyDetails.removeClass('hidden');
             $alreadyDetails.find('.stock-already-mapped-count').text('(' + alreadyMappedItems.length + ')');
         }
 
         // Show/hide unmatched section
         var $details = $('#sync-unmatched-details');
         if (manualCount === 0) {
-            $details.hide();
+            $details.addClass('hidden');
         } else {
-            $details.show();
+            $details.removeClass('hidden');
             $details.find('.stock-unmatched-count').text('(' + manualCount + ')');
         }
 
@@ -832,7 +832,8 @@
             }
         });
 
-        if (matches.length === 0) {
+        var hasAlreadyMapped = $('#sync-already-mapped-body .match-check:disabled').length > 0;
+        if (matches.length === 0 && !hasAlreadyMapped) {
             showToast('Please select at least one match to save.', 'warning');
             return;
         }
@@ -930,7 +931,7 @@
         var updateCount = 0;
 
         stats.details.forEach(function(d) {
-            if (d.status === 'would_update' || d.status === 'updated' || d.status === 'would_delist' || d.status === 'delisted') {
+            if (d.status === 'would_update' || d.status === 'updated' || d.status === 'would_delist' || d.status === 'delisted' || d.status === 'would_list' || d.status === 'listed') {
                 updateCount++;
                 var $tr = $('<tr>').attr('data-ref', d.distributor_ref || '');
                 $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'preview-check'}).prop('checked', true)));
@@ -1112,7 +1113,10 @@
 
         $('#res-total').text(stats.processed);
         $('#res-delisted').text(stats.updated);
-        $('#res-listed').text(0); // Placeholder for future "listed" feature
+        var listedCount = stats.details.reduce(function(n, d) {
+            return n + (d.status === 'listed' || d.status === 'would_list' ? 1 : 0);
+        }, 0);
+        $('#res-listed').text(listedCount);
         $('#res-errors').text(stats.errors);
 
         $('#stock-sync-results-title').text('Sync Results');
@@ -1124,6 +1128,9 @@
             if (d.status === 'updated' || d.status === 'delisted') {
                 statusClass = 'status-delisted';
                 displayStatus = 'delisted';
+            } else if (d.status === 'listed' || d.status === 'would_list') {
+                statusClass = 'status-listed';
+                displayStatus = 'listed';
             } else if (d.status === 'not_found') {
                 statusClass = 'status-error';
             } else if (d.status === 'error') {

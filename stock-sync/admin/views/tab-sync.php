@@ -128,7 +128,7 @@
                 </table>
             </details>
 
-            <details id="sync-already-mapped-details" class="stock-already-mapped-details" style="display:none;">
+            <details id="sync-already-mapped-details" class="stock-already-mapped-details hidden">
                 <summary id="sync-already-mapped-summary">
                     <?php esc_html_e('Already mapped', 'stock-sync'); ?>
                     <span class="stock-already-mapped-count"></span>
@@ -149,7 +149,7 @@
                 </table>
             </details>
 
-            <details id="sync-unmatched-details" class="stock-unmatched-details" open style="display:none;">
+            <details id="sync-unmatched-details" class="stock-unmatched-details hidden" open>
                 <summary id="sync-unmatched-summary">
                     <?php esc_html_e('Unmatched positions', 'stock-sync'); ?>
                     <span class="stock-unmatched-count"></span>

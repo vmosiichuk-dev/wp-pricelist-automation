@@ -1475,7 +1475,7 @@ details .stock-card-table thead th:last-child {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .stock-test-status {

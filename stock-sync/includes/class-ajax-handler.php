@@ -134,6 +134,7 @@ class StockSync_AJAX_Handler {
                 ];
             }
         }
+        $xlsx_ref_set = array_flip($all_xlsx_refs);
 
         // Mark previously mapped products that are no longer in the file for delisting
         $meta_key       = $distributor->get_meta_key();
@@ -154,9 +155,10 @@ class StockSync_AJAX_Handler {
 
         foreach ($mapped_products as $post_id) {
             $mapped_ref = get_post_meta($post_id, $meta_key, true);
-            if (!in_array($mapped_ref, $all_xlsx_refs, true)) {
+            if (!isset($xlsx_ref_set[$mapped_ref])) {
                 $wc_product = wc_get_product($post_id);
                 $to_process[] = [
+                    'product_id'       => $post_id,
                     'distributor_ref'  => $mapped_ref,
                     'product_name'     => $wc_product ? $wc_product->get_name() : '',
                     'distributor_slug' => $slug,
@@ -242,7 +244,7 @@ class StockSync_AJAX_Handler {
             $results['processed']++;
 
             $is_delist = !empty($item['delist']);
-            $product_id = $matcher->find_by_distributor_ref($item['distributor_ref'], $meta_key);
+            $product_id = !empty($item['product_id']) ? (int) $item['product_id'] : $matcher->find_by_distributor_ref($item['distributor_ref'], $meta_key);
 
             if (!$product_id) {
                 $results['not_found']++;
@@ -399,25 +401,26 @@ class StockSync_AJAX_Handler {
         // plugin filters, or collation quirks). Look up each missing ref
         // individually with an exact match so already-mapped products are
         // never re-suggested.
-        $missing_refs = array_diff($all_refs, array_keys($ref_map));
-        foreach ($missing_refs as $missing_ref) {
+        $missing_refs = array_unique(array_diff($all_refs, array_keys($ref_map)));
+        foreach (array_chunk($missing_refs, 50) as $chunk) {
             $found = get_posts([
                 'post_type'              => 'product',
-                'posts_per_page'         => 1,
+                'posts_per_page'         => -1,
                 'fields'                 => 'ids',
                 'meta_query'             => [
                     [
                         'key'     => $meta_key,
-                        'value'   => $missing_ref,
-                        'compare' => '=',
+                        'value'   => $chunk,
+                        'compare' => 'IN',
                     ],
                 ],
                 'no_found_rows'          => true,
                 'update_post_term_cache' => false,
                 'update_post_meta_cache' => false,
             ]);
-            if (!empty($found)) {
-                $ref_map[$missing_ref] = (int) $found[0];
+            foreach ($found as $post_id) {
+                $ref = get_post_meta($post_id, $meta_key, true);
+                $ref_map[$ref] = (int) $post_id;
             }
         }
 
