@@ -204,12 +204,13 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Verify that 4-digit years starting with 20 are extracted from product names.
+	 * Verify that 4-digit years starting with 19 or 20 are extracted from product names.
 	 */
 	public function test_extract_years_from_name() {
 		$this->assertSame(['2012'], $this->matcher->extract_years_from_name('Brunello 2012'));
 		$this->assertSame([], $this->matcher->extract_years_from_name('No year'));
 		$this->assertSame(['2007'], $this->matcher->extract_years_from_name('Ribolla 3781 2007'));
+		$this->assertSame(['1998'], $this->matcher->extract_years_from_name('Chateau 1998'));
 	}
 
 	/**
@@ -300,6 +301,34 @@ class Test_Bootstrap_Matcher extends PHPUnit\Framework\TestCase {
 
 		$this->assertCount(1, $results);
 		$this->assertSame('WO5501', $results[0]['distributor_ref']);
+		$this->assertSame(1, $results[0]['wc_id']);
+		$this->assertGreaterThanOrEqual(70, $results[0]['confidence']);
+	}
+
+	/**
+	 * Verify that sub-2000 vintage years are correctly linked during reverse matching.
+	 */
+	public function test_reversed_match_year_19xx() {
+		$repository = $this->create_stub_repository([
+			['id' => 1, 'name' => 'Chateau Nenin 1998', 'sku' => 'CN1998'],
+		]);
+
+		$matcher = new StockSync_Bootstrap_Matcher($repository);
+
+		$xlsx = [
+			new StockSync_Standard_Product([
+				'distributor_ref'  => 'FR001',
+				'product_name'     => 'Chateau Nenin',
+				'vintage'          => '1998',
+				'distributor_slug' => 'vininova',
+			]),
+		];
+
+		$wc_products = $repository->find_all();
+		$results = $matcher->match_all($xlsx, $wc_products);
+
+		$this->assertCount(1, $results);
+		$this->assertSame('FR001', $results[0]['distributor_ref']);
 		$this->assertSame(1, $results[0]['wc_id']);
 		$this->assertGreaterThanOrEqual(70, $results[0]['confidence']);
 	}

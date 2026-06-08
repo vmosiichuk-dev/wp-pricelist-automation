@@ -22,6 +22,7 @@ class StockSync_AJAX_Handler {
         add_action('wp_ajax_stock_sync_bootstrap_analyze', [$this, 'bootstrap_analyze']);
         add_action('wp_ajax_stock_sync_bootstrap_save', [$this, 'bootstrap_save']);
         add_action('wp_ajax_stock_sync_filter_queue', [$this, 'filter_queue']);
+        add_action('wp_ajax_stock_sync_erase_refs', [$this, 'erase_refs']);
         add_action('wp_ajax_stock_sync_test_search', [$this, 'test_search']);
         add_action('wp_ajax_stock_sync_test_get_product', [$this, 'test_get_product']);
         add_action('wp_ajax_stock_sync_test_apply', [$this, 'test_apply']);
@@ -120,12 +121,46 @@ class StockSync_AJAX_Handler {
         }
 
         $to_process = [];
+        $all_xlsx_refs = [];
+        $seen_refs = [];
         foreach ($products as $product) {
-            if ($product->is_unavailable) {
+            $all_xlsx_refs[] = $product->distributor_ref;
+            if ($product->is_unavailable && !isset($seen_refs[$product->distributor_ref])) {
+                $seen_refs[$product->distributor_ref] = true;
                 $to_process[] = [
                     'distributor_ref'  => $product->distributor_ref,
                     'product_name'     => $product->product_name,
                     'distributor_slug' => $product->distributor_slug,
+                ];
+            }
+        }
+
+        // Mark previously mapped products that are no longer in the file for delisting
+        $meta_key       = $distributor->get_meta_key();
+        $mapped_products = get_posts([
+            'post_type'              => 'product',
+            'posts_per_page'         => -1,
+            'meta_query'             => [
+                [
+                    'key'     => $meta_key,
+                    'compare' => 'EXISTS',
+                ],
+            ],
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'update_post_term_cache' => false,
+            'update_post_meta_cache' => false,
+        ]);
+
+        foreach ($mapped_products as $post_id) {
+            $mapped_ref = get_post_meta($post_id, $meta_key, true);
+            if (!in_array($mapped_ref, $all_xlsx_refs, true)) {
+                $wc_product = wc_get_product($post_id);
+                $to_process[] = [
+                    'distributor_ref'  => $mapped_ref,
+                    'product_name'     => $wc_product ? $wc_product->get_name() : '',
+                    'distributor_slug' => $slug,
+                    'delist'           => true,
                 ];
             }
         }
@@ -206,6 +241,7 @@ class StockSync_AJAX_Handler {
         foreach ($batch as $item) {
             $results['processed']++;
 
+            $is_delist = !empty($item['delist']);
             $product_id = $matcher->find_by_distributor_ref($item['distributor_ref'], $meta_key);
 
             if (!$product_id) {
@@ -214,17 +250,22 @@ class StockSync_AJAX_Handler {
                     'distributor_ref' => $item['distributor_ref'],
                     'name'            => $item['product_name'],
                     'status'          => 'not_found',
+                    'sku'             => '',
                 ];
                 continue;
             }
+
+            $wc_product = wc_get_product($product_id);
+            $sku        = $wc_product ? $wc_product->get_sku() : '';
 
             if ($dry_run) {
                 $results['updated']++;
                 $results['details'][] = [
                     'distributor_ref' => $item['distributor_ref'],
                     'name'            => $item['product_name'],
-                    'status'          => 'would_update',
+                    'status'          => $is_delist ? 'would_delist' : 'would_update',
                     'product_id'      => $product_id,
+                    'sku'             => $sku,
                 ];
                 continue;
             }
@@ -239,14 +280,16 @@ class StockSync_AJAX_Handler {
                     'name'            => $item['product_name'],
                     'status'          => 'error',
                     'error'           => $result->get_error_message(),
+                    'sku'             => $sku,
                 ];
             } else {
                 $results['updated']++;
                 $results['details'][] = [
                     'distributor_ref' => $item['distributor_ref'],
                     'name'            => $item['product_name'],
-                    'status'          => 'updated',
+                    'status'          => $is_delist ? 'delisted' : 'updated',
                     'product_id'      => $product_id,
+                    'sku'             => $sku,
                 ];
             }
         }
@@ -331,9 +374,10 @@ class StockSync_AJAX_Handler {
         // Preload all mapped products in a single query to avoid N+1
         $all_refs = array_map(fn($p) => $p->distributor_ref, $products);
         $existing_posts = get_posts([
-            'post_type'      => 'product',
-            'posts_per_page' => -1,
-            'meta_query'     => [
+            'post_type'              => 'product',
+            'posts_per_page'         => -1,
+            'fields'                 => 'ids',
+            'meta_query'             => [
                 [
                     'key'     => $meta_key,
                     'value'   => $all_refs,
@@ -342,15 +386,50 @@ class StockSync_AJAX_Handler {
             ],
             'no_found_rows'          => true,
             'update_post_term_cache' => false,
+            'update_post_meta_cache' => false,
         ]);
 
         $ref_map = [];
-        foreach ($existing_posts as $post) {
-            $ref = get_post_meta($post->ID, $meta_key, true);
-            $ref_map[$ref] = (int) $post->ID;
+        foreach ($existing_posts as $post_id) {
+            $ref = get_post_meta($post_id, $meta_key, true);
+            $ref_map[$ref] = (int) $post_id;
         }
 
+        // Fallback: some refs may be missed by the batch IN query (caching,
+        // plugin filters, or collation quirks). Look up each missing ref
+        // individually with an exact match so already-mapped products are
+        // never re-suggested.
+        $missing_refs = array_diff($all_refs, array_keys($ref_map));
+        foreach ($missing_refs as $missing_ref) {
+            $found = get_posts([
+                'post_type'              => 'product',
+                'posts_per_page'         => 1,
+                'fields'                 => 'ids',
+                'meta_query'             => [
+                    [
+                        'key'     => $meta_key,
+                        'value'   => $missing_ref,
+                        'compare' => '=',
+                    ],
+                ],
+                'no_found_rows'          => true,
+                'update_post_term_cache' => false,
+                'update_post_meta_cache' => false,
+            ]);
+            if (!empty($found)) {
+                $ref_map[$missing_ref] = (int) $found[0];
+            }
+        }
+
+        $seen_refs = [];
+
         foreach ($products as $product) {
+            // Skip duplicate refs from distributor table
+            if (isset($seen_refs[$product->distributor_ref])) {
+                continue;
+            }
+            $seen_refs[$product->distributor_ref] = true;
+
             if (isset($ref_map[$product->distributor_ref])) {
                 $post_id    = $ref_map[$product->distributor_ref];
                 $wc_product = wc_get_product($post_id);
@@ -492,6 +571,53 @@ class StockSync_AJAX_Handler {
             'run_id'        => $new_run_id,
             'total_batches' => ceil(count($filtered) / 50),
             'total_items'   => count($filtered),
+        ]);
+    }
+
+    /**
+     * Erase all supplier references for a selected distributor.
+     *
+     * Reads the distributor slug, finds all products that have the distributor's
+     * meta key, deletes the meta, and returns the count of erased references.
+     */
+    public function erase_refs() {
+        check_ajax_referer('stock_sync_nonce', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(__('Permission denied', 'stock-sync'));
+        }
+
+        $slug = sanitize_text_field($_POST['distributor_slug'] ?? '');
+        $distributor = StockSync_Distributor_Registry::instance()->get($slug);
+        if (!$distributor) {
+            wp_send_json_error(__('Unknown distributor', 'stock-sync'));
+        }
+
+        $meta_key = $distributor->get_meta_key();
+        $products = get_posts([
+            'post_type'              => 'product',
+            'posts_per_page'         => -1,
+            'meta_query'             => [
+                [
+                    'key'     => $meta_key,
+                    'compare' => 'EXISTS',
+                ],
+            ],
+            'fields'                 => 'ids',
+            'no_found_rows'          => true,
+            'update_post_term_cache' => false,
+            'update_post_meta_cache' => false,
+        ]);
+
+        $erased = 0;
+        foreach ($products as $post_id) {
+            if (delete_post_meta($post_id, $meta_key)) {
+                $erased++;
+            }
+        }
+
+        wp_send_json_success([
+            'erased' => $erased,
         ]);
     }
 

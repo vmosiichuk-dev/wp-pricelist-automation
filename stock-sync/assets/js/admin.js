@@ -253,8 +253,8 @@
         uploadFile(file, function(uploadData) {
             if (thisGen !== requestGenerationToken) return;
             currentSyncFilePath = uploadData.file_path;
-            $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
-            $('#stock-xlsx-file').prop('disabled', false);
+            // Keep button in analyzing state until mapping table is ready
+            $btn.prop('disabled', true).removeClass('stock-btn-spinner').addClass('stock-btn-spinner').text('Analyzing...');
             analyzeAndMap(uploadData.file_path, $btn);
         }, function(error) {
             if (thisGen !== requestGenerationToken) return;
@@ -272,8 +272,12 @@
         $('#sync-duplicate-notice').hide();
         hideUploadError();
         $('#sync-mapping-body').empty();
+        $('#sync-already-mapped-body').empty();
         $('#sync-unmatched-body').empty();
         $('#sync-preview-body').empty();
+        $('#sync-mapping-details').hide();
+        $('#sync-already-mapped-details').hide();
+        $('#sync-unmatched-details').hide();
         currentRunId = null;
         currentDryRunStats = null;
         globalTotalBatches = 0;
@@ -334,13 +338,6 @@
                 var alreadyMappedItems = response.data.already_mapped_items || [];
                 var alreadyMappedCount = response.data.already_mapped_count || 0;
 
-                // Show auto-mapped notice for previously mapped products
-                if (alreadyMappedCount > 0) {
-                    $('#sync-auto-mapped-notice')
-                        .text(alreadyMappedCount + ' products were already mapped.')
-                        .show();
-                }
-
                 if (matches.length > 0 || alreadyMappedItems.length > 0) {
                     updateProgressPercent(10, 'Review mappings...');
                     showMappingReview(matches, alreadyMappedItems);
@@ -368,25 +365,30 @@
         $('#sync-step-mapping').show();
         hideProgress();
 
+        // Re-enable upload button now that analysis is complete
+        $('#stock-sync-upload').prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
+        $('#stock-xlsx-file').prop('disabled', false);
+
         var $tbody = $('#sync-mapping-body').empty();
+        var $alreadyMappedBody = $('#sync-already-mapped-body').empty();
         var $unmatchedBody = $('#sync-unmatched-body').empty();
         var suggestCount = 0;
         var manualCount = 0;
 
-        // Render already-mapped items (non-interactive)
+        // Render already-mapped items (inactive checkboxes)
         if (alreadyMappedItems && alreadyMappedItems.length > 0) {
             alreadyMappedItems.forEach(function(m) {
                 var $tr = $('<tr>').addClass('stock-already-mapped')
                     .attr('data-ref', m.distributor_ref || '')
                     .attr('data-wc-id', m.wc_id || '')
                     .attr('data-wc-sku', m.wc_sku || '');
-                $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'match-check', checked: true, title: 'Already mapped'})));
+                $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'match-check', checked: true, disabled: true, title: 'Already mapped'})));
                 $tr.append($('<td>').text(m.distributor_ref || '-'));
                 $tr.append($('<td>').text(m.xlsx_name || '-'));
                 $tr.append($('<td>').addClass('wc-product-cell').text(m.wc_name || '—'));
                 $tr.append($('<td>').append($('<span>').addClass('confidence-badge confidence-high').text('100%')));
                 $tr.append($('<td>').append($('<span>').addClass('stock-mapped-label').text('Already mapped')));
-                $tbody.append($tr);
+                $alreadyMappedBody.append($tr);
             });
         }
 
@@ -437,6 +439,24 @@
             }
         });
 
+        // Show/hide mapping section
+        var $mappingDetails = $('#sync-mapping-details');
+        if (suggestCount === 0) {
+            $mappingDetails.hide();
+        } else {
+            $mappingDetails.show();
+            $mappingDetails.find('.stock-mapping-count').text('(' + suggestCount + ')');
+        }
+
+        // Show/hide already mapped section
+        var $alreadyDetails = $('#sync-already-mapped-details');
+        if (alreadyMappedItems.length === 0) {
+            $alreadyDetails.hide();
+        } else {
+            $alreadyDetails.show();
+            $alreadyDetails.find('.stock-already-mapped-count').text('(' + alreadyMappedItems.length + ')');
+        }
+
         // Show/hide unmatched section
         var $details = $('#sync-unmatched-details');
         if (manualCount === 0) {
@@ -445,6 +465,21 @@
             $details.show();
             $details.find('.stock-unmatched-count').text('(' + manualCount + ')');
         }
+
+        // Mark the last visible table as the one before the sticky bar
+        function updateLastTableBorder() {
+            $('.stock-card-table').removeClass('stock-table-last');
+            var $visibleTables = $('.stock-card-table:visible');
+            if ($visibleTables.length > 0) {
+                $visibleTables.last().addClass('stock-table-last');
+            }
+        }
+        updateLastTableBorder();
+
+        // Recompute last-table class when details open/close
+        $('#sync-step-mapping details').off('toggle.stock').on('toggle.stock', function() {
+            setTimeout(updateLastTableBorder, 0);
+        });
 
         // Enable confirm button
         $('#stock-sync-confirm-mappings').prop('disabled', false);
@@ -785,6 +820,8 @@
         var distributor = getDistributorSlug();
         var matches = [];
 
+        // Only include rows from mapping and unmatched tables.
+        // Already-mapped rows are skipped because their checkboxes are disabled.
         $('#sync-mapping-body tr, #sync-unmatched-body tr').each(function() {
             var $row = $(this);
             if ($row.find('.match-check').prop('checked')) {
@@ -893,13 +930,18 @@
         var updateCount = 0;
 
         stats.details.forEach(function(d) {
-            if (d.status === 'would_update' || d.status === 'updated') {
+            if (d.status === 'would_update' || d.status === 'updated' || d.status === 'would_delist' || d.status === 'delisted') {
                 updateCount++;
                 var $tr = $('<tr>').attr('data-ref', d.distributor_ref || '');
                 $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'preview-check'}).prop('checked', true)));
+                $tr.append($('<td>').text(d.sku || '—'));
                 $tr.append($('<td>').text(d.distributor_ref || '-'));
                 $tr.append($('<td>').text(d.name || '-'));
-                $tr.append($('<td>').addClass('status-auto').text('will update'));
+                var actionText = 'delist';
+                if (d.status === 'would_list' || d.status === 'listed') {
+                    actionText = 'list';
+                }
+                $tr.append($('<td>').addClass('status-delisted').text(actionText));
                 $tbody.append($tr);
             }
         });
@@ -1069,24 +1111,31 @@
         $('#stock-sync-results').show();
 
         $('#res-total').text(stats.processed);
-        $('#res-updated').text(stats.updated);
-        $('#res-notfound').text(stats.not_found);
+        $('#res-delisted').text(stats.updated);
+        $('#res-listed').text(0); // Placeholder for future "listed" feature
         $('#res-errors').text(stats.errors);
 
         $('#stock-sync-results-title').text('Sync Results');
-        $('#res-updated-label').text('Updated');
 
-        var html = '<table class="stock-card-table"><thead><tr><th>Ref</th><th>Name</th><th>Status</th></tr></thead><tbody>';
+        var html = '<table class="stock-card-table"><thead><tr><th>SKU</th><th>Ref</th><th>Name</th><th>Status</th></tr></thead><tbody>';
         stats.details.slice(0, 100).forEach(function(d) {
             var statusClass = '';
-            if (d.status === 'updated') statusClass = 'status-auto';
-            else if (d.status === 'not_found') statusClass = 'status-manual';
-            else statusClass = 'status-suggest';
+            var displayStatus = d.status;
+            if (d.status === 'updated' || d.status === 'delisted') {
+                statusClass = 'status-delisted';
+                displayStatus = 'delisted';
+            } else if (d.status === 'not_found') {
+                statusClass = 'status-error';
+            } else if (d.status === 'error') {
+                statusClass = 'status-error';
+            } else {
+                statusClass = 'status-neutral';
+            }
 
-            html += '<tr><td>' + escapeHtml(d.distributor_ref || '-') + '</td><td>' + escapeHtml(d.name || '-') + '</td><td class="' + statusClass + '">' + escapeHtml(d.status) + '</td></tr>';
+            html += '<tr><td>' + escapeHtml(d.sku || '—') + '</td><td>' + escapeHtml(d.distributor_ref || '-') + '</td><td>' + escapeHtml(d.name || '-') + '</td><td class="' + statusClass + '">' + escapeHtml(displayStatus) + '</td></tr>';
         });
         if (stats.details.length > 100) {
-            html += '<tr><td colspan="3">... and ' + escapeHtml(stats.details.length - 100) + ' more</td></tr>';
+            html += '<tr><td colspan="4">... and ' + escapeHtml(stats.details.length - 100) + ' more</td></tr>';
         }
         html += '</tbody></table>';
         $('#res-details').html(html);
@@ -1238,6 +1287,43 @@
             error: function() {
                 $btn.prop('disabled', false).text('Apply Update to This Product');
                 $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Network error.'));
+            }
+        });
+    });
+
+    // ===== ERASE ALL SUPPLIER REFERENCES =====
+
+    $('#stock-erase-refs-btn').on('click', function() {
+        var distributor = getDistributorSlug();
+        var distributorName = $('#stock-distributor option:selected').text().trim();
+
+        if (!confirm('Are you sure you want to erase all supplier references for ' + distributorName + '?')) {
+            return;
+        }
+
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Erasing...');
+
+        $.ajax({
+            url: stockSync.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'stock_sync_erase_refs',
+                nonce: stockSync.nonce,
+                distributor_slug: distributor
+            },
+            success: function(response) {
+                $btn.prop('disabled', false).text('Erase All Supplier References');
+                if (response.success) {
+                    showToast('Erased ' + response.data.erased + ' references for ' + distributorName + '.', 'success');
+                    resetAllSteps();
+                } else {
+                    showToast('Erase failed: ' + response.data, 'error');
+                }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text('Erase All Supplier References');
+                showToast('Erase network error', 'error');
             }
         });
     });

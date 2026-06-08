@@ -102,8 +102,8 @@ class StockSync_Bootstrap_Matcher {
      */
     public function extract_years_from_name($name) {
         $cleaned = $this->clean_name_for_year_extraction($name);
-        if (preg_match_all('/\b20\d{2}\b/', $cleaned, $matches)) {
-            return $matches[0]; // Array of strings like ['2016', '2018']
+        if (preg_match_all('/\b(?:19|20)\d{2}\b/', $cleaned, $matches)) {
+            return $matches[0]; // Array of strings like ['1998', '2016', '2018']
         }
         return [];
     }
@@ -137,8 +137,8 @@ class StockSync_Bootstrap_Matcher {
                 // YEAR GUARD
                 if (!empty($xlsx_product->vintage) && !empty($wc_years)) {
                     $xlsx_year = $xlsx_product->vintage;
-                    // Vintage must be a 4-digit year starting with 20
-                    if (preg_match('/^20\d{2}$/', $xlsx_year)) {
+                    // Vintage must be a 4-digit year starting with 19 or 20
+                    if (preg_match('/^(?:19|20)\d{2}$/', $xlsx_year)) {
                         if (!in_array($xlsx_year, $wc_years, true)) {
                             $score = 0; // Hard discard — year mismatch
                         }
