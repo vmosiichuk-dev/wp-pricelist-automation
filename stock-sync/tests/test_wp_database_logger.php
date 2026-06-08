@@ -2,6 +2,10 @@
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_WP_Database_Logger.
+ */
+
 
 class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
 
@@ -73,6 +77,9 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame(99, $result);
     }
+    /**
+     * Verify that multiple log calls within the same session share a sync run ID.
+     */
 
     public function test_current_sync_run_id_is_reused() {
         $syncRunIds = [];
@@ -89,6 +96,9 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame($syncRunIds[0], $syncRunIds[1]);
     }
+    /**
+     * Verify that get_recent clamps the limit parameter to a valid range.
+     */
 
     public function test_get_recent_clamps_limit() {
         $capturedLimits = [];
@@ -105,6 +115,9 @@ class Test_WP_Database_Logger extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame([1, 1000, 50], $capturedLimits);
     }
+    /**
+     * Verify that get_sync_runs clamps the limit parameter to a valid range.
+     */
 
     public function test_get_sync_runs_clamps_limit() {
         $capturedLimits = [];

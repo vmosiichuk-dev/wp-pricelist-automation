@@ -2,6 +2,10 @@
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_Product_Updater.
+ */
+
 
 class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 
@@ -19,6 +23,9 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		});
 		Functions\when('get_the_terms')->justReturn(false);
 	}
+    /**
+     * Clean up Brain Monkey and Mockery after each test.
+     */
 
 	protected function tearDown(): void {
 		Monkey\tearDown();
@@ -94,6 +101,9 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$this->assertTrue($result);
 		$this->assertTrue($wp_update_post_called, 'wp_update_post should be called when slug changes');
 	}
+    /**
+     * Verify that mark_unavailable returns a WP_Error when the product is not found.
+     */
 
 	public function test_mark_unavailable_returns_wp_error_when_product_not_found() {
 		Functions\when('wc_get_product')->justReturn(false);
@@ -115,6 +125,9 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 
 		$this->assertInstanceOf('WP_Error', $result);
 	}
+    /**
+     * Verify that leading Polish price patterns are removed from the product name.
+     */
 
 	public function test_mark_unavailable_cleans_leading_price() {
 		$wp_update_post_called = false;
@@ -163,6 +176,9 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$this->assertTrue($result);
 		$this->assertTrue($wp_update_post_called, 'wp_update_post should be called when slug changes');
 	}
+    /**
+     * Verify that the excerpt uses the product name as prefix when no delimiter exists.
+     */
 
 	public function test_mark_unavailable_builds_excerpt_from_name_when_no_gt() {
 		$wp_update_post_called = false;

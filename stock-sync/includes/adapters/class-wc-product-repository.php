@@ -1,4 +1,9 @@
 <?php
+/**
+ * WooCommerce Product Repository
+ * Adapts WooCommerce product queries to the Product_Repository_Interface.
+ */
+
 class StockSync_WC_Product_Repository implements Product_Repository_Interface {
 
     /**

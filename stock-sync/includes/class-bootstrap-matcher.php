@@ -93,39 +93,160 @@ class StockSync_Bootstrap_Matcher {
     }
 
     /**
-     * Match all XLSX products to WC products
+     * Extract all 4-digit years starting with "20" from a product name.
+     * Returns an empty array if none found.
+     *
+     * We only accept years starting with "20" because this is a wine distributor
+     * and no pre-2000 vintages are sold. This prevents false positives from
+     * other 4-digit numbers (e.g. "3781" in "Ribolla 3781").
      */
-    public function match_all($xlsx_products, $wc_products) {
-        $matches = [];
+    public function extract_years_from_name($name) {
+        $cleaned = $this->clean_name_for_year_extraction($name);
+        if (preg_match_all('/\b20\d{2}\b/', $cleaned, $matches)) {
+            return $matches[0]; // Array of strings like ['2016', '2018']
+        }
+        return [];
+    }
 
-        foreach ($xlsx_products as $xlsx_product) {
+    private function clean_name_for_year_extraction($name) {
+        // Strip Polish price patterns (same regex as Product_Updater::clean_name)
+        $name = preg_replace('/\s*-\s*\d+(?:,\d+)?\s*zł\.\*\*\s*$/iu', '', $name);
+        $name = preg_replace('/^\d+(?:,\d+)?\s*zł\.\*\*\s*/iu', '', $name);
+        return $name;
+    }
+
+    /**
+     * Reverse match: for each WC product, find the best XLSX row.
+     * Returns array keyed by wc_id.
+     */
+    public function match_wc_to_xlsx($wc_products, $xlsx_products) {
+        $matches = []; // wc_id => best match data
+
+        foreach ($wc_products as $wc_product) {
+            $wc_years = $this->extract_years_from_name($wc_product['name']);
             $best_match = null;
             $best_score = 0;
+            $best_is_generic = false;
 
-            foreach ($wc_products as $wc_product) {
+            foreach ($xlsx_products as $xlsx_product) {
                 $score = $this->calculate_confidence(
                     $xlsx_product->product_name,
                     $wc_product['name']
                 );
 
+                // YEAR GUARD
+                if (!empty($xlsx_product->vintage) && !empty($wc_years)) {
+                    $xlsx_year = $xlsx_product->vintage;
+                    // Vintage must be a 4-digit year starting with 20
+                    if (preg_match('/^20\d{2}$/', $xlsx_year)) {
+                        if (!in_array($xlsx_year, $wc_years, true)) {
+                            $score = 0; // Hard discard — year mismatch
+                        }
+                    }
+                }
+
+                $is_generic = ($xlsx_product->distributor_ref === $xlsx_product->base_ref);
+
                 if ($score > $best_score) {
                     $best_score = $score;
-                    $best_match = $wc_product;
+                    $best_match = $xlsx_product;
+                    $best_is_generic = $is_generic;
+                } elseif ($score === $best_score && $score > 0) {
+                    // TIE-BREAKER: prefer generic ref when WC has no year
+                    if (empty($wc_years) && $is_generic && !$best_is_generic) {
+                        $best_match = $xlsx_product;
+                        $best_is_generic = true;
+                    }
                 }
             }
 
-            $matches[] = [
-                'distributor_ref' => $xlsx_product->distributor_ref,
-                'xlsx_name'       => $xlsx_product->product_name,
-                'wc_id'           => $best_match ? $best_match['id'] : null,
-                'wc_name'         => $best_match ? $best_match['name'] : null,
-                'wc_sku'          => $best_match ? $best_match['sku'] : null,
-                'confidence'      => $best_score,
-                'status'          => $this->get_status_from_confidence($best_score),
-            ];
+            if ($best_match) {
+                $matches[$wc_product['id']] = [
+                    'wc_id'           => $wc_product['id'],
+                    'wc_name'         => $wc_product['name'],
+                    'wc_sku'          => $wc_product['sku'],
+                    'distributor_ref' => $best_match->distributor_ref,
+                    'xlsx_name'       => $best_match->product_name,
+                    'confidence'      => $best_score,
+                    'status'          => $this->get_status_from_confidence($best_score),
+                ];
+            }
         }
 
         return $matches;
+    }
+
+    /**
+     * Match all XLSX products to WC products.
+     * Public API keeps the same signature for backward compatibility.
+     */
+    public function match_all($xlsx_products, $wc_products) {
+        // Step 1: Reverse match (WC → XLSX)
+        $wc_matches = $this->match_wc_to_xlsx($wc_products, $xlsx_products);
+
+        // Step 2: Invert to XLSX-first view and detect conflicts
+        $ref_to_wc = [];
+        foreach ($wc_matches as $wc_id => $match) {
+            $ref = $match['distributor_ref'];
+            if (!isset($ref_to_wc[$ref])) {
+                $ref_to_wc[$ref] = [];
+            }
+            $ref_to_wc[$ref][] = $match;
+        }
+
+        // Step 3: Build final XLSX-first result set
+        $results = [];
+        $handled_refs = [];
+
+        foreach ($xlsx_products as $xlsx_product) {
+            $ref = $xlsx_product->distributor_ref;
+            if (isset($handled_refs[$ref])) {
+                continue;
+            }
+            $handled_refs[$ref] = true;
+
+            if (isset($ref_to_wc[$ref])) {
+                $claimants = $ref_to_wc[$ref];
+                if (count($claimants) === 1) {
+                    // Clean single match
+                    $results[] = [
+                        'distributor_ref' => $ref,
+                        'xlsx_name'       => $xlsx_product->product_name,
+                        'wc_id'           => $claimants[0]['wc_id'],
+                        'wc_name'         => $claimants[0]['wc_name'],
+                        'wc_sku'          => $claimants[0]['wc_sku'],
+                        'confidence'      => $claimants[0]['confidence'],
+                        'status'          => $claimants[0]['status'],
+                    ];
+                } else {
+                    // CONFLICT: multiple WC products claim this XLSX row
+                    foreach ($claimants as $c) {
+                        $results[] = [
+                            'distributor_ref' => $ref,
+                            'xlsx_name'       => $xlsx_product->product_name,
+                            'wc_id'           => $c['wc_id'],
+                            'wc_name'         => $c['wc_name'],
+                            'wc_sku'          => $c['wc_sku'],
+                            'confidence'      => 0,
+                            'status'            => 'manual',
+                        ];
+                    }
+                }
+            } else {
+                // No WC product claimed this XLSX row
+                $results[] = [
+                    'distributor_ref' => $ref,
+                    'xlsx_name'       => $xlsx_product->product_name,
+                    'wc_id'           => null,
+                    'wc_name'         => null,
+                    'wc_sku'          => null,
+                    'confidence'      => 0,
+                    'status'            => 'manual',
+                ];
+            }
+        }
+
+        return $results;
     }
 
     /**

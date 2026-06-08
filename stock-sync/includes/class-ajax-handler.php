@@ -374,6 +374,12 @@ class StockSync_AJAX_Handler {
         $wc_products = $bootstrap->get_all_wc_products($category);
         $matches     = $bootstrap->match_all($unmapped, $wc_products);
 
+        // After computing matches, find unmatched WC products
+        $matched_wc_ids = array_column($matches, 'wc_id');
+        $unmatched_wc = array_filter($wc_products, function($p) use ($matched_wc_ids) {
+            return !in_array($p['id'], $matched_wc_ids, true);
+        });
+
         // Drop 0% confidence matches entirely — nothing to show or auto-save
         $matches = array_values(array_filter($matches, function ($m) {
             return $m['confidence'] > 0;
@@ -387,6 +393,7 @@ class StockSync_AJAX_Handler {
             'warnings'             => $warnings,
             'already_mapped_count' => count($already_mapped_items),
             'already_mapped_items' => $already_mapped_items,
+            'unmatched_wc'         => array_values($unmatched_wc),
         ]);
     }
 

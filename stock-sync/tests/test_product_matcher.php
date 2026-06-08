@@ -2,6 +2,10 @@
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_Product_Matcher.
+ */
+
 
 class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
 
@@ -31,6 +35,9 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
         Mockery::close();
         parent::tearDown();
     }
+    /**
+     * Verify that a matching distributor reference returns the correct product ID.
+     */
 
     public function test_find_by_distributor_ref_found() {
         WP_Query::$test_posts = [123];
@@ -46,6 +53,9 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
         $this->assertSame('_supplier_ref_vininova', WP_Query::$last_args['meta_query'][0]['key']);
         $this->assertSame('REF123', WP_Query::$last_args['meta_query'][0]['value']);
     }
+    /**
+     * Verify that a missing distributor reference returns false.
+     */
 
     public function test_find_by_distributor_ref_not_found() {
         WP_Query::$test_posts = [];
@@ -58,6 +68,9 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
 
         $this->assertFalse($result);
     }
+    /**
+     * Verify that empty inputs return false without querying.
+     */
 
     public function test_find_by_distributor_ref_empty_inputs() {
         $repository = Mockery::mock('Product_Repository_Interface');
@@ -67,6 +80,9 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
         $this->assertFalse($matcher->find_by_distributor_ref('REF123', ''));
         $this->assertEmpty(WP_Query::$last_args);
     }
+    /**
+     * Verify that a matching SKU returns the correct product ID.
+     */
 
     public function test_find_by_sku_found() {
         $repository = Mockery::mock('Product_Repository_Interface');
@@ -78,6 +94,9 @@ class Test_Product_Matcher extends \PHPUnit\Framework\TestCase {
 
         $this->assertSame(456, $matcher->find_by_sku('SKU123'));
     }
+    /**
+     * Verify that a missing SKU returns 0.
+     */
 
     public function test_find_by_sku_not_found() {
         $repository = Mockery::mock('Product_Repository_Interface');

@@ -4,14 +4,61 @@
  * All distributors normalize to this before entering the sync pipeline.
  */
 class StockSync_Standard_Product {
+    /**
+     * Distributor reference code.
+     *
+     * @var string
+     */
 
     public $distributor_ref;
+    /**
+     * EAN barcode.
+     *
+     * @var string
+     */
     public $ean;
+    /**
+     * Product name.
+     *
+     * @var string
+     */
     public $product_name;
+    /**
+     * Vintage or year.
+     *
+     * @var string
+     */
     public $vintage;
+    /**
+     * Raw availability string from the distributor.
+     *
+     * @var string
+     */
     public $availability_raw;
+    /**
+     * Whether the product is marked as unavailable.
+     *
+     * @var bool
+     */
     public $is_unavailable;
+    /**
+     * Distributor machine-safe slug.
+     *
+     * @var string
+     */
     public $distributor_slug;
+    /**
+     * Reference with variant suffix stripped, e.g. WO5502.
+     *
+     * @var string
+     */
+    public $base_ref;
+    /**
+     * 4-digit year from ref suffix, or null (informational only).
+     *
+     * @var string|null
+     */
+    public $variant_year;
 
     /**
      * Initialize standard product properties from data array.
@@ -27,6 +74,8 @@ class StockSync_Standard_Product {
         $this->availability_raw = $data['availability_raw'] ?? '';
         $this->is_unavailable   = $data['is_unavailable'] ?? false;
         $this->distributor_slug = $data['distributor_slug'] ?? '';
+        $this->base_ref      = $data['base_ref']    ?? $this->compute_base_ref();
+        $this->variant_year = $data['variant_year'] ?? null;
     }
 
     /**
@@ -38,5 +87,9 @@ class StockSync_Standard_Product {
             return null;
         }
         return '_supplier_ref_' . $slug;
+    }
+
+    private function compute_base_ref() {
+        return preg_replace('/-\d{2,4}$/', '', $this->distributor_ref);
     }
 }

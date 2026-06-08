@@ -2,6 +2,10 @@
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+/**
+ * Tests for StockSync_Distributor_Vininova.
+ */
+
 
 class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 
@@ -19,19 +23,31 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		Functions\stubTranslationFunctions();
 		$this->distributor = new StockSync_Distributor_Vininova();
 	}
+    /**
+     * Clean up Brain Monkey after each test.
+     */
 
 	protected function tearDown(): void {
 		Monkey\tearDown();
 		parent::tearDown();
 	}
+    /**
+     * Verify the distributor returns the expected human-readable name.
+     */
 
 	public function test_get_name() {
 		$this->assertSame('Vininova', $this->distributor->get_name());
 	}
+    /**
+     * Verify the distributor returns the expected machine-safe slug.
+     */
 
 	public function test_get_slug() {
 		$this->assertSame('vininova', $this->distributor->get_slug());
 	}
+    /**
+     * Verify the column map matches the expected field-to-index mapping.
+     */
 
 	public function test_get_column_map() {
 		$expected = [
@@ -43,11 +59,17 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		];
 		$this->assertSame($expected, $this->distributor->get_column_map());
 	}
+    /**
+     * Verify that rows with valid reference patterns are recognized as product rows.
+     */
 
 	public function test_is_product_row_with_valid_ref() {
 		$this->assertTrue($this->distributor->is_product_row([1 => 'AB123']));
 		$this->assertTrue($this->distributor->is_product_row([1 => 'XY999']));
 	}
+    /**
+     * Verify that rows with invalid references are rejected as product rows.
+     */
 
 	public function test_is_product_row_with_invalid_ref() {
 		$this->assertFalse($this->distributor->is_product_row([1 => '']));
@@ -76,6 +98,9 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 		$this->assertFalse($this->distributor->is_unavailable('dostępny'));
 		$this->assertFalse($this->distributor->is_unavailable('w magazynie'));
 	}
+    /**
+     * Verify the distributor returns the correct category filter.
+     */
 
 	public function test_get_category_filter() {
 		$this->assertSame('A - Oferta Vininova', $this->distributor->get_category_filter());

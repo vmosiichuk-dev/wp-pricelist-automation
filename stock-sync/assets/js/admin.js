@@ -23,6 +23,25 @@
         return div.innerHTML;
     }
 
+    function sortMatchesByTier(matches) {
+        return matches.slice().sort(function(a, b) {
+            var tierA = getTier(a.confidence, a.status);
+            var tierB = getTier(b.confidence, b.status);
+            if (tierA !== tierB) return tierA - tierB;
+            // Within tier, sort alphabetically by XLSX name
+            return (a.xlsx_name || '').localeCompare(b.xlsx_name || '');
+        });
+    }
+
+    function getTier(confidence, status) {
+        if (status === 'manual' || confidence < 70) return 1;
+        if (status === 'suggest' || confidence < 90) return 2;
+        if (status === 'auto' && confidence >= 90) {
+            return 4; // Clean auto at bottom
+        }
+        return 3;
+    }
+
     // ===== TOAST NOTIFICATIONS =====
 
     var $toastContainer = $('<div>').addClass('stock-toast-container').appendTo('body');
@@ -371,6 +390,8 @@
             });
         }
 
+        matches = sortMatchesByTier(matches);
+
         matches.forEach(function(m) {
             var isSuggest = m.confidence >= 70;
             var checked = isSuggest; // Suggest checked by default, manual unchecked
@@ -428,6 +449,11 @@
         // Enable confirm button
         $('#stock-sync-confirm-mappings').prop('disabled', false);
 
+        // Validate immediately after render
+        validateMappingDuplicates(false);
+        // Highlight duplicate rows
+        highlightDuplicateRows();
+
         // Check/uncheck all mapping rows
         $('#check-all-mapping').prop('checked', true).off('change').on('change', function() {
             var isChecked = $(this).prop('checked');
@@ -442,8 +468,6 @@
             handleBulkDuplicateCheck();
         });
 
-        // Validate initial state for duplicates
-        validateMappingDuplicates(true);
         updateStepper(2);
     }
 
@@ -667,6 +691,21 @@
         }
     }
 
+    function highlightDuplicateRows() {
+        var duplicates = getMappingDuplicates();
+        var duplicateWcIds = duplicates.map(function(d) { return String(d.wcId); });
+        
+        $('#sync-mapping-body tr, #sync-unmatched-body tr').each(function() {
+            var $row = $(this);
+            var wcId = $row.attr('data-wc-id');
+            if (wcId && duplicateWcIds.indexOf(String(wcId)) !== -1) {
+                $row.addClass('stock-row-duplicate');
+            } else {
+                $row.removeClass('stock-row-duplicate');
+            }
+        });
+    }
+
     function getMappingDuplicates() {
         var wcIdToData = {};
         var duplicates = [];
@@ -730,6 +769,7 @@
         } else {
             hideDuplicateBanner();
         }
+        highlightDuplicateRows();
         return isValid;
     }
 
