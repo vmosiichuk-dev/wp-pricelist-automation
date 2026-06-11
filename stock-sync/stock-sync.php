@@ -60,12 +60,20 @@ register_deactivation_hook(__FILE__, 'stock_sync_deactivate');
  */
 function stock_sync_deactivate() {
     wp_clear_scheduled_hook('stock_sync_cron');
+}
 
-    // One-time cleanup: drop legacy log table (remove in next version)
+/**
+ * Plugin uninstall hook: drop legacy tables.
+ *
+ * @return void
+ */
+function stock_sync_uninstall() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'stock_sync_log';
     $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
 }
+
+register_uninstall_hook(__FILE__, 'stock_sync_uninstall');
 
 /**
  * Cleanup temp files
