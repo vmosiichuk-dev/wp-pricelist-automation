@@ -34,17 +34,9 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Verifies that mark_unavailable updates a product's visibility, excerpt, prices, name, slug, saves the product, and logs a `marked_unavailable` event with expected product and distributor details.
+	 * Verifies that mark_unavailable updates a product's visibility, excerpt, prices, name, and saves the product.
 	 */
 	public function test_mark_unavailable_calls_correct_setters() {
-		$wp_update_post_called = false;
-		Functions\when('wp_update_post')->alias(function ($args) use (&$wp_update_post_called) {
-			$wp_update_post_called = true;
-			$this->assertSame(1, $args['ID']);
-			$this->assertSame('product-alpha', $args['post_name']);
-			return 1;
-		});
-
 		$mockProduct = Mockery::mock('WC_Product');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Old excerpt > previous text');
@@ -67,28 +59,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$mockDistributor->shouldReceive('get_unavailable_suffix')
 			->andReturn('test excerpt');
 
-		$mockLogger = Mockery::mock('Logger_Interface');
-		$mockLogger->shouldReceive('log')
-			->once()
-			->with(Mockery::on(function ($data) {
-				return $data['product_id'] === 1
-					&& $data['sku'] === 'SKU123'
-					&& $data['action'] === 'marked_unavailable'
-					&& $data['old_visibility'] === 'visible'
-					&& $data['new_visibility'] === 'search'
-					&& $data['old_excerpt'] === 'Old excerpt > previous text'
-					&& $data['new_excerpt'] === 'Old excerpt > test excerpt'
-					&& $data['old_price'] === '100'
-					&& $data['old_sale_price'] === '90'
-					&& $data['old_name'] === 'Product Alpha - 108 zł.**'
-					&& $data['new_name'] === 'Product Alpha'
-					&& $data['old_slug'] === 'product-alpha-108-zl'
-					&& $data['new_slug'] === 'product-alpha'
-					&& $data['distributor_slug'] === 'vininova'
-					&& $data['distributor_ref'] === 'REF123';
-			}));
-
-		$updater = new StockSync_Product_Updater($mockLogger);
+		$updater = new StockSync_Product_Updater();
 
 		$product = new StockSync_Standard_Product([
 			'distributor_slug' => 'vininova',
@@ -99,7 +70,6 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$result = $updater->mark_unavailable(1, $product, $mockDistributor);
 
 		$this->assertTrue($result);
-		$this->assertTrue($wp_update_post_called, 'wp_update_post should be called when slug changes');
 	}
     /**
      * Verify that mark_unavailable returns a WP_Error when the product is not found.
@@ -108,10 +78,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 	public function test_mark_unavailable_returns_wp_error_when_product_not_found() {
 		Functions\when('wc_get_product')->justReturn(false);
 
-		$mockLogger = Mockery::mock('Logger_Interface');
-		$mockLogger->shouldNotReceive('log');
-
-		$updater = new StockSync_Product_Updater($mockLogger);
+		$updater = new StockSync_Product_Updater();
 
 		$product = new StockSync_Standard_Product([
 			'distributor_slug' => 'vininova',
@@ -130,14 +97,6 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
      */
 
 	public function test_mark_unavailable_cleans_leading_price() {
-		$wp_update_post_called = false;
-		Functions\when('wp_update_post')->alias(function ($args) use (&$wp_update_post_called) {
-			$wp_update_post_called = true;
-			$this->assertSame(2, $args['ID']);
-			$this->assertSame('dry-hills', $args['post_name']);
-			return 1;
-		});
-
 		$mockProduct = Mockery::mock('WC_Product');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Old excerpt > previous text');
@@ -160,10 +119,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$mockDistributor->shouldReceive('get_unavailable_suffix')
 			->andReturn('test excerpt');
 
-		$mockLogger = Mockery::mock('Logger_Interface');
-		$mockLogger->shouldReceive('log')->once();
-
-		$updater = new StockSync_Product_Updater($mockLogger);
+		$updater = new StockSync_Product_Updater();
 
 		$product = new StockSync_Standard_Product([
 			'distributor_slug' => 'vininova',
@@ -174,19 +130,12 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$result = $updater->mark_unavailable(2, $product, $mockDistributor);
 
 		$this->assertTrue($result);
-		$this->assertTrue($wp_update_post_called, 'wp_update_post should be called when slug changes');
 	}
     /**
      * Verify that the excerpt uses the product name as prefix when no delimiter exists.
      */
 
 	public function test_mark_unavailable_builds_excerpt_from_name_when_no_gt() {
-		$wp_update_post_called = false;
-		Functions\when('wp_update_post')->alias(function ($args) use (&$wp_update_post_called) {
-			$wp_update_post_called = true;
-			return 1;
-		});
-
 		$mockProduct = Mockery::mock('WC_Product');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Some plain text without delimiter');
@@ -208,10 +157,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$mockDistributor->shouldReceive('get_unavailable_suffix')
 			->andReturn('test excerpt');
 
-		$mockLogger = Mockery::mock('Logger_Interface');
-		$mockLogger->shouldReceive('log')->once();
-
-		$updater = new StockSync_Product_Updater($mockLogger);
+		$updater = new StockSync_Product_Updater();
 
 		$product = new StockSync_Standard_Product([
 			'distributor_slug' => 'vininova',
@@ -222,6 +168,5 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$result = $updater->mark_unavailable(3, $product, $mockDistributor);
 
 		$this->assertTrue($result);
-		$this->assertFalse($wp_update_post_called, 'wp_update_post should NOT be called when slug does not change');
 	}
 }

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Stock Sync
  * Description: Automate WooCommerce product availability updates from distributor price lists. Multi-distributor support.
- * Version: 0.6.4
+ * Version: 0.6.5
  * Author: vmosiichuk.dev
  * Text Domain: stock-sync
  * Requires at least: 5.8
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('STOCK_SYNC_VERSION', '0.6.4');
+define('STOCK_SYNC_VERSION', '0.6.5');
 define('STOCK_SYNC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('STOCK_SYNC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -45,8 +45,7 @@ function stock_sync_activate() {
         );
     }
 
-    require_once STOCK_SYNC_PLUGIN_DIR . 'includes/class-database.php';
-    StockSync_Database::create_tables();
+
 }
 
 /**
@@ -61,6 +60,11 @@ register_deactivation_hook(__FILE__, 'stock_sync_deactivate');
  */
 function stock_sync_deactivate() {
     wp_clear_scheduled_hook('stock_sync_cron');
+
+    // One-time cleanup: drop legacy log table (remove in next version)
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'stock_sync_log';
+    $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
 }
 
 /**
@@ -136,10 +140,8 @@ function stock_sync_load() {
         'includes/distributors/class-distributor-registry.php',
         'includes/distributors/class-distributor-vininova.php',
         'includes/class-xlsx-parser.php',
-        'includes/interfaces/class-logger-interface.php',
         'includes/interfaces/class-product-repository-interface.php',
         'includes/interfaces/class-transient-store-interface.php',
-        'includes/adapters/class-wp-database-logger.php',
         'includes/adapters/class-wc-product-repository.php',
         'includes/adapters/class-wp-transient-store.php',
         'includes/class-service-factory.php',
@@ -148,8 +150,7 @@ function stock_sync_load() {
         'includes/class-product-utils.php',
         'includes/class-product-updater.php',
         'includes/class-product-meta.php',
-        'includes/class-logger.php',
-        'includes/class-database.php',
+
         'includes/class-ajax-handler.php',
         'includes/class-admin.php',
         'includes/class-plugin.php',

@@ -12,7 +12,6 @@
             <file>tests/Test_Standard_Product.php</file>
             <file>tests/test_product_matcher.php</file>
             <file>tests/test_product_updater.php</file>
-            <file>tests/test_wp_database_logger.php</file>
             <file>tests/test_xlsx_parser.php</file>
         </testsuite>
     </testsuites>
