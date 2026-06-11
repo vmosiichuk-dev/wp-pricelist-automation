@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Stock Sync plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stock Sync 0.6.3\n"
+"Project-Id-Version: Stock Sync 0.6.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -37,7 +37,7 @@ msgstr "Automatyzuj dostępność produktów na podstawie cenników dystrybutor�
 
 #: admin/views/page-wrapper.php:16 admin/views/tab-sync.php:11
 msgid "Distributors synchronization (Bulk sync)"
-msgstr "Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)"
+msgstr "Synchronizacja zbiorcza"
 
 #: admin/views/page-wrapper.php:20 admin/views/tab-test.php:10
 #: admin/views/tab-test.php:22
@@ -186,7 +186,7 @@ msgstr "Dopasowanie"
 #: admin/views/tab-sync.php:123 admin/views/tab-sync.php:144
 #: admin/views/tab-sync.php:165 admin/views/tab-sync.php:210
 msgid "Action"
-msgstr "Akcja"
+msgstr "Działanie"
 
 #: admin/views/tab-sync.php:133
 msgid "Already mapped"

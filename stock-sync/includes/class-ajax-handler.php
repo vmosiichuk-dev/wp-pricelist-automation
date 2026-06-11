@@ -155,6 +155,9 @@ class StockSync_AJAX_Handler {
 
         foreach ($mapped_products as $post_id) {
             $mapped_ref = get_post_meta($post_id, $meta_key, true);
+            if (empty($mapped_ref)) {
+                continue;
+            }
             if (!isset($xlsx_ref_set[$mapped_ref])) {
                 $wc_product = wc_get_product($post_id);
                 $to_process[] = [
