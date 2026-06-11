@@ -9,7 +9,7 @@ $sync_runs  = $logger->get_sync_runs(20);
 
     <div class="stock-info-banner">
         <div class="stock-info-content">
-            <h2 class="stock-info-title"><?php esc_html_e('Sync Log', 'stock-sync'); ?></h2>
+            <h2 class="stock-info-title"><?php esc_html_e('Dziennik', 'stock-sync'); ?></h2>
             <div class="stock-info-text">
                 <ul>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><?php esc_html_e('Review past sync operations and their outcomes', 'stock-sync'); ?></li>
@@ -20,7 +20,7 @@ $sync_runs  = $logger->get_sync_runs(20);
     </div>
 
     <div class="stock-card">
-        <h2 class="stock-card-title"><?php esc_html_e('Sync Log', 'stock-sync'); ?></h2>
+        <h2 class="stock-card-title"><?php esc_html_e('Dziennik', 'stock-sync'); ?></h2>
 
         <?php if (empty($sync_runs)) : ?>
             <div class="stock-log-empty">

@@ -1,5 +1,5 @@
 /* ============================================================
-   Stock Sync v0.6.1 — Admin Styles
+   Stock Sync v0.6.4 — Admin Styles
    ============================================================ */
 
 /* ---------- Layout ---------- */
@@ -1501,4 +1501,14 @@ details .stock-card-table thead th:last-child {
 }
 .stock-row-duplicate {
     background-color: #fff5f5;
+}
+
+/* Hide third-party promo/admin notices on our page, but keep errors/warnings/success */
+.toplevel_page_stock-sync .notice:not(.stock-sync-warning):not(.notice-error):not(.notice-warning):not(.notice-success) {
+    display: none !important;
+}
+
+/* Fix success notice margin inside test sticky bar */
+#stock-test-success.stock-success-notice {
+    margin: 0;
 }

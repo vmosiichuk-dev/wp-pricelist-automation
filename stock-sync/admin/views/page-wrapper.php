@@ -13,7 +13,7 @@
         <div class="stock-header-tabs">
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'sync', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
                class="<?php echo $active_tab === 'sync' ? 'active' : ''; ?>">
-                <?php esc_html_e('Distributor Sync', 'stock-sync'); ?>
+                <?php esc_html_e('Distributor sync', 'stock-sync'); ?>
             </a>
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'test', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
                class="<?php echo $active_tab === 'test' ? 'active' : ''; ?>">

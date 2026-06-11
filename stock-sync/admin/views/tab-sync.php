@@ -8,11 +8,11 @@
     <!-- Info Banner -->
     <div class="stock-info-banner">
         <div class="stock-info-content">
-            <h2 class="stock-info-title"><?php esc_html_e('Distributor Sync', 'stock-sync'); ?></h2>
+            <h2 class="stock-info-title"><?php esc_html_e('Distributor sync', 'stock-sync'); ?></h2>
             <div class="stock-info-text">
                 <ul>
-                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><?php esc_html_e('Upload a distributor price list and map products automatically', 'stock-sync'); ?></li>
-                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><?php esc_html_e('Preview availability changes before applying them', 'stock-sync'); ?></li>
+                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><?php esc_html_e('Upload a distributor price list and automatically assign product references', 'stock-sync'); ?></li>
+                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><?php esc_html_e('Preview product availability changes before applying them', 'stock-sync'); ?></li>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><?php esc_html_e('Keep your catalog in sync with one click', 'stock-sync'); ?></li>
                 </ul>
             </div>
@@ -42,7 +42,7 @@
         </div>
         <div class="stock-step pending" data-step="2">
             <span class="stock-step-icon">2</span>
-            <span class="stock-step-label"><?php esc_html_e('Map', 'stock-sync'); ?></span>
+            <span class="stock-step-label"><?php esc_html_e('Synchronize', 'stock-sync'); ?></span>
         </div>
         <div class="stock-step pending" data-step="3">
             <span class="stock-step-icon">3</span>
@@ -58,7 +58,7 @@
     <div id="sync-step-upload">
         <div class="stock-card">
             <h2 class="stock-card-title"><?php esc_html_e('Upload Price List', 'stock-sync'); ?></h2>
-            <p class="stock-card-desc"><?php esc_html_e('Drag and drop your .xlsx file or click to browse. Unmapped products will be shown for review before syncing.', 'stock-sync'); ?></p>
+            <p class="stock-card-desc"><?php esc_html_e('Drag and drop your .xlsx file or click to browse your system. Unsynchronized products will be shown for review before syncing.', 'stock-sync'); ?></p>
 
             <form id="stock-sync-form" method="post" enctype="multipart/form-data" class="stock-upload-form">
                 <?php wp_nonce_field('stock_sync_upload_action', 'stock_sync_upload_nonce'); ?>
@@ -81,10 +81,10 @@
                         <div class="stock-advanced-inner">
                             <label for="header_label_ref"><?php esc_html_e('Reference column', 'stock-sync'); ?></label>
                             <input type="text" id="header_label_ref" name="header_label_ref" placeholder="NR REF" />
-                            <p class="description"><?php esc_html_e('Optional. Overrides the expected header label for the reference column.', 'stock-sync'); ?></p>
+                            <p class="description"><?php esc_html_e('Optional. Overrides the expected header for the reference column.', 'stock-sync'); ?></p>
                             <label for="header_label_avail"><?php esc_html_e('Availability column', 'stock-sync'); ?></label>
                             <input type="text" id="header_label_avail" name="header_label_avail" placeholder="STR. W KAT." />
-                            <p class="description"><?php esc_html_e('Optional. Overrides the expected header label for the availability column.', 'stock-sync'); ?></p>
+                            <p class="description"><?php esc_html_e('Optional. Overrides the expected header for the availability column.', 'stock-sync'); ?></p>
                         </div>
                     </details>
 
@@ -105,8 +105,8 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
                 <?php esc_html_e('Start new sync', 'stock-sync'); ?>
             </button>
-            <h2 class="stock-card-title"><?php esc_html_e('Review Product Mappings', 'stock-sync'); ?></h2>
-            <p class="stock-card-desc"><?php echo wp_kses_post(__('Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync')); ?></p>
+            <h2 class="stock-card-title"><?php esc_html_e('Verify References', 'stock-sync'); ?></h2>
+            <p class="stock-card-desc"><?php echo wp_kses_post(__('Distributor references must be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm.', 'stock-sync')); ?></p>
             <details id="sync-mapping-details" class="stock-mapping-details" open>
                 <summary id="sync-mapping-summary">
                     <?php esc_html_e('Suggested matches', 'stock-sync'); ?>
