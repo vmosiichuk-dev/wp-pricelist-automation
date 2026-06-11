@@ -8,20 +8,6 @@ class StockSync_Service_Factory {
     private static $instances = [];
 
     /**
-     * Retrieve the shared database-backed change logger.
-     *
-     * Returns a cached singleton instance and creates it if it does not yet exist.
-     *
-     * @return StockSync_WP_Database_Logger The singleton logger instance.
-     */
-    public static function logger() {
-        if (!isset(self::$instances['logger'])) {
-            self::$instances['logger'] = new StockSync_WP_Database_Logger(new StockSync_Change_Logger());
-        }
-        return self::$instances['logger'];
-    }
-
-    /**
      * Provide the shared product repository instance used for product lookups and persistence.
      *
      * @return StockSync_WC_Product_Repository The cached product repository instance.
@@ -55,12 +41,12 @@ class StockSync_Service_Factory {
     }
 
     /**
-     * Create a product updater configured with the shared logger.
+     * Create a product updater instance.
      *
      * @return StockSync_Product_Updater A product updater instance.
      */
     public static function product_updater() {
-        return new StockSync_Product_Updater(self::logger());
+        return new StockSync_Product_Updater();
     }
 
     /**

@@ -1234,25 +1234,6 @@ details .stock-card-table thead th:last-child {
     font-style: italic;
 }
 
-/* ---------- Log Tab ---------- */
-.stock-log-panel .stock-card-table {
-    margin: 1.5rem 0 0;
-    border: 1px solid gainsboro;
-    border-radius: 16px;
-}
-
-.stock-log-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #646970;
-}
-
-.stock-log-empty-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    opacity: 0.4;
-}
-
 /* ---------- Toast Notifications ---------- */
 .stock-toast-container {
     position: fixed;

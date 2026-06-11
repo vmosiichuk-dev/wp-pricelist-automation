@@ -100,31 +100,7 @@ $results.html('<p style="color:red;">Error: ' + response.data + '</p>');
 
 ---
 
-## 8. New Sync Run ID on Every Log Entry
-
-**Location:** `includes/class-logger.php`
-
-**Issue:** `generate_sync_run_id()` was called inside the `$defaults` array of `log()`, so every single database row got a different `sync_run_id`. This broke per-run aggregation in reports.
-
-**Fix:** Moved the run ID to a class property (`$current_sync_run_id`) that is generated once per logger instance and reused for all subsequent `log()` calls.
-
-**Rule for future:** Values meant to group multiple records (run IDs, session IDs, batch IDs) must be generated once per grouping scope, not once per record.
-
----
-
-## 9. Unbounded SQL LIMIT
-
-**Location:** `includes/class-logger.php` — `get_recent()` and `get_sync_runs()`
-
-**Issue:** The `$limit` parameter was passed directly to `$wpdb->prepare` without clamping. A caller could pass `0` or an extremely large number.
-
-**Fix:** Clamped `$limit` to `max(1, min(intval($limit), 1000))`.
-
-**Rule for future:** Any value interpolated into SQL (even inside `$wpdb->prepare`) should be validated or clamped to a sensible range.
-
----
-
-## 10. Empty Distributor Slug Produces Generic Meta Key
+## 8. Empty Distributor Slug Produces Generic Meta Key
 
 **Location:** `includes/class-standard-product.php` — `get_meta_key()`
 

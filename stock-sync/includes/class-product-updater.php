@@ -6,15 +6,10 @@
  */
 class StockSync_Product_Updater {
 
-	private $logger;
-
 	/**
-	 * Create a product updater configured with the provided logger.
-	 *
-	 * @param Logger_Interface $logger Logger used to record product change events.
+	 * Create a product updater.
 	 */
-	public function __construct(Logger_Interface $logger) {
-		$this->logger = $logger;
+	public function __construct() {
 	}
 
 	/**
@@ -61,23 +56,6 @@ class StockSync_Product_Updater {
 
 		// 5. Save
 		$wc_product->save();
-
-		// 6. Log
-		$this->logger->log([
-			'product_id'       => $product_id,
-			'sku'              => $wc_product->get_sku(),
-			'action'           => 'marked_unavailable',
-			'old_visibility'   => $old_visibility,
-			'new_visibility'   => 'search',
-			'old_excerpt'      => $old_excerpt,
-			'new_excerpt'      => $new_excerpt,
-			'old_price'        => $old_price,
-			'old_sale_price'   => $old_sale_price,
-			'old_name'         => $old_name,
-			'new_name'         => $new_name,
-			'distributor_slug' => $product->distributor_slug,
-			'distributor_ref'  => $product->distributor_ref,
-		]);
 
 		return true;
 	}
