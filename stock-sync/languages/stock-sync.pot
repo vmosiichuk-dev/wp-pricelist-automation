@@ -37,7 +37,7 @@ msgstr ""
 
 #: admin/views/page-wrapper.php:16
 #: admin/views/tab-sync.php:11
-msgid "Distributor Sync"
+msgid "Distributor sync"
 msgstr ""
 
 #: admin/views/page-wrapper.php:20
