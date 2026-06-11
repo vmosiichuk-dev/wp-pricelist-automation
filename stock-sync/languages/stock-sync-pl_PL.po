@@ -36,7 +36,7 @@ msgid "Automate product availability from distributor price lists"
 msgstr "Automatyzuj dostępność produktów na podstawie cenników dystrybutorów"
 
 #: admin/views/page-wrapper.php:16 admin/views/tab-sync.php:11
-msgid "Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)"
+msgid "Distributors synchronization (Bulk sync)"
 msgstr "Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)"
 
 #: admin/views/page-wrapper.php:20 admin/views/tab-test.php:10

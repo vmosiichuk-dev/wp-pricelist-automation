@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Stock Sync plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stock Sync 0.6.1\n"
+"Project-Id-Version: Stock Sync 0.6.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

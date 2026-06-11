@@ -1503,8 +1503,8 @@ details .stock-card-table thead th:last-child {
     background-color: #fff5f5;
 }
 
-/* Hide third-party admin notices on our page */
-.toplevel_page_stock-sync .notice:not(.stock-sync-warning) {
+/* Hide third-party promo/admin notices on our page, but keep errors/warnings/success */
+.toplevel_page_stock-sync .notice:not(.stock-sync-warning):not(.notice-error):not(.notice-warning):not(.notice-success) {
     display: none !important;
 }
 

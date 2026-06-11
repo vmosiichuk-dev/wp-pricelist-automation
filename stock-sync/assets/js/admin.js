@@ -26,8 +26,14 @@
     // Simple sprintf-like helper for localized strings
     function __(text) {
         var args = Array.prototype.slice.call(arguments, 1);
-        return text.replace(/%(\d+)\$s/g, function(match, num) {
-            return args[num - 1] !== undefined ? args[num - 1] : match;
+        var index = 0;
+        return text.replace(/%([\d]+)\$s|%s/g, function(match, num) {
+            if (num) {
+                return args[num - 1] !== undefined ? args[num - 1] : match;
+            }
+            var val = args[index];
+            index++;
+            return val !== undefined ? val : match;
         });
     }
 
