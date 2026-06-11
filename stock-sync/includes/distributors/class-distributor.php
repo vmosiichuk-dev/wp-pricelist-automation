@@ -167,7 +167,7 @@ abstract class StockSync_Distributor {
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
 				/* translators: %s: link to category */
-				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
+				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii %s. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
 				$link
 			);
 		}
@@ -179,7 +179,7 @@ abstract class StockSync_Distributor {
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
 				/* translators: %s: link to category */
-				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii \'%s\'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
+				__('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii %s. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!', 'stock-sync'),
 				$link
 			);
 		}

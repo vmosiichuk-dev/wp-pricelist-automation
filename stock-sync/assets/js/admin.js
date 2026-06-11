@@ -23,6 +23,14 @@
         return div.innerHTML;
     }
 
+    // Simple sprintf-like helper for localized strings
+    function __(text) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return text.replace(/%(\d+)\$s/g, function(match, num) {
+            return args[num - 1] !== undefined ? args[num - 1] : match;
+        });
+    }
+
     function sortMatchesByTier(matches) {
         return matches.slice().sort(function(a, b) {
             var tierA = getTier(a.confidence, a.status);
@@ -64,10 +72,10 @@
 
     function showUploadError(rawMessage) {
         var friendlyMessage;
-        if (rawMessage && rawMessage.indexOf('Header row not found') !== -1) {
-            friendlyMessage = 'We could not locate the required column headers. If you set custom names under Advanced options, please double-check them. Otherwise, verify the file contains the reference and availability columns, then try uploading again.';
+        if (rawMessage && rawMessage.indexOf(stockSync.strings.headerRowNotFound) !== -1) {
+            friendlyMessage = stockSync.strings.uploadErrorHeader;
         } else {
-            friendlyMessage = 'Expected column headers have not been found. Check if the correct distributor file has been uploaded or modify column names under Advanced options.';
+            friendlyMessage = stockSync.strings.uploadErrorGeneric;
             if (rawMessage) {
                 friendlyMessage += ' <em>(' + escapeHtml(rawMessage) + ')</em>';
             }
@@ -128,11 +136,11 @@
                 if (response.success) {
                     onSuccess(response.data);
                 } else {
-                    onError(response.data || 'Upload failed');
+                    onError(response.data || stockSync.strings.uploadError);
                 }
             },
             error: function() {
-                onError('Network error during upload');
+                onError(stockSync.strings.networkErrorUpload);
             }
         });
     }
@@ -238,11 +246,11 @@
         var file = droppedFile || ($input.files.length ? $input.files[0] : null);
 
         if (!file) {
-            showToast('Please select a file.', 'warning');
+            showToast(stockSync.strings.pleaseSelectFile, 'warning');
             return;
         }
 
-        $btn.prop('disabled', true).addClass('stock-btn-spinner').text('Uploading...');
+        $btn.prop('disabled', true).addClass('stock-btn-spinner').text(stockSync.strings.uploading);
         $('#stock-xlsx-file').prop('disabled', true);
         hideUploadError();
         resetAllSteps();
@@ -254,12 +262,12 @@
             if (thisGen !== requestGenerationToken) return;
             currentSyncFilePath = uploadData.file_path;
             // Keep button in analyzing state until mapping table is ready
-            $btn.prop('disabled', true).removeClass('stock-btn-spinner').addClass('stock-btn-spinner').text('Analyzing...');
+            $btn.prop('disabled', true).removeClass('stock-btn-spinner').addClass('stock-btn-spinner').text(stockSync.strings.analyzing);
             analyzeAndMap(uploadData.file_path, $btn);
         }, function(error) {
             if (thisGen !== requestGenerationToken) return;
-            showToast('Upload error: ' + error, 'error');
-            $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
+            showToast(stockSync.strings.uploadError + ': ' + error, 'error');
+            $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
             $('#stock-xlsx-file').prop('disabled', false);
         });
     });
@@ -327,7 +335,7 @@
                     showUploadError(response.data);
                     hideProgress();
                     $('#sync-step-upload form').show();
-                    $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
+                    $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
                     $('#stock-xlsx-file').prop('disabled', false);
                     return;
                 }
@@ -339,21 +347,21 @@
                 var alreadyMappedCount = response.data.already_mapped_count || 0;
 
                 if (matches.length > 0 || alreadyMappedItems.length > 0) {
-                    updateProgressPercent(10, 'Review mappings...');
+                    updateProgressPercent(10, stockSync.strings.reviewMappings);
                     showMappingReview(matches, alreadyMappedItems);
                 } else {
-                    updateProgressPercent(10, 'Starting scan...');
+                    updateProgressPercent(10, stockSync.strings.startingScan);
                     startDryRun(filePath);
                 }
             },
             error: function() {
                 if (thisGen !== requestGenerationToken) return;
                 $toastContainer.empty();
-                showUploadError('Network error while reading the file. Please try again.');
+                showUploadError(stockSync.strings.networkErrorReadFile);
                 hideProgress();
                 $('#sync-step-upload form').show();
                 if ($btn) {
-                    $btn.prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
+                    $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
                 }
                 $('#stock-xlsx-file').prop('disabled', false);
             }
@@ -366,7 +374,7 @@
         hideProgress();
 
         // Re-enable upload button now that analysis is complete
-        $('#stock-sync-upload').prop('disabled', false).removeClass('stock-btn-spinner').text('Upload');
+        $('#stock-sync-upload').prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
         $('#stock-xlsx-file').prop('disabled', false);
 
         var $tbody = $('#sync-mapping-body').empty();
@@ -382,12 +390,12 @@
                     .attr('data-ref', m.distributor_ref || '')
                     .attr('data-wc-id', m.wc_id || '')
                     .attr('data-wc-sku', m.wc_sku || '');
-                $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'match-check', checked: true, disabled: true, title: 'Already mapped'})));
+                $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'match-check', checked: true, disabled: true, title: stockSync.strings.alreadyMapped})));
                 $tr.append($('<td>').text(m.distributor_ref || '-'));
                 $tr.append($('<td>').text(m.xlsx_name || '-'));
                 $tr.append($('<td>').addClass('wc-product-cell').text(m.wc_name || '—'));
                 $tr.append($('<td>').append($('<span>').addClass('confidence-badge confidence-high').text('100%')));
-                $tr.append($('<td>').append($('<span>').addClass('stock-mapped-label').text('Already mapped')));
+                $tr.append($('<td>').append($('<span>').addClass('stock-mapped-label').text(stockSync.strings.alreadyMapped)));
                 $alreadyMappedBody.append($tr);
             });
         }
@@ -428,7 +436,7 @@
             // Action column: single Change button
             var $actionCell = $('<td>').addClass('stock-action-cell');
             var $changeBtn = $('<button>', {type: 'button', class: 'button button-small stock-change-match'})
-                .text('Change');
+                .text(stockSync.strings.change);
             $actionCell.append($changeBtn);
             $tr.append($actionCell);
 
@@ -533,7 +541,7 @@
         // Replace action buttons with Cancel
         $actionCell.empty();
         var $cancelBtn = $('<button>', {type: 'button', class: 'button button-small stock-cancel-match'})
-            .text('Cancel');
+            .text(stockSync.strings.cancel);
         $actionCell.append($cancelBtn);
 
         // Wrap existing text in a hidden span to preserve column width
@@ -542,7 +550,7 @@
 
         // Show search field in wc-product-cell
         var $searchWrap = $('<div>').addClass('stock-inline-search');
-        var $input = $('<input>', {type: 'text', placeholder: 'Search product name or SKU...'});
+        var $input = $('<input>', {type: 'text', placeholder: stockSync.strings.searchPlaceholder});
         var $results = $('<div>').addClass('stock-inline-search-results');
         $searchWrap.append($input).append($results);
         $cell.append($searchWrap);
@@ -597,7 +605,7 @@
 
                 var products = response.data.products;
                 if (products.length === 0) {
-                    $resultsContainer.html('<p class="stock-inline-info">No products found.</p>');
+                    $resultsContainer.html('<p class="stock-inline-info">' + escapeHtml(stockSync.strings.noProductsFound) + '</p>');
                     return;
                 }
 
@@ -616,7 +624,7 @@
                 $resultsContainer.empty().append($ul);
             },
             error: function() {
-                $resultsContainer.html('<p class="stock-inline-error">Network error.</p>');
+                $resultsContainer.html('<p class="stock-inline-error">' + escapeHtml(stockSync.strings.networkError) + '</p>');
             }
         });
     }
@@ -656,7 +664,7 @@
 
         // Restore action cell with single Revert button
         $actionCell.empty();
-        var $revertBtn = $('<button>', {type: 'button', class: 'button button-small stock-revert-match'}).text('Revert');
+        var $revertBtn = $('<button>', {type: 'button', class: 'button button-small stock-revert-match'}).text(stockSync.strings.revert);
         $actionCell.append($revertBtn);
 
         activeInlineSearch = null;
@@ -694,7 +702,7 @@
 
         // Replace action cell with single Change button
         $actionCell.empty();
-        var $changeBtn = $('<button>', {type: 'button', class: 'button button-small stock-change-match'}).text('Change');
+        var $changeBtn = $('<button>', {type: 'button', class: 'button button-small stock-change-match'}).text(stockSync.strings.change);
         $actionCell.append($changeBtn);
 
         validateMappingDuplicates(true);
@@ -718,10 +726,10 @@
         var isChanged = $row.attr('data-changed') === 'true';
         $actionCell.empty();
         if (isChanged) {
-            var $revertBtn = $('<button>', {type: 'button', class: 'button button-small stock-revert-match'}).text('Revert');
+            var $revertBtn = $('<button>', {type: 'button', class: 'button button-small stock-revert-match'}).text(stockSync.strings.revert);
             $actionCell.append($revertBtn);
         } else {
-            var $changeBtn = $('<button>', {type: 'button', class: 'button button-small stock-change-match'}).text('Change');
+            var $changeBtn = $('<button>', {type: 'button', class: 'button button-small stock-change-match'}).text(stockSync.strings.change);
             $actionCell.append($changeBtn);
         }
     }
@@ -750,7 +758,7 @@
                 var wcId = $row.attr('data-wc-id');
                 var wcSku = $row.attr('data-wc-sku') || '—';
                 var ref = $row.attr('data-ref');
-                var wcName = $row.find('.wc-product-cell').text() || 'Unknown';
+                var wcName = $row.find('.wc-product-cell').text() || stockSync.strings.unknown;
                 if (wcId) {
                     if (wcIdToData[wcId]) {
                         duplicates.push({ wcId: wcId, wcSku: wcSku, name: wcName, refs: [wcIdToData[wcId].ref, ref] });
@@ -764,10 +772,10 @@
     }
 
     function buildDuplicateBannerHtml(duplicates) {
-        var html = '<p><strong>' + escapeHtml('Duplicate mapping' + (duplicates.length > 1 ? 's' : '') + ' detected. Please adjust your selections.') + '</strong></p>';
+        var html = '<p><strong>' + escapeHtml(duplicates.length > 1 ? stockSync.strings.duplicateMappingsDetected : stockSync.strings.duplicateMappingDetected) + '</strong></p>';
         html += '<ul class="stock-duplicate-list">';
         duplicates.forEach(function(d) {
-            html += '<li>' + escapeHtml(d.name + ' (SKU: ' + d.wcSku + ') is mapped to refs: ' + d.refs.join(', ')) + '</li>';
+            html += '<li>' + escapeHtml(__(stockSync.strings.mappedToRefs, d.name, d.wcSku, d.refs.join(', '))) + '</li>';
         });
         html += '</ul>';
         return html;
@@ -834,12 +842,12 @@
 
         var hasAlreadyMapped = $('#sync-already-mapped-body .match-check:disabled').length > 0;
         if (matches.length === 0 && !hasAlreadyMapped) {
-            showToast('Please select at least one match to save.', 'warning');
+            showToast(stockSync.strings.pleaseSelectOneMatch, 'warning');
             return;
         }
 
-        $btn.prop('disabled', true).text('Saving...');
-        showProgress('Saving mappings...');
+        $btn.prop('disabled', true).text(stockSync.strings.saving);
+        showProgress(stockSync.strings.savingMappings);
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -851,19 +859,19 @@
                 matches: matches
             },
             success: function(response) {
-                $btn.prop('disabled', false).text('Confirm Mappings & Continue');
+                $btn.prop('disabled', false).text(stockSync.strings.confirmMappingsContinue);
                 if (response.success) {
                     $('#sync-step-mapping').hide();
-                    updateProgressPercent(15, 'Starting scan...');
+                    updateProgressPercent(15, stockSync.strings.startingScan);
                     startDryRun(currentSyncFilePath);
                 } else {
-                    showToast('Save failed: ' + response.data, 'error');
+                    showToast(stockSync.strings.saveFailed + ': ' + response.data, 'error');
                     hideProgress();
                 }
             },
             error: function() {
-                $btn.prop('disabled', false).text('Confirm Mappings & Continue');
-                showToast('Save network error', 'error');
+                $btn.prop('disabled', false).text(stockSync.strings.confirmMappingsContinue);
+                showToast(stockSync.strings.networkError, 'error');
                 hideProgress();
             }
         });
@@ -894,7 +902,7 @@
             success: function(response) {
                 if (thisGen !== requestGenerationToken) return;
                 if (!response.success) {
-                    showToast('Scan failed: ' + response.data, 'error');
+                    showToast(stockSync.strings.scanFailed + ': ' + response.data, 'error');
                     hideProgress();
                     return;
                 }
@@ -920,7 +928,7 @@
             },
             error: function() {
                 if (thisGen !== requestGenerationToken) return;
-                showToast('Scan network error', 'error');
+                showToast(stockSync.strings.networkError, 'error');
                 hideProgress();
             }
         });
@@ -938,9 +946,9 @@
                 $tr.append($('<td>').text(d.sku || '—'));
                 $tr.append($('<td>').text(d.distributor_ref || '-'));
                 $tr.append($('<td>').text(d.name || '-'));
-                var actionText = 'delist';
+                var actionText = stockSync.strings.delist;
                 if (d.status === 'would_list' || d.status === 'listed') {
-                    actionText = 'list';
+                    actionText = stockSync.strings.list;
                 }
                 $tr.append($('<td>').addClass('status-delisted').text(actionText));
                 $tbody.append($tr);
@@ -974,7 +982,7 @@
         var $btn = $(this);
 
         if (!currentSyncFilePath || !currentRunId) {
-            showToast('No sync data available. Please start over.', 'warning');
+            showToast(stockSync.strings.noSyncData, 'warning');
             return;
         }
 
@@ -991,12 +999,12 @@
         });
 
         if (includeRefs.length === 0) {
-            showToast('Please select at least one product to update.', 'warning');
+            showToast(stockSync.strings.pleaseSelectOneProduct, 'warning');
             return;
         }
 
-        $btn.prop('disabled', true).text('Filtering...');
-        showProgress('Preparing sync...');
+        $btn.prop('disabled', true).text(stockSync.strings.filtering);
+        showProgress(stockSync.strings.preparingSync);
         $('#stock-sync-results').hide();
 
         // Filter queue to only selected refs
@@ -1020,8 +1028,8 @@
             success: function(response) {
                 if (thisGen !== requestGenerationToken) return;
                 if (!response.success) {
-                    showToast('Filter failed: ' + response.data, 'error');
-                    $btn.prop('disabled', false).text('Apply Sync');
+                    showToast(stockSync.strings.filterFailed + ': ' + response.data, 'error');
+                    $btn.prop('disabled', false).text(stockSync.strings.applySync);
                     hideProgress();
                     return;
                 }
@@ -1030,7 +1038,7 @@
                 var total = response.data.total_batches;
                 globalTotalBatches += total;
 
-                $btn.text('Syncing...');
+                $btn.text(stockSync.strings.syncing);
                 runBatches(currentSyncFilePath, distributor, false, total, 0, {
                     processed: 0,
                     updated: 0,
@@ -1039,15 +1047,15 @@
                     details: []
                 }, $btn, newRunId, function(stats) {
                     if (thisGen !== requestGenerationToken) return;
-                    $btn.prop('disabled', false).text('Apply Sync');
+                    $btn.prop('disabled', false).text(stockSync.strings.applySync);
                     hideProgress();
                     showFinalResults(stats);
                 });
             },
             error: function() {
                 if (thisGen !== requestGenerationToken) return;
-                showToast('Filter network error', 'error');
-                $btn.prop('disabled', false).text('Apply Sync');
+                showToast(stockSync.strings.networkErrorFilter, 'error');
+                $btn.prop('disabled', false).text(stockSync.strings.applySync);
                 hideProgress();
             }
         });
@@ -1064,7 +1072,7 @@
         var thisGen = requestGenerationToken;
         globalCurrentBatch++;
         var progress = globalTotalBatches > 0 ? (globalCurrentBatch / globalTotalBatches) * 100 : 0;
-        var phaseText = dryRun ? 'Scanning batch ' + (current + 1) + ' of ' + total : 'Syncing batch ' + (current + 1) + ' of ' + total;
+        var phaseText = dryRun ? __(stockSync.strings.scanningBatch, current + 1, total) : __(stockSync.strings.syncingBatch, current + 1, total);
         updateProgressPercent(progress, phaseText);
 
         $.ajax({
@@ -1093,7 +1101,7 @@
                     stats.errors += 50;
                     onComplete(stats);
                     if ($btn) $btn.prop('disabled', false);
-                    showToast('Batch failed: ' + (response.data || 'Unknown server error'), 'error');
+                    showToast(stockSync.strings.batchFailed + ': ' + (response.data || stockSync.strings.unknownServerError), 'error');
                 }
             },
             error: function() {
@@ -1101,13 +1109,13 @@
                 stats.errors += 50;
                 onComplete(stats);
                 if ($btn) $btn.prop('disabled', false);
-                showToast('Sync stopped: network/transport error', 'error');
+                showToast(stockSync.strings.syncStopped + ': ' + stockSync.strings.networkError, 'error');
             }
         });
     }
 
     function showFinalResults(stats) {
-        updateStepper(4);
+        updateStepper(5);
         $('#sync-step-preview').hide();
         $('#stock-sync-results').show();
 
@@ -1119,22 +1127,24 @@
         $('#res-listed').text(listedCount);
         $('#res-errors').text(stats.errors);
 
-        $('#stock-sync-results-title').text('Sync Results');
+        $('#stock-sync-results-title').text(stockSync.strings.syncResults);
 
-        var html = '<table class="stock-card-table"><thead><tr><th>SKU</th><th>Ref</th><th>Name</th><th>Status</th></tr></thead><tbody>';
+        var html = '<table class="stock-card-table"><thead><tr><th>' + escapeHtml(stockSync.strings.sku) + '</th><th>' + escapeHtml(stockSync.strings.ref) + '</th><th>' + escapeHtml(stockSync.strings.name) + '</th><th>' + escapeHtml(stockSync.strings.status) + '</th></tr></thead><tbody>';
         stats.details.slice(0, 100).forEach(function(d) {
             var statusClass = '';
             var displayStatus = d.status;
             if (d.status === 'updated' || d.status === 'delisted') {
                 statusClass = 'status-delisted';
-                displayStatus = 'delisted';
+                displayStatus = stockSync.strings.delisted;
             } else if (d.status === 'listed' || d.status === 'would_list') {
                 statusClass = 'status-listed';
-                displayStatus = 'listed';
+                displayStatus = stockSync.strings.listed;
             } else if (d.status === 'not_found') {
                 statusClass = 'status-error';
+                displayStatus = stockSync.strings.notFound;
             } else if (d.status === 'error') {
                 statusClass = 'status-error';
+                displayStatus = stockSync.strings.error;
             } else {
                 statusClass = 'status-neutral';
             }
@@ -1142,26 +1152,30 @@
             html += '<tr><td>' + escapeHtml(d.sku || '—') + '</td><td>' + escapeHtml(d.distributor_ref || '-') + '</td><td>' + escapeHtml(d.name || '-') + '</td><td class="' + statusClass + '">' + escapeHtml(displayStatus) + '</td></tr>';
         });
         if (stats.details.length > 100) {
-            html += '<tr><td colspan="4">... and ' + escapeHtml(stats.details.length - 100) + ' more</td></tr>';
+            html += '<tr><td colspan="4">' + escapeHtml(__(stockSync.strings.more, stats.details.length - 100)) + '</td></tr>';
         }
         html += '</tbody></table>';
         $('#res-details').html(html);
     }
 
-    // ===== TEST PRODUCT TAB (unchanged from original) =====
+    // ===== TEST PRODUCT TAB =====
 
     var selectedTestProductId = null;
 
     $('#stock-test-search-btn').on('click', function() {
         var query = $('#stock-test-search').val().trim();
         if (query.length < 2) {
-            showToast('Please enter at least 2 characters.', 'warning');
+            showToast(stockSync.strings.pleaseEnterTwoChars, 'warning');
             return;
         }
 
+        // Bug fix: disable apply button and hide previous results when starting a new search
+        $('#stock-test-apply').prop('disabled', true);
+        $('#stock-test-selected').addClass('hidden');
+
         var distributor = getDistributorSlug();
         var $results = $('#stock-test-search-results');
-        $results.html('<p>Searching...</p>').removeClass('hidden');
+        $results.html('<p>' + escapeHtml(stockSync.strings.searching) + '</p>').removeClass('hidden');
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -1174,12 +1188,12 @@
             },
             success: function(response) {
                 if (!response.success) {
-                    $results.empty().append($('<p>').css('color', 'red').text('Error: ' + response.data));
+                    $results.empty().append($('<p>').css('color', 'red').text(stockSync.strings.error + ': ' + response.data));
                     return;
                 }
 
                 if (response.data.products.length === 0) {
-                    $results.html('<p>No products found.</p>');
+                    $results.html('<p>' + escapeHtml(stockSync.strings.noProductsFound) + '</p>');
                     return;
                 }
 
@@ -1198,7 +1212,7 @@
                 $results.empty().append($ul);
             },
             error: function() {
-                $results.empty().append($('<p>').css('color', 'red').text('Network error.'));
+                $results.empty().append($('<p>').css('color', 'red').text(stockSync.strings.networkError));
             }
         });
     });
@@ -1232,20 +1246,20 @@
             },
             success: function(response) {
                 if (!response.success) {
-                    showToast('Failed to load product: ' + response.data, 'error');
+                    showToast(__(stockSync.strings.failedToLoadProduct, response.data), 'error');
                     return;
                 }
 
                 var d = response.data;
                 $('#test-current-sku').text(d.sku || '—');
                 $('#test-current-name').text(d.name);
-                $('#test-new-name').text(d.new_name === d.name ? '(no change)' : d.new_name);
+                $('#test-new-name').text(d.new_name === d.name ? stockSync.strings.noChange : d.new_name);
                 $('#test-current-visibility').text(d.visibility);
-                $('#test-new-visibility').text(d.visibility === 'search' ? '(no change)' : 'Search results only');
+                $('#test-new-visibility').text(d.visibility === 'search' ? stockSync.strings.noChange : stockSync.strings.searchResultsOnly);
                 $('#test-current-price').text(d.price || '—');
-                $('#test-new-price').text(d.price ? '(cleared)' : '(no change)');
+                $('#test-new-price').text(d.price ? stockSync.strings.cleared : stockSync.strings.noChange);
                 $('#test-current-sale').text(d.sale_price || '—');
-                $('#test-new-sale').text(d.sale_price ? '(cleared)' : '(no change)');
+                $('#test-new-sale').text(d.sale_price ? stockSync.strings.cleared : stockSync.strings.noChange);
                 $('#test-current-excerpt').text(d.excerpt || '—');
                 $('#test-new-excerpt').text(d.new_excerpt);
 
@@ -1255,7 +1269,7 @@
                 $('#stock-test-status').text('');
             },
             error: function() {
-                showToast('Network error loading product details.', 'error');
+                showToast(stockSync.strings.networkErrorLoadProduct, 'error');
             }
         });
     }
@@ -1266,11 +1280,11 @@
         var $btn = $(this);
         var distributor = getDistributorSlug();
 
-        if (!confirm('Are you sure you want to update this single product?')) {
+        if (!confirm(stockSync.strings.confirmUpdateSingle)) {
             return;
         }
 
-        $btn.prop('disabled', true).text('Applying...');
+        $btn.prop('disabled', true).text(stockSync.strings.applying);
         $('#stock-test-status').text('');
 
         $.ajax({
@@ -1283,17 +1297,17 @@
                 product_id: selectedTestProductId
             },
             success: function(response) {
-                $btn.text('Apply Update to This Product');
+                $btn.text(stockSync.strings.applyUpdateProduct);
                 if (response.success) {
                     $('#stock-test-success').html('<p>' + escapeHtml(response.data.message) + '</p>').removeClass('hidden');
                 } else {
                     $btn.prop('disabled', false);
-                    $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Error: ' + response.data));
+                    $('#stock-test-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.error + ': ' + response.data));
                 }
             },
             error: function() {
-                $btn.prop('disabled', false).text('Apply Update to This Product');
-                $('#stock-test-status').empty().append($('<span>').css('color', 'red').text('Network error.'));
+                $btn.prop('disabled', false).text(stockSync.strings.applyUpdateProduct);
+                $('#stock-test-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.networkError));
             }
         });
     });
@@ -1304,12 +1318,12 @@
         var distributor = getDistributorSlug();
         var distributorName = $('#stock-distributor option:selected').text().trim();
 
-        if (!confirm('Are you sure you want to erase all supplier references for ' + distributorName + '?')) {
+        if (!confirm(__(stockSync.strings.confirmEraseRefs, distributorName))) {
             return;
         }
 
         var $btn = $(this);
-        $btn.prop('disabled', true).text('Erasing...');
+        $btn.prop('disabled', true).text(stockSync.strings.erasing);
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -1320,19 +1334,28 @@
                 distributor_slug: distributor
             },
             success: function(response) {
-                $btn.prop('disabled', false).text('Erase All Supplier References');
+                $btn.prop('disabled', false).text(stockSync.strings.eraseAllRefs);
                 if (response.success) {
-                    showToast('Erased ' + response.data.erased + ' references for ' + distributorName + '.', 'success');
-                    resetAllSteps();
+                    showToast(__(stockSync.strings.erasedRefs, response.data.erased, distributorName), 'success');
                 } else {
-                    showToast('Erase failed: ' + response.data, 'error');
+                    showToast(stockSync.strings.eraseFailed + ': ' + response.data, 'error');
                 }
             },
             error: function() {
-                $btn.prop('disabled', false).text('Erase All Supplier References');
-                showToast('Erase network error', 'error');
+                $btn.prop('disabled', false).text(stockSync.strings.eraseAllRefs);
+                showToast(stockSync.strings.eraseNetworkError, 'error');
             }
         });
+    });
+
+    // ===== CLOSE DROPDOWNS ON CLICK OUTSIDE =====
+    $(document).on('click', function(e) {
+        if (activeInlineSearch && !$(e.target).closest('.stock-inline-search').length) {
+            activeInlineSearch.closest('tr').find('.stock-action-cell .stock-cancel-match').trigger('click');
+        }
+        if (!$(e.target).closest('#stock-test-search-results').length && !$(e.target).closest('.stock-test-search-wrap').length) {
+            $('#stock-test-search-results').addClass('hidden');
+        }
     });
 
     $(function() {

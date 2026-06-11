@@ -1,0 +1,708 @@
+# Copyright (C) 2026 vmosiichuk.dev
+# This file is distributed under the same license as the Stock Sync plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Stock Sync 0.6.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-11T00:00:00+00:00\n"
+"PO-Revision-Date: 2026-06-11T00:00:00+00:00\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: stock-sync\n"
+"Language: pl\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. Plugin Name of the plugin
+#: stock-sync.php includes/class-admin.php:25 includes/class-admin.php:26
+msgid "Stock Sync"
+msgstr "Stock Sync"
+
+#. Description of the plugin
+#: stock-sync.php
+msgid "Automate WooCommerce product availability updates from distributor price lists. Multi-distributor support."
+msgstr "Automatyczna aktualizacja dostępności produktów WooCommerce na podstawie cenników dystrybutorów. Obsługa wielu dystrybutorów."
+
+#. Author of the plugin
+#: stock-sync.php
+msgid "vmosiichuk.dev"
+msgstr "vmosiichuk.dev"
+
+#: admin/views/page-wrapper.php:11
+msgid "Automate product availability from distributor price lists"
+msgstr "Automatyzuj dostępność produktów na podstawie cenników dystrybutorów"
+
+#: admin/views/page-wrapper.php:16 admin/views/tab-sync.php:11
+msgid "Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)"
+msgstr "Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)"
+
+#: admin/views/page-wrapper.php:20 admin/views/tab-test.php:10
+#: admin/views/tab-test.php:22
+msgid "Single Product"
+msgstr "Pojedynczy Produkt"
+
+#: admin/views/page-wrapper.php:24 admin/views/tab-log.php:12
+#: admin/views/tab-log.php:23
+msgid "Dziennik"
+msgstr "Dziennik"
+
+#: admin/views/tab-log.php:15
+msgid "Review past sync operations and their outcomes"
+msgstr "Przeglądaj historię operacji synchronizacji i ich wyniki"
+
+#: admin/views/tab-log.php:16
+msgid "See how many products were updated, not found, or caused errors"
+msgstr "Zobacz, ile produktów zostało zaktualizowanych, nie znaleziono lub spowodowało błędy"
+
+#: admin/views/tab-log.php:28
+msgid "No sync operations logged yet. Run your first sync to see results here."
+msgstr "Brak zarejestrowanych operacji synchronizacji. Uruchom pierwszą synchronizację, aby zobaczyć wyniki."
+
+#: admin/views/tab-log.php:34
+msgid "Date"
+msgstr "Data"
+
+#: admin/views/tab-log.php:35 admin/views/tab-sync.php:23
+msgid "Distributor"
+msgstr "Dystrybutor"
+
+#: admin/views/tab-log.php:36
+msgid "Total Changes"
+msgstr "Całkowita liczba zmian"
+
+#: admin/views/tab-log.php:37
+msgid "Unavailable"
+msgstr "Niedostępne"
+
+#: admin/views/tab-sync.php:14
+msgid "Upload a distributor price list and automatically assign product references"
+msgstr "Prześlij cennik dystrybutora i automatycznie przypisz referencje produktów"
+
+#: admin/views/tab-sync.php:15
+msgid "Preview product availability changes before applying them"
+msgstr "Podgląd zmian dostępności produktów przed zastosowaniem"
+
+#: admin/views/tab-sync.php:16
+msgid "Keep your catalog in sync with one click"
+msgstr "Utrzymuj katalog zsynchronizowany jednym kliknięciem"
+
+#: admin/views/tab-sync.php:32
+msgid "Erase All Supplier References"
+msgstr "Usuń referencje danego dystrybutora"
+
+#: admin/views/tab-sync.php:41 admin/views/tab-sync.php:94
+msgid "Upload"
+msgstr "Prześlij"
+
+#: admin/views/tab-sync.php:45
+msgid "Synchronize"
+msgstr "Synchronizuj"
+
+#: admin/views/tab-sync.php:49
+msgid "Preview"
+msgstr "Podgląd"
+
+#: admin/views/tab-sync.php:53
+msgid "Apply"
+msgstr "Zastosuj"
+
+#: admin/views/tab-sync.php:60
+msgid "Upload Price List"
+msgstr "Prześlij Cennik"
+
+#: admin/views/tab-sync.php:61
+msgid "Drag and drop your .xlsx file or click to browse your system. Unsynchronized products will be shown for review before syncing."
+msgstr "Przeciągnij i upuść plik .xlsx lub kliknij, aby wybrać plik z systemu. Niesynchronizowane produkty zostaną wyświetlone do przeglądu przed synchronizacją."
+
+#: admin/views/tab-sync.php:70
+msgid "Drop your .xlsx here or click to browse"
+msgstr "Upuść plik .xlsx tutaj lub kliknij, aby przeglądać"
+
+#: admin/views/tab-sync.php:76
+msgid "Advanced options"
+msgstr "Opcje zaawansowane"
+
+#: admin/views/tab-sync.php:82
+msgid "Reference column"
+msgstr "Kolumna referencyjna"
+
+#: admin/views/tab-sync.php:84
+msgid "Optional. Overrides the expected header for the reference column."
+msgstr "Opcjonalne. Nadpisuje oczekiwany nagłówek dla kolumny referencyjnej."
+
+#: admin/views/tab-sync.php:85
+msgid "Availability column"
+msgstr "Kolumna dostępności"
+
+#: admin/views/tab-sync.php:87
+msgid "Optional. Overrides the expected header for the availability column."
+msgstr "Opcjonalne. Nadpisuje oczekiwany nagłówek dla kolumny dostępności."
+
+#: admin/views/tab-sync.php:104 admin/views/tab-sync.php:106
+#: admin/views/tab-sync.php:188 admin/views/tab-sync.php:190
+#: admin/views/tab-sync.php:228 admin/views/tab-sync.php:230
+msgid "Start new sync"
+msgstr "Rozpocznij nową synchronizację"
+
+#: admin/views/tab-sync.php:108
+msgid "Verify References"
+msgstr "Zweryfikuj referencje"
+
+#: admin/views/tab-sync.php:109
+msgid "Distributor references must be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm."
+msgstr "Referencje dystrybutora muszą być przypisane do produktów WooCommerce.<br>Przejrzyj sugestie poniżej, zmień nieprawidłowe dopasowania, a następnie potwierdź."
+
+#: admin/views/tab-sync.php:112
+msgid "Suggested matches"
+msgstr "Sugerowane"
+
+#: admin/views/tab-sync.php:118
+msgid "Select all entries"
+msgstr "Zaznacz wszystkie wpisy"
+
+#: admin/views/tab-sync.php:119 admin/views/tab-sync.php:140
+#: admin/views/tab-sync.php:161 admin/views/tab-sync.php:208
+msgid "Ref"
+msgstr "Ref"
+
+#: admin/views/tab-sync.php:120 admin/views/tab-sync.php:141
+#: admin/views/tab-sync.php:162
+msgid "Distributor name"
+msgstr "Nazwa dystrybutora"
+
+#: admin/views/tab-sync.php:121 admin/views/tab-sync.php:142
+#: admin/views/tab-sync.php:163
+msgid "Product name"
+msgstr "Nazwa produktu"
+
+#: admin/views/tab-sync.php:122 admin/views/tab-sync.php:143
+#: admin/views/tab-sync.php:164
+msgid "Match"
+msgstr "Dopasowanie"
+
+#: admin/views/tab-sync.php:123 admin/views/tab-sync.php:144
+#: admin/views/tab-sync.php:165 admin/views/tab-sync.php:210
+msgid "Action"
+msgstr "Akcja"
+
+#: admin/views/tab-sync.php:133
+msgid "Already mapped"
+msgstr "Już nadane"
+
+#: admin/views/tab-sync.php:139
+msgid "Select all already mapped entries"
+msgstr "Zaznacz wszystkie już zmapowane wpisy"
+
+#: admin/views/tab-sync.php:154
+msgid "Unmatched positions"
+msgstr "Niedopasowane"
+
+#: admin/views/tab-sync.php:160
+msgid "Select all unmatched entries"
+msgstr "Zaznacz wszystkie niedopasowane wpisy"
+
+#: admin/views/tab-sync.php:175
+msgid "Confirm Mappings & Continue"
+msgstr "Potwierdź referencje i kontynuuj"
+
+#: admin/views/tab-sync.php:178
+msgid "Skip Mapping & Start Sync"
+msgstr "Pomiń Mapowanie i Rozpocznij Synchronizację"
+
+#: admin/views/tab-sync.php:193
+msgid "Sync Preview"
+msgstr "Podgląd Synchronizacji"
+
+#: admin/views/tab-sync.php:194
+msgid "Review the products that will be updated.<br>Uncheck any you want to exclude, then apply the sync."
+msgstr "Przejrzyj produkty, które zostaną zaktualizowane.<br>Odznacz te, które chcesz wykluczyć, a następnie zastosuj synchronizację."
+
+#: admin/views/tab-sync.php:206
+msgid "Select all preview entries"
+msgstr "Zaznacz wszystkie wpisy podglądu"
+
+#: admin/views/tab-sync.php:207 admin/views/tab-test.php:47
+msgid "SKU"
+msgstr "SKU"
+
+#: admin/views/tab-sync.php:209 admin/views/tab-test.php:52
+msgid "Name"
+msgstr "Nazwa"
+
+#: admin/views/tab-sync.php:219
+msgid "Apply Sync"
+msgstr "Synchronizuj"
+
+#: admin/views/tab-sync.php:233
+msgid "Sync Results"
+msgstr "Wyniki Synchronizacji"
+
+#: admin/views/tab-sync.php:238
+msgid "Total Processed"
+msgstr "Przetworzone"
+
+#: admin/views/tab-sync.php:242
+msgid "Delisted"
+msgstr "Wycofane"
+
+#: admin/views/tab-sync.php:246
+msgid "Listed"
+msgstr "Wystawione"
+
+#: admin/views/tab-sync.php:250
+msgid "Errors"
+msgstr "Błędy"
+
+#: admin/views/tab-test.php:13
+msgid "Manually apply unavailable-state changes to one product"
+msgstr "Ręcznie zastosuj zmiany dostępności do jednego produktu"
+
+#: admin/views/tab-test.php:14
+msgid "Search by name or SKU to preview the product and apply updates"
+msgstr "Wyszukaj po nazwie lub SKU, aby podejrzeć produkt i zastosować aktualizacje"
+
+#: admin/views/tab-test.php:15
+msgid "Use this to verify how the plugin affects a product before running a full sync"
+msgstr "Użyj tego, aby sprawdzić, jak wtyczka wpływa na produkt przed uruchomieniem pełnej synchronizacji"
+
+#: admin/views/tab-test.php:23
+msgid "Manually apply unavailable-state changes to one product. Search by name or SKU."
+msgstr "Ręcznie zastosuj zmiany dostępności do jednego produktu. Wyszukaj po nazwie lub SKU."
+
+#: admin/views/tab-test.php:26
+msgid "Search product name or SKU"
+msgstr "Wyszukaj nazwę produktu lub SKU"
+
+#: admin/views/tab-test.php:27
+msgid "Type product name or SKU..."
+msgstr "Wpisz nazwę produktu lub SKU..."
+
+#: admin/views/tab-test.php:28
+msgid "Search"
+msgstr "Szukaj"
+
+#: admin/views/tab-test.php:35
+msgid "Product Details"
+msgstr "Szczegóły Produktu"
+
+#: admin/views/tab-test.php:40
+msgid "Field"
+msgstr "Pole"
+
+#: admin/views/tab-test.php:41
+msgid "Current"
+msgstr "Aktualne"
+
+#: admin/views/tab-test.php:42
+msgid "After Update"
+msgstr "Po Aktualizacji"
+
+#: admin/views/tab-test.php:49 admin/views/tab-test.php:64
+#: admin/views/tab-test.php:69
+msgid "(no change)"
+msgstr "(brak zmian)"
+
+#: admin/views/tab-test.php:57
+msgid "Visibility"
+msgstr "Widoczność"
+
+#: admin/views/tab-test.php:59
+msgid "Search results only"
+msgstr "Tylko wyniki wyszukiwania"
+
+#: admin/views/tab-test.php:62
+msgid "Regular Price"
+msgstr "Cena regularna"
+
+#: admin/views/tab-test.php:67
+msgid "Sale Price"
+msgstr "Cena promocyjna"
+
+#: admin/views/tab-test.php:72
+msgid "Short Description"
+msgstr "Krótki opis"
+
+#: admin/views/tab-test.php:81
+msgid "Apply Update to This Product"
+msgstr "Aktualizuj"
+
+#: includes/class-admin.php:72 includes/class-ajax-handler.php:83
+#: includes/class-ajax-handler.php:205 includes/class-ajax-handler.php:319
+#: includes/class-ajax-handler.php:494 includes/class-ajax-handler.php:536
+#: includes/class-ajax-handler.php:590 includes/class-ajax-handler.php:634
+#: includes/class-ajax-handler.php:713 includes/class-ajax-handler.php:746
+msgid "Permission denied"
+msgstr "Brak uprawnień"
+
+#: includes/class-admin.php:76
+msgid "No file uploaded"
+msgstr "Nie przesłano pliku"
+
+#: includes/class-admin.php:82
+msgid "Upload failed"
+msgstr "Przesyłanie nie powiodło się"
+
+#: includes/class-admin.php:87
+msgid "File too large. Maximum size is 5 MB."
+msgstr "Plik jest za duży. Maksymalny rozmiar to 5 MB."
+
+#: includes/class-admin.php:106
+msgid "Invalid file type. Please upload an XLSX file."
+msgstr "Nieprawidłowy typ pliku. Prześlij plik XLSX."
+
+#: includes/class-admin.php:121
+msgid "Failed to save uploaded file"
+msgstr "Nie udało się zapisać przesłanego pliku"
+
+#: includes/class-ajax-handler.php:42
+msgid "Invalid file path"
+msgstr "Nieprawidłowa ścieżka pliku"
+
+#: includes/class-ajax-handler.php:50
+msgid "File is not in the allowed temp directory"
+msgstr "Plik nie znajduje się w dozwolonym katalogu tymczasowym"
+
+#: includes/class-ajax-handler.php:55
+msgid "File must be an XLSX"
+msgstr "Plik musi być w formacie XLSX"
+
+#: includes/class-ajax-handler.php:92
+msgid "Unknown distributor: "
+msgstr "Nieznany dystrybutor: "
+
+#. translators: 1: count, 2: comma-separated list
+#: includes/class-ajax-handler.php:112 includes/class-ajax-handler.php:360
+#, php-format
+msgid "Warning: unrecognized availability value found: %2$s. These products were treated as available."
+msgid_plural "Warning: unrecognized availability values found (%1$d): %2$s. These products were treated as available."
+msgstr[0] "Ostrzeżenie: znaleziono nierozpoznaną wartość dostępności: %2$s. Te produkty zostały potraktowane jako dostępne."
+msgstr[1] "Ostrzeżenie: znaleziono nierozpoznane wartości dostępności (%1$d): %2$s. Te produkty zostały potraktowane jako dostępne."
+msgstr[2] "Ostrzeżenie: znaleziono nierozpoznane wartości dostępności (%1$d): %2$s. Te produkty zostały potraktowane jako dostępne."
+
+#: includes/class-ajax-handler.php:216 includes/class-ajax-handler.php:327
+#: includes/class-ajax-handler.php:513 includes/class-ajax-handler.php:545
+#: includes/class-ajax-handler.php:596 includes/class-ajax-handler.php:726
+#: includes/class-ajax-handler.php:754
+msgid "Unknown distributor"
+msgstr "Nieznany dystrybutor"
+
+#: includes/class-ajax-handler.php:220 includes/class-ajax-handler.php:549
+msgid "Missing run ID"
+msgstr "Brak identyfikatora uruchomienia"
+
+#: includes/class-ajax-handler.php:227 includes/class-ajax-handler.php:556
+msgid "No sync queue found"
+msgstr "Nie znaleziono kolejki synchronizacji"
+
+#: includes/class-ajax-handler.php:642
+msgid "Query too short"
+msgstr "Zapytanie jest za krótkie"
+
+#: includes/class-ajax-handler.php:721 includes/class-ajax-handler.php:759
+msgid "Product not found"
+msgstr "Produkt nie znaleziono"
+
+#: includes/class-ajax-handler.php:781
+msgid "Product updated successfully."
+msgstr "Produkt zaktualizowany pomyślnie."
+
+#: includes/class-product-meta.php:45
+msgid "Supplier References"
+msgstr "Referencje Dostawców"
+
+#. translators: %s: distributor name
+#: includes/class-product-meta.php:79
+#, php-format
+msgid "Supplier reference for %s."
+msgstr "Referencja dostawcy dla %s."
+
+#: includes/class-product-updater.php:32
+#, php-format
+msgid "Product not found: %d"
+msgstr "Produkt nie znaleziono: %d"
+
+#: includes/class-xlsx-parser.php:40
+msgid "Cannot open XLSX file"
+msgstr "Nie można otworzyć pliku XLSX"
+
+#: includes/class-xlsx-parser.php:53
+msgid "Cannot read worksheet"
+msgstr "Nie można odczytać arkusza"
+
+#: includes/class-xlsx-parser.php:58
+msgid "Invalid worksheet XML"
+msgstr "Nieprawidłowy XML arkusza"
+
+#. translators: 1: number of rows scanned, 2: comma-separated expected labels
+#: includes/class-xlsx-parser.php:80 includes/class-xlsx-parser.php:150
+#, php-format
+msgid "Header row not found. Scanned first %1$d rows for labels: %2$s."
+msgstr "Nie znaleziono wiersza nagłówka. Przeskanowano pierwsze %1$d wierszy w poszukiwaniu etykiet: %2$s."
+
+#: includes/class-xlsx-parser.php:160
+msgid "No valid product rows found after the header. The reference format or file structure may have changed."
+msgstr "Nie znaleziono prawidłowych wierszy produktów po nagłówku. Format referencji lub struktura pliku mogła ulec zmianie."
+
+#: includes/class-xlsx-parser.php:178
+msgid "Invalid shared strings XML"
+msgstr "Nieprawidłowy XML współdzielonych ciągów"
+
+#: includes/distributors/class-distributor.php:165
+#: includes/distributors/class-distributor.php:178
+#, php-format
+msgid "Wina %s"
+msgstr "Wina %s"
+
+#. translators: %s: link to category
+#: includes/distributors/class-distributor.php:170
+#: includes/distributors/class-distributor.php:182
+#, php-format
+msgid "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii %s. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!"
+msgstr "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii %s. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!"
+
+#: includes/distributors/class-distributor.php:187
+msgid "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!"
+msgstr "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!"
+
+#: stock-sync.php:42
+msgid "Stock Sync requires WooCommerce to be installed and active."
+msgstr "Stock Sync wymaga zainstalowanego i aktywnego WooCommerce."
+
+#: stock-sync.php:43
+msgid "Plugin Activation Error"
+msgstr "Błąd Aktywacji Wtyczki"
+
+#: stock-sync.php:120
+msgid "Stock Sync requires WooCommerce. Please install and activate WooCommerce."
+msgstr "Stock Sync wymaga WooCommerce. Zainstaluj i aktywuj WooCommerce."
+
+#: assets/js/admin.js:1
+msgid "Status"
+msgstr "Status"
+
+#: assets/js/admin.js:1
+msgid "delist"
+msgstr "wycofaj"
+
+#: assets/js/admin.js:1
+msgid "list"
+msgstr "wystaw"
+
+#: assets/js/admin.js:1
+msgid "delisted"
+msgstr "wycofany"
+
+#: assets/js/admin.js:1
+msgid "listed"
+msgstr "wystawiony"
+
+#: assets/js/admin.js:1
+msgid "not_found"
+msgstr "Nie znaleziono"
+
+#: assets/js/admin.js:1
+msgid "... and %s more"
+msgstr "... i %s więcej"
+
+#: assets/js/admin.js:1
+msgid "Uploading..."
+msgstr "Przesyłanie..."
+
+#: assets/js/admin.js:1
+msgid "Analyzing..."
+msgstr "Analizowanie..."
+
+#: assets/js/admin.js:1
+msgid "Saving..."
+msgstr "Zapisywanie..."
+
+#: assets/js/admin.js:1
+msgid "Filtering..."
+msgstr "Filtrowanie..."
+
+#: assets/js/admin.js:1
+msgid "Syncing..."
+msgstr "Synchronizowanie..."
+
+#: assets/js/admin.js:1
+msgid "Applying..."
+msgstr "Stosowanie..."
+
+#: assets/js/admin.js:1
+msgid "Erasing..."
+msgstr "Usuwanie..."
+
+#: assets/js/admin.js:1
+msgid "Searching..."
+msgstr "Wyszukiwanie..."
+
+#: assets/js/admin.js:1
+msgid "Search product name or SKU..."
+msgstr "Wyszukaj nazwę produktu lub SKU..."
+
+#: assets/js/admin.js:1
+msgid "Change"
+msgstr "Zmień"
+
+#: assets/js/admin.js:1
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: assets/js/admin.js:1
+msgid "Revert"
+msgstr "Przywróć"
+
+#: assets/js/admin.js:1
+msgid "No products found."
+msgstr "Nie znaleziono produktów."
+
+#: assets/js/admin.js:1
+msgid "Network error."
+msgstr "Błąd sieci."
+
+#: assets/js/admin.js:1
+msgid "(cleared)"
+msgstr "(wyczyszczono)"
+
+#: assets/js/admin.js:1
+msgid "Please select a file."
+msgstr "Wybierz plik."
+
+#: assets/js/admin.js:1
+msgid "Please select at least one match to save."
+msgstr "Wybierz co najmniej jedno dopasowanie do zapisania."
+
+#: assets/js/admin.js:1
+msgid "Please select at least one product to update."
+msgstr "Wybierz co najmniej jeden produkt do zaktualizowania."
+
+#: assets/js/admin.js:1
+msgid "No sync data available. Please start over."
+msgstr "Brak danych synchronizacji. Zacznij od nowa."
+
+#: assets/js/admin.js:1
+msgid "Upload error"
+msgstr "Błąd przesyłania"
+
+#: assets/js/admin.js:1
+msgid "Scan failed"
+msgstr "Skanowanie nie powiodło się"
+
+#: assets/js/admin.js:1
+msgid "Save failed"
+msgstr "Zapisywanie nie powiodło się"
+
+#: assets/js/admin.js:1
+msgid "Filter failed"
+msgstr "Filtrowanie nie powiodło się"
+
+#: assets/js/admin.js:1
+msgid "Batch failed"
+msgstr "Przetwarzanie partii nie powiodło się"
+
+#: assets/js/admin.js:1
+msgid "Sync stopped"
+msgstr "Synchronizacja zatrzymana"
+
+#: assets/js/admin.js:1
+msgid "Erase failed"
+msgstr "Usuwanie nie powiodło się"
+
+#: assets/js/admin.js:1
+msgid "Erase network error"
+msgstr "Błąd sieci podczas usuwania"
+
+#: assets/js/admin.js:1
+msgid "Network error during upload."
+msgstr "Błąd sieci podczas przesyłania."
+
+#: assets/js/admin.js:1
+msgid "Network error while reading the file. Please try again."
+msgstr "Błąd sieci podczas odczytu pliku. Spróbuj ponownie."
+
+#: assets/js/admin.js:1
+msgid "Filter network error"
+msgstr "Błąd sieci podczas filtrowania"
+
+#: assets/js/admin.js:1
+msgid "Network error loading product details."
+msgstr "Błąd sieci podczas ładowania szczegółów produktu."
+
+#: assets/js/admin.js:1
+msgid "Failed to load product: %s"
+msgstr "Nie udało się załadować produktu: %s"
+
+#: assets/js/admin.js:1
+msgid "Are you sure you want to update this single product?"
+msgstr "Czy na pewno chcesz zaktualizować ten produkt?"
+
+#: assets/js/admin.js:1
+msgid "Are you sure you want to erase all supplier references for %s?"
+msgstr "Czy na pewno chcesz usunąć wszystkie referencje dostawcy dla %s?"
+
+#: assets/js/admin.js:1
+msgid "Erased %s references for %s."
+msgstr "Usunięto %s referencji dla %s."
+
+#: assets/js/admin.js:1
+msgid "Review mappings..."
+msgstr "Przeglądanie mapowań..."
+
+#: assets/js/admin.js:1
+msgid "Starting scan..."
+msgstr "Rozpoczynanie skanowania..."
+
+#: assets/js/admin.js:1
+msgid "Saving mappings..."
+msgstr "Zapisywanie mapowań..."
+
+#: assets/js/admin.js:1
+msgid "Preparing sync..."
+msgstr "Przygotowywanie synchronizacji..."
+
+#: assets/js/admin.js:1
+msgid "Scanning batch %1$s of %2$s"
+msgstr "Skanowanie partii %1$s z %2$s"
+
+#: assets/js/admin.js:1
+msgid "Syncing batch %1$s of %2$s"
+msgstr "Synchronizowanie partii %1$s z %2$s"
+
+#: assets/js/admin.js:1
+msgid "We could not locate the required column headers. If you set custom names under Advanced options, please double-check them. Otherwise, verify the file contains the reference and availability columns, then try uploading again."
+msgstr "Nie udało się znaleźć wymaganych nagłówków kolumn. Jeśli ustawiłeś niestandardowe nazwy w Opcjach zaawansowanych, sprawdź je ponownie. W przeciwnym razie sprawdź, czy plik zawiera kolumny referencyjne i dostępności, a następnie spróbuj przesłać ponownie."
+
+#: assets/js/admin.js:1
+msgid "Expected column headers have not been found. Check if the correct distributor file has been uploaded or modify column names under Advanced options."
+msgstr "Nie znaleziono oczekiwanych nagłówków kolumn. Sprawdź, czy przesłano prawidłowy plik dystrybutora lub zmień nazwy kolumn w Opcjach zaawansowanych."
+
+#: assets/js/admin.js:1
+msgid "Please enter at least 2 characters."
+msgstr "Wprowadź co najmniej 2 znaki."
+
+#: assets/js/admin.js:1
+msgid "Duplicate mapping detected. Please adjust your selections."
+msgstr "Wykryto zduplikowane mapowanie. Dostosuj swoje wybory."
+
+#: assets/js/admin.js:1
+msgid "Duplicate mappings detected. Please adjust your selections."
+msgstr "Wykryto zduplikowane mapowania. Dostosuj swoje wybory."
+
+#: assets/js/admin.js:1
+msgid "%1$s (SKU: %2$s) is mapped to refs: %3$s"
+msgstr "%1$s (SKU: %2$s) jest przypisane do referencji: %3$s"
+
+#: assets/js/admin.js:1
+msgid "Unknown server error"
+msgstr "Nieznany błąd serwera"
+
+#: assets/js/admin.js:1
+msgid "Header row not found"
+msgstr "Nie znaleziono wiersza nagłówka"
+
+#: assets/js/admin.js:1
+msgid "Unknown"
+msgstr "Nieznane"

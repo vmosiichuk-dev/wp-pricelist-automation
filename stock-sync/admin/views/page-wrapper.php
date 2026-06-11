@@ -13,7 +13,7 @@
         <div class="stock-header-tabs">
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'sync', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
                class="<?php echo $active_tab === 'sync' ? 'active' : ''; ?>">
-                <?php esc_html_e('Distributor Sync', 'stock-sync'); ?>
+                <?php esc_html_e('Synchronizacja Dystrybutorów (Synchronizacja zbiorcza)', 'stock-sync'); ?>
             </a>
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'test', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
                class="<?php echo $active_tab === 'test' ? 'active' : ''; ?>">
@@ -21,7 +21,7 @@
             </a>
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'log', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
                class="<?php echo $active_tab === 'log' ? 'active' : ''; ?>">
-                <?php esc_html_e('Sync Log', 'stock-sync'); ?>
+                <?php esc_html_e('Dziennik', 'stock-sync'); ?>
             </a>
         </div>
     </div>

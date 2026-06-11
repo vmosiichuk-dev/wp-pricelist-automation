@@ -1,0 +1,510 @@
+# Copyright (C) 2026 vmosiichuk.dev
+# This file is distributed under the same license as the Stock Sync plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Stock Sync 0.6.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-08T22:19:15+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: stock-sync\n"
+
+#. Plugin Name of the plugin
+#: stock-sync.php
+#: includes/class-admin.php:25
+#: includes/class-admin.php:26
+msgid "Stock Sync"
+msgstr ""
+
+#. Description of the plugin
+#: stock-sync.php
+msgid "Automate WooCommerce product availability updates from distributor price lists. Multi-distributor support."
+msgstr ""
+
+#. Author of the plugin
+#: stock-sync.php
+msgid "vmosiichuk.dev"
+msgstr ""
+
+#: admin/views/page-wrapper.php:11
+msgid "Automate product availability from distributor price lists"
+msgstr ""
+
+#: admin/views/page-wrapper.php:16
+#: admin/views/tab-sync.php:11
+msgid "Distributor Sync"
+msgstr ""
+
+#: admin/views/page-wrapper.php:20
+#: admin/views/tab-test.php:10
+#: admin/views/tab-test.php:22
+msgid "Single Product"
+msgstr ""
+
+#: admin/views/page-wrapper.php:24
+#: admin/views/tab-log.php:12
+#: admin/views/tab-log.php:23
+msgid "Sync Log"
+msgstr ""
+
+#: admin/views/tab-log.php:15
+msgid "Review past sync operations and their outcomes"
+msgstr ""
+
+#: admin/views/tab-log.php:16
+msgid "See how many products were updated, not found, or caused errors"
+msgstr ""
+
+#: admin/views/tab-log.php:28
+msgid "No sync operations logged yet. Run your first sync to see results here."
+msgstr ""
+
+#: admin/views/tab-log.php:34
+msgid "Date"
+msgstr ""
+
+#: admin/views/tab-log.php:35
+#: admin/views/tab-sync.php:23
+msgid "Distributor"
+msgstr ""
+
+#: admin/views/tab-log.php:36
+msgid "Total Changes"
+msgstr ""
+
+#: admin/views/tab-log.php:37
+msgid "Unavailable"
+msgstr ""
+
+#: admin/views/tab-sync.php:14
+msgid "Upload a distributor price list and map products automatically"
+msgstr ""
+
+#: admin/views/tab-sync.php:15
+msgid "Preview availability changes before applying them"
+msgstr ""
+
+#: admin/views/tab-sync.php:16
+msgid "Keep your catalog in sync with one click"
+msgstr ""
+
+#: admin/views/tab-sync.php:32
+msgid "Erase All Supplier References"
+msgstr ""
+
+#: admin/views/tab-sync.php:41
+#: admin/views/tab-sync.php:94
+msgid "Upload"
+msgstr ""
+
+#: admin/views/tab-sync.php:45
+msgid "Map"
+msgstr ""
+
+#: admin/views/tab-sync.php:49
+msgid "Preview"
+msgstr ""
+
+#: admin/views/tab-sync.php:53
+msgid "Apply"
+msgstr ""
+
+#: admin/views/tab-sync.php:60
+msgid "Upload Price List"
+msgstr ""
+
+#: admin/views/tab-sync.php:61
+msgid "Drag and drop your .xlsx file or click to browse. Unmapped products will be shown for review before syncing."
+msgstr ""
+
+#: admin/views/tab-sync.php:70
+msgid "Drop your .xlsx here or click to browse"
+msgstr ""
+
+#: admin/views/tab-sync.php:76
+msgid "Advanced options"
+msgstr ""
+
+#: admin/views/tab-sync.php:82
+msgid "Reference column"
+msgstr ""
+
+#: admin/views/tab-sync.php:84
+msgid "Optional. Overrides the expected header label for the reference column."
+msgstr ""
+
+#: admin/views/tab-sync.php:85
+msgid "Availability column"
+msgstr ""
+
+#: admin/views/tab-sync.php:87
+msgid "Optional. Overrides the expected header label for the availability column."
+msgstr ""
+
+#: admin/views/tab-sync.php:104
+#: admin/views/tab-sync.php:106
+#: admin/views/tab-sync.php:188
+#: admin/views/tab-sync.php:190
+#: admin/views/tab-sync.php:228
+#: admin/views/tab-sync.php:230
+msgid "Start new sync"
+msgstr ""
+
+#: admin/views/tab-sync.php:108
+msgid "Review Product Mappings"
+msgstr ""
+
+#: admin/views/tab-sync.php:109
+msgid "Some products need to be mapped to WooCommerce products.<br>Review the suggestions below, change incorrect matches, then confirm."
+msgstr ""
+
+#: admin/views/tab-sync.php:112
+msgid "Suggested matches"
+msgstr ""
+
+#: admin/views/tab-sync.php:118
+msgid "Select all entries"
+msgstr ""
+
+#: admin/views/tab-sync.php:119
+#: admin/views/tab-sync.php:140
+#: admin/views/tab-sync.php:161
+#: admin/views/tab-sync.php:208
+msgid "Ref"
+msgstr ""
+
+#: admin/views/tab-sync.php:120
+#: admin/views/tab-sync.php:141
+#: admin/views/tab-sync.php:162
+msgid "Distributor name"
+msgstr ""
+
+#: admin/views/tab-sync.php:121
+#: admin/views/tab-sync.php:142
+#: admin/views/tab-sync.php:163
+msgid "Product name"
+msgstr ""
+
+#: admin/views/tab-sync.php:122
+#: admin/views/tab-sync.php:143
+#: admin/views/tab-sync.php:164
+msgid "Match"
+msgstr ""
+
+#: admin/views/tab-sync.php:123
+#: admin/views/tab-sync.php:144
+#: admin/views/tab-sync.php:165
+#: admin/views/tab-sync.php:210
+msgid "Action"
+msgstr ""
+
+#: admin/views/tab-sync.php:133
+msgid "Already mapped"
+msgstr ""
+
+#: admin/views/tab-sync.php:139
+msgid "Select all already mapped entries"
+msgstr ""
+
+#: admin/views/tab-sync.php:154
+msgid "Unmatched positions"
+msgstr ""
+
+#: admin/views/tab-sync.php:160
+msgid "Select all unmatched entries"
+msgstr ""
+
+#: admin/views/tab-sync.php:175
+msgid "Confirm Mappings & Continue"
+msgstr ""
+
+#: admin/views/tab-sync.php:178
+msgid "Skip Mapping & Start Sync"
+msgstr ""
+
+#: admin/views/tab-sync.php:193
+msgid "Sync Preview"
+msgstr ""
+
+#: admin/views/tab-sync.php:194
+msgid "Review the products that will be updated.<br>Uncheck any you want to exclude, then apply the sync."
+msgstr ""
+
+#: admin/views/tab-sync.php:206
+msgid "Select all preview entries"
+msgstr ""
+
+#: admin/views/tab-sync.php:207
+#: admin/views/tab-test.php:47
+msgid "SKU"
+msgstr ""
+
+#: admin/views/tab-sync.php:209
+#: admin/views/tab-test.php:52
+msgid "Name"
+msgstr ""
+
+#: admin/views/tab-sync.php:219
+msgid "Apply Sync"
+msgstr ""
+
+#: admin/views/tab-sync.php:233
+msgid "Sync Results"
+msgstr ""
+
+#: admin/views/tab-sync.php:238
+msgid "Total Processed"
+msgstr ""
+
+#: admin/views/tab-sync.php:242
+msgid "Delisted"
+msgstr ""
+
+#: admin/views/tab-sync.php:246
+msgid "Listed"
+msgstr ""
+
+#: admin/views/tab-sync.php:250
+msgid "Errors"
+msgstr ""
+
+#: admin/views/tab-test.php:13
+msgid "Manually apply unavailable-state changes to one product"
+msgstr ""
+
+#: admin/views/tab-test.php:14
+msgid "Search by name or SKU to preview and apply updates"
+msgstr ""
+
+#: admin/views/tab-test.php:15
+msgid "Use this to verify how the plugin affects a product before running a full sync"
+msgstr ""
+
+#: admin/views/tab-test.php:23
+msgid "Manually apply unavailable-state changes to one product. Search by name or SKU."
+msgstr ""
+
+#: admin/views/tab-test.php:26
+msgid "Search product name or SKU"
+msgstr ""
+
+#: admin/views/tab-test.php:27
+msgid "Type product name or SKU..."
+msgstr ""
+
+#: admin/views/tab-test.php:28
+msgid "Search"
+msgstr ""
+
+#: admin/views/tab-test.php:35
+msgid "Product Details"
+msgstr ""
+
+#: admin/views/tab-test.php:40
+msgid "Field"
+msgstr ""
+
+#: admin/views/tab-test.php:41
+msgid "Current"
+msgstr ""
+
+#: admin/views/tab-test.php:42
+msgid "After Update"
+msgstr ""
+
+#: admin/views/tab-test.php:49
+#: admin/views/tab-test.php:64
+#: admin/views/tab-test.php:69
+msgid "(no change)"
+msgstr ""
+
+#: admin/views/tab-test.php:57
+msgid "Visibility"
+msgstr ""
+
+#: admin/views/tab-test.php:59
+msgid "Search results only"
+msgstr ""
+
+#: admin/views/tab-test.php:62
+msgid "Regular Price"
+msgstr ""
+
+#: admin/views/tab-test.php:67
+msgid "Sale Price"
+msgstr ""
+
+#: admin/views/tab-test.php:72
+msgid "Short Description"
+msgstr ""
+
+#: admin/views/tab-test.php:81
+msgid "Apply Update to This Product"
+msgstr ""
+
+#: includes/class-admin.php:72
+#: includes/class-ajax-handler.php:83
+#: includes/class-ajax-handler.php:205
+#: includes/class-ajax-handler.php:319
+#: includes/class-ajax-handler.php:494
+#: includes/class-ajax-handler.php:536
+#: includes/class-ajax-handler.php:590
+#: includes/class-ajax-handler.php:634
+#: includes/class-ajax-handler.php:713
+#: includes/class-ajax-handler.php:746
+msgid "Permission denied"
+msgstr ""
+
+#: includes/class-admin.php:76
+msgid "No file uploaded"
+msgstr ""
+
+#: includes/class-admin.php:82
+msgid "Upload failed"
+msgstr ""
+
+#: includes/class-admin.php:87
+msgid "File too large. Maximum size is 5 MB."
+msgstr ""
+
+#: includes/class-admin.php:106
+msgid "Invalid file type. Please upload an XLSX file."
+msgstr ""
+
+#: includes/class-admin.php:121
+msgid "Failed to save uploaded file"
+msgstr ""
+
+#: includes/class-ajax-handler.php:42
+msgid "Invalid file path"
+msgstr ""
+
+#: includes/class-ajax-handler.php:50
+msgid "File is not in the allowed temp directory"
+msgstr ""
+
+#: includes/class-ajax-handler.php:55
+msgid "File must be an XLSX"
+msgstr ""
+
+#: includes/class-ajax-handler.php:92
+msgid "Unknown distributor: "
+msgstr ""
+
+#. translators: 1: count, 2: comma-separated list
+#: includes/class-ajax-handler.php:112
+#: includes/class-ajax-handler.php:360
+#, php-format
+msgid "Warning: unrecognized availability value found: %2$s. These products were treated as available."
+msgid_plural "Warning: unrecognized availability values found (%1$d): %2$s. These products were treated as available."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-ajax-handler.php:216
+#: includes/class-ajax-handler.php:327
+#: includes/class-ajax-handler.php:513
+#: includes/class-ajax-handler.php:545
+#: includes/class-ajax-handler.php:596
+#: includes/class-ajax-handler.php:726
+#: includes/class-ajax-handler.php:754
+msgid "Unknown distributor"
+msgstr ""
+
+#: includes/class-ajax-handler.php:220
+#: includes/class-ajax-handler.php:549
+msgid "Missing run ID"
+msgstr ""
+
+#: includes/class-ajax-handler.php:227
+#: includes/class-ajax-handler.php:556
+msgid "No sync queue found"
+msgstr ""
+
+#: includes/class-ajax-handler.php:642
+msgid "Query too short"
+msgstr ""
+
+#: includes/class-ajax-handler.php:721
+#: includes/class-ajax-handler.php:759
+msgid "Product not found"
+msgstr ""
+
+#: includes/class-ajax-handler.php:781
+msgid "Product updated successfully."
+msgstr ""
+
+#: includes/class-product-meta.php:45
+msgid "Supplier References"
+msgstr ""
+
+#. translators: %s: distributor name
+#: includes/class-product-meta.php:79
+#, php-format
+msgid "Supplier reference for %s."
+msgstr ""
+
+#: includes/class-product-updater.php:32
+#, php-format
+msgid "Product not found: %d"
+msgstr ""
+
+#: includes/class-xlsx-parser.php:40
+msgid "Cannot open XLSX file"
+msgstr ""
+
+#: includes/class-xlsx-parser.php:53
+msgid "Cannot read worksheet"
+msgstr ""
+
+#: includes/class-xlsx-parser.php:58
+msgid "Invalid worksheet XML"
+msgstr ""
+
+#. translators: 1: number of rows scanned, 2: comma-separated expected labels
+#: includes/class-xlsx-parser.php:80
+#: includes/class-xlsx-parser.php:150
+#, php-format
+msgid "Header row not found. Scanned first %1$d rows for labels: %2$s."
+msgstr ""
+
+#: includes/class-xlsx-parser.php:160
+msgid "No valid product rows found after the header. The reference format or file structure may have changed."
+msgstr ""
+
+#: includes/class-xlsx-parser.php:178
+msgid "Invalid shared strings XML"
+msgstr ""
+
+#: includes/distributors/class-distributor.php:165
+#: includes/distributors/class-distributor.php:178
+#, php-format
+msgid "Wina %s"
+msgstr ""
+
+#. translators: %s: link to category
+#: includes/distributors/class-distributor.php:170
+#: includes/distributors/class-distributor.php:182
+#, php-format
+msgid "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w kategorii '%s'. U nas zawsze znajdziesz produkt, którego szukasz. Zamów online!"
+msgstr ""
+
+#: includes/distributors/class-distributor.php:187
+msgid "Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!"
+msgstr ""
+
+#: stock-sync.php:42
+msgid "Stock Sync requires WooCommerce to be installed and active."
+msgstr ""
+
+#: stock-sync.php:43
+msgid "Plugin Activation Error"
+msgstr ""
+
+#: stock-sync.php:120
+msgid "Stock Sync requires WooCommerce. Please install and activate WooCommerce."
+msgstr ""
