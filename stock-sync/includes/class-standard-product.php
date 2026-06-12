@@ -48,6 +48,18 @@ class StockSync_Standard_Product {
      */
     public $distributor_slug;
     /**
+     * Price from distributor file.
+     *
+     * @var float|null
+     */
+    public $price = null;
+    /**
+     * Sale price from distributor file.
+     *
+     * @var float|null
+     */
+    public $sale_price = null;
+    /**
      * Reference with variant suffix stripped, e.g. WO5502.
      *
      * @var string
@@ -74,6 +86,8 @@ class StockSync_Standard_Product {
         $this->availability_raw = $data['availability_raw'] ?? '';
         $this->is_unavailable   = $data['is_unavailable'] ?? false;
         $this->distributor_slug = $data['distributor_slug'] ?? '';
+        $this->price      = isset($data['price']) ? floatval($data['price']) : null;
+        $this->sale_price = isset($data['sale_price']) ? floatval($data['sale_price']) : null;
         $this->base_ref      = $data['base_ref']    ?? $this->compute_base_ref();
         $this->variant_year = $data['variant_year'] ?? null;
     }

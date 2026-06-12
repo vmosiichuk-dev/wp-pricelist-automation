@@ -20,11 +20,66 @@ class StockSync_Product_Updater {
 	 * @param StockSync_Distributor $distributor
 	 * @return true|WP_Error
 	 */
+	/**
+	 * Mark a product as published (available for sale)
+	 *
+	 * @param int $product_id
+	 * @param StockSync_Standard_Product $product
+	 * @param StockSync_Distributor $distributor
+	 * @return true|WP_Error
+	 */
+	public function mark_published($product_id, StockSync_Standard_Product $product, StockSync_Distributor $distributor) {
+		$wc_product = wc_get_product($product_id);
+
+		if (!$wc_product) {
+			return new WP_Error('product_not_found', sprintf(__('Product not found: %d', 'stock-sync'), $product_id));
+		}
+
+		// Skip drafts
+		if ($wc_product->get_status() === 'draft') {
+			return new WP_Error('product_is_draft', sprintf(__('Product is a draft and cannot be published: %d', 'stock-sync'), $product_id));
+		}
+
+		$old_name = $wc_product->get_name();
+		$new_name = StockSync_Product_Utils::clean_name($old_name);
+
+		// 1. Clean name
+		if ($new_name !== $old_name) {
+			$wc_product->set_name($new_name);
+		}
+
+		// 2. Set prices
+		if ($product->price !== null && $product->price > 0) {
+			$wc_product->set_regular_price(number_format($product->price, 2, '.', ''));
+		}
+		if ($product->sale_price !== null && $product->sale_price > 0) {
+			$wc_product->set_sale_price(number_format($product->sale_price, 2, '.', ''));
+		}
+
+		// 3. Update excerpt
+		$suffix = wp_kses_post($distributor->get_listed_suffix($new_name, $distributor->get_name()));
+		$new_excerpt = StockSync_Product_Utils::build_new_excerpt($wc_product->get_short_description(), $new_name, $suffix);
+		$wc_product->set_short_description($new_excerpt);
+
+		// 4. Visibility: catalog and search
+		$wc_product->set_catalog_visibility('visible');
+
+		// 5. Save
+		$wc_product->save();
+
+		return true;
+	}
+
 	public function mark_unavailable($product_id, StockSync_Standard_Product $product, StockSync_Distributor $distributor) {
 		$wc_product = wc_get_product($product_id);
 
 		if (!$wc_product) {
 			return new WP_Error('product_not_found', sprintf(__('Product not found: %d', 'stock-sync'), $product_id));
+		}
+
+		// Skip drafts
+		if ($wc_product->get_status() === 'draft') {
+			return new WP_Error('product_is_draft', sprintf(__('Product is a draft and cannot be delisted: %d', 'stock-sync'), $product_id));
 		}
 
 		$old_visibility = $wc_product->get_catalog_visibility();

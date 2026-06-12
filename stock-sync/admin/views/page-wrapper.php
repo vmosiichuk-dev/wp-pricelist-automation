@@ -15,8 +15,8 @@
                class="<?php echo $active_tab === 'sync' ? 'active' : ''; ?>">
                 <?php esc_html_e('Distributor sync', 'stock-sync'); ?>
             </a>
-            <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'test', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
-               class="<?php echo $active_tab === 'test' ? 'active' : ''; ?>">
+            <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'product', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"
+               class="<?php echo $active_tab === 'product' ? 'active' : ''; ?>">
                 <?php esc_html_e('Single Product', 'stock-sync'); ?>
             </a>
 
@@ -27,7 +27,7 @@
         <?php
         $allowed_tabs = [
             'sync' => 'tab-sync.php',
-            'test' => 'tab-test.php',
+            'product' => 'tab-product.php',
         ];
         $view_file = isset($allowed_tabs[$active_tab]) ? $allowed_tabs[$active_tab] : 'tab-sync.php';
         include STOCK_SYNC_PLUGIN_DIR . 'admin/views/' . $view_file;

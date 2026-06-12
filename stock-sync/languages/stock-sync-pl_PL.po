@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Stock Sync plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stock Sync 0.6.7\n"
+"Project-Id-Version: Stock Sync 0.7.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -706,3 +706,105 @@ msgstr "Nie znaleziono wiersza nagłówka"
 #: assets/js/admin.js:1
 msgid "Unknown"
 msgstr "Nieznane"
+
+#: admin/views/tab-sync.php:NEW
+msgid "Price column"
+msgstr "Kolumna ceny"
+
+#: admin/views/tab-sync.php:NEW
+msgid "Optional. Overrides the expected header for the price column."
+msgstr "Opcjonalne. Nadpisuje oczekiwany nagłówek dla kolumny ceny."
+
+#: admin/views/tab-sync.php:NEW
+msgid "Markup %"
+msgstr "Marża %"
+
+#: admin/views/tab-sync.php:NEW
+msgid "Markup percentage applied to the distributor price. Default is 25%."
+msgstr "Procent marży zastosowany do ceny dystrybutora. Domyślnie 25%."
+
+#: admin/views/tab-sync.php:NEW
+msgid "Preview product availability changes (delist or publish) before applying them"
+msgstr "Podgląd zmian dostępności produktów (wycofaj lub wystaw) przed zastosowaniem"
+
+#: admin/views/tab-sync.php:NEW
+msgid "Published"
+msgstr "Wystawione"
+
+#: admin/views/tab-product.php:NEW
+msgid "Manually apply availability changes (delist or publish) to one product"
+msgstr "Ręcznie zastosuj zmiany dostępności (wycofaj lub wystaw) do jednego produktu"
+
+#: admin/views/tab-product.php:NEW
+msgid "Manually apply availability changes (delist or publish) to one product. Search by name or SKU."
+msgstr "Ręcznie zastosuj zmiany dostępności (wycofaj lub wystaw) do jednego produktu. Wyszukaj po nazwie lub SKU."
+
+#: admin/views/tab-product.php:NEW
+msgid "Mode"
+msgstr "Tryb"
+
+#: admin/views/tab-product.php:NEW
+msgid "Delist"
+msgstr "Wycofaj"
+
+#: admin/views/tab-product.php:NEW
+msgid "Publish"
+msgstr "Wystaw"
+
+#: admin/views/tab-product.php:NEW
+msgid "Catalog & search"
+msgstr "Katalog i wyszukiwanie"
+
+#: includes/class-product-updater.php:NEW
+msgid "Product is a draft and cannot be published: %d"
+msgstr "Produkt jest wersją roboczą i nie może zostać wystawiony: %d"
+
+#: includes/class-product-updater.php:NEW
+msgid "Product is a draft and cannot be delisted: %d"
+msgstr "Produkt jest wersją roboczą i nie może zostać wycofany: %d"
+
+#: includes/class-ajax-handler.php:NEW
+msgid "Product updated successfully."
+msgstr "Produkt zaktualizowany pomyślnie."
+
+#: includes/distributors/class-distributor.php:NEW
+#, php-format
+msgid "%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
+msgstr "%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
+
+#: includes/class-admin.php:NEW
+msgid "Apply"
+msgstr "Zastosuj"
+
+#: includes/class-admin.php:NEW
+msgid "publish"
+msgstr "wystaw"
+
+#: includes/class-admin.php:NEW
+msgid "published"
+msgstr "wystawiony"
+
+#: includes/class-admin.php:NEW
+msgid "would_publish"
+msgstr "zostałby_wystawiony"
+
+#: includes/class-admin.php:NEW
+msgid "Publish"
+msgstr "Wystaw"
+
+#: includes/class-admin.php:NEW
+msgid "Delist"
+msgstr "Wycofaj"
+
+#: includes/class-admin.php:NEW
+msgid "Catalog & search"
+msgstr "Katalog i wyszukiwanie"
+
+#: includes/class-admin.php:NEW
+msgid "Markup"
+msgstr "Marża"
+
+#: includes/class-admin.php:NEW
+msgid "Markup %"
+msgstr "Marża %"
+

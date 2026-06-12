@@ -219,3 +219,13 @@ $results.html('<p style="color:red;">Error: ' + response.data + '</p>');
 7. **Always validate/clamp** numeric values before SQL interpolation.
 8. **Ensure accessible names** on all interactive controls and sufficient color contrast.
 9. **Keep docblocks accurate** to prevent integration bugs.
+
+---
+
+## New Rule: All UI text must be translatable via WordPress i18n
+
+**Location:** All new PHP view files, PHP classes, and JS strings
+
+**Rule:** Every piece of user-facing text must be wrapped in `__()`, `esc_html__()`, or `esc_attr__()` with the `'stock-sync'` text domain. For JS strings, add them to the `wp_localize_script` array in `class-admin.php` so they are picked up by the translation scanner. Add the Polish translation to `languages/stock-sync-pl_PL.po` immediately. Never hardcode Polish text directly in views without translation functions.
+
+**Fix for this implementation:** All new strings for the publish feature (price column, markup, mode toggle, listed suffix) are wrapped in `__()` and added to `.po` files.

@@ -56,6 +56,7 @@ class Test_Distributor_Vininova extends PHPUnit\Framework\TestCase {
 			'availability'    => 3,
 			'product_name'    => 4,
 			'vintage'         => 5,
+			'price'           => null,
 		];
 		$this->assertSame($expected, $this->distributor->get_column_map());
 	}
