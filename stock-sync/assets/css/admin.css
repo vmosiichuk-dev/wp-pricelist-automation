@@ -1,5 +1,5 @@
 /* ============================================================
-   Stock Sync v0.6.4 — Admin Styles
+   Stock Sync v0.6.7 — Admin Styles
    ============================================================ */
 
 /* ---------- Layout ---------- */
@@ -1482,6 +1482,11 @@ details .stock-card-table thead th:last-child {
 }
 .stock-row-duplicate {
     background-color: #fff5f5;
+}
+
+/* ---------- External Notices Consolidation ---------- */
+.stock-sync-wrap .stock-sync-external-notice {
+    margin-top: 0;
 }
 
 /* Hide third-party promo/admin notices on our page, but keep errors/warnings/success */

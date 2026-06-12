@@ -4,6 +4,25 @@
 (function($) {
     'use strict';
 
+    // ===== ADMIN NOTICE CONSOLIDATION =====
+    function consolidateAdminNotices() {
+        var $wrap = $('.wrap.stock-sync-wrap');
+        if (!$wrap.length) return;
+
+        var $notices = $wrap.find('.stock-header-card .notice, .stock-header-card .updated, .stock-header-card .error')
+            .not('.stock-sync-external-notice');
+
+        if ($notices.length) {
+            $notices.detach().addClass('stock-sync-external-notice').prependTo($wrap);
+        }
+    }
+
+    function observeAdminNotices() {
+        new MutationObserver(function() {
+            consolidateAdminNotices();
+        }).observe(document.body, { childList: true, subtree: true });
+    }
+
     function getDistributorSlug() {
         var params = new URLSearchParams(window.location.search);
         return params.get('distributor') || 'vininova';
@@ -1366,6 +1385,8 @@
 
     $(function() {
         updateStepper(1);
+        consolidateAdminNotices();
+        observeAdminNotices();
     });
 
 })(jQuery);
