@@ -57,9 +57,6 @@ class StockSync_Product_Updater {
 		}
 
 		// 3. Update excerpt
-		$cat_term = StockSync_Product_Utils::find_first_product_category($product_id);
-		$cat_url = $cat_term ? $cat_term['url'] : null;
-		$cat_name = $cat_term ? $cat_term['name'] : null;
 		$suffix = wp_kses_post($distributor->get_listed_suffix($new_name, $distributor->get_name()));
 		$new_excerpt = StockSync_Product_Utils::build_new_excerpt($wc_product->get_short_description(), $new_name, $suffix);
 		$wc_product->set_short_description($new_excerpt);

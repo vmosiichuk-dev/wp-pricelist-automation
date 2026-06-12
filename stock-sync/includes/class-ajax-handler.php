@@ -831,12 +831,21 @@ class StockSync_AJAX_Handler {
 
         $distributor_ref = get_post_meta($product_id, $distributor->get_meta_key(), true);
 
+        $price = isset($_POST['price']) ? floatval($_POST['price']) : null;
+        if ($price !== null && $price <= 0) {
+            $price = null;
+        }
+        $sale_price = isset($_POST['sale_price']) ? floatval($_POST['sale_price']) : null;
+        if ($sale_price !== null && $sale_price <= 0) {
+            $sale_price = null;
+        }
+
         $standard = new StockSync_Standard_Product([
             'distributor_ref'  => $distributor_ref,
             'product_name'     => $product->get_name(),
             'distributor_slug' => $distributor->get_slug(),
-            'price'            => isset($_POST['price']) ? floatval($_POST['price']) : null,
-            'sale_price'       => isset($_POST['sale_price']) ? floatval($_POST['sale_price']) : null,
+            'price'            => $price,
+            'sale_price'       => $sale_price,
         ]);
 
         $updater = StockSync_Service_Factory::product_updater();
