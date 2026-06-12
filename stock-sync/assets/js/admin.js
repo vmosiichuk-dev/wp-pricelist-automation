@@ -5,6 +5,9 @@
     'use strict';
 
     // ===== ADMIN NOTICE CONSOLIDATION =====
+    var noticeObserver = null;
+    var noticeDebounceTimer = null;
+
     function consolidateAdminNotices() {
         var $wrap = $('.wrap.stock-sync-wrap');
         if (!$wrap.length) return;
@@ -18,9 +21,31 @@
     }
 
     function observeAdminNotices() {
-        new MutationObserver(function() {
-            consolidateAdminNotices();
-        }).observe(document.body, { childList: true, subtree: true });
+        if (noticeObserver) return;
+
+        var $wrap = $('.wrap.stock-sync-wrap');
+        if (!$wrap.length) return;
+
+        var $header = $wrap.find('.stock-header-card');
+        if (!$header.length) return;
+
+        noticeObserver = new MutationObserver(function() {
+            clearTimeout(noticeDebounceTimer);
+            noticeDebounceTimer = setTimeout(consolidateAdminNotices, 50);
+        });
+
+        noticeObserver.observe($header[0], { childList: true, subtree: true });
+    }
+
+    function disconnectAdminNotices() {
+        if (noticeObserver) {
+            noticeObserver.disconnect();
+            noticeObserver = null;
+        }
+        if (noticeDebounceTimer) {
+            clearTimeout(noticeDebounceTimer);
+            noticeDebounceTimer = null;
+        }
     }
 
     function getDistributorSlug() {
@@ -1387,6 +1412,7 @@
         updateStepper(1);
         consolidateAdminNotices();
         observeAdminNotices();
+        $(window).on('beforeunload.stock-sync', disconnectAdminNotices);
     });
 
 })(jQuery);
