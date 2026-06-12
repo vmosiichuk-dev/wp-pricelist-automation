@@ -4,6 +4,50 @@
 (function($) {
     'use strict';
 
+    // ===== ADMIN NOTICE CONSOLIDATION =====
+    var noticeObserver = null;
+    var noticeDebounceTimer = null;
+
+    function consolidateAdminNotices() {
+        var $wrap = $('.wrap.stock-sync-wrap');
+        if (!$wrap.length) return;
+
+        var $notices = $wrap.find('.stock-header-card .notice, .stock-header-card .updated, .stock-header-card .error')
+            .not('.stock-sync-external-notice');
+
+        if ($notices.length) {
+            $notices.detach().addClass('stock-sync-external-notice').prependTo($wrap);
+        }
+    }
+
+    function observeAdminNotices() {
+        if (noticeObserver) return;
+
+        var $wrap = $('.wrap.stock-sync-wrap');
+        if (!$wrap.length) return;
+
+        var $header = $wrap.find('.stock-header-card');
+        if (!$header.length) return;
+
+        noticeObserver = new MutationObserver(function() {
+            clearTimeout(noticeDebounceTimer);
+            noticeDebounceTimer = setTimeout(consolidateAdminNotices, 50);
+        });
+
+        noticeObserver.observe($header[0], { childList: true, subtree: true });
+    }
+
+    function disconnectAdminNotices() {
+        if (noticeObserver) {
+            noticeObserver.disconnect();
+            noticeObserver = null;
+        }
+        if (noticeDebounceTimer) {
+            clearTimeout(noticeDebounceTimer);
+            noticeDebounceTimer = null;
+        }
+    }
+
     function getDistributorSlug() {
         var params = new URLSearchParams(window.location.search);
         return params.get('distributor') || 'vininova';
@@ -1366,6 +1410,9 @@
 
     $(function() {
         updateStepper(1);
+        consolidateAdminNotices();
+        observeAdminNotices();
+        $(window).on('beforeunload.stock-sync', disconnectAdminNotices);
     });
 
 })(jQuery);
