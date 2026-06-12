@@ -1,5 +1,5 @@
 /* ============================================================
-   Stock Sync v0.6.7 — Admin Styles
+   Stock Sync v0.7.0 — Admin Styles
    ============================================================ */
 
 /* ---------- Layout ---------- */
@@ -438,7 +438,7 @@
 #stock-sync-upload,
 #stock-sync-confirm-mappings,
 #stock-sync-apply,
-#stock-test-apply {
+#stock-product-apply {
     border-radius: 12px;
     padding: 2px 16px;
     font-size: 14px;
@@ -451,7 +451,7 @@
 
 #stock-sync-confirm-mappings:hover:not(:disabled),
 #stock-sync-apply:hover:not(:disabled),
-#stock-test-apply:hover:not(:disabled) {
+#stock-product-apply:hover:not(:disabled) {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
@@ -733,8 +733,8 @@ details .stock-card-table thead th:last-child {
 .stock-stat-item.delisted { border-color: #f0b849; background: #fff8e5; }
 .stock-stat-item.delisted .stock-stat-value { color: #946c00; }
 
-.stock-stat-item.listed { border-color: #c3e6cb; background: #f0f9f4; }
-.stock-stat-item.listed .stock-stat-value { color: #155724; }
+.stock-stat-item.published { border-color: #c3e6cb; background: #f0f9f4; }
+.stock-stat-item.published .stock-stat-value { color: #155724; }
 
 .stock-stat-item.stat-error { border-color: #f5c6cb; background: #fdf2f2; }
 .stock-stat-item.stat-error .stock-stat-value { color: #721c24; }
@@ -1130,12 +1130,12 @@ details .stock-card-table thead th:last-child {
     display: block;
 }
 
-/* ---------- Test Tab ---------- */
-.stock-test-panel .stock-card-table {
+/* ---------- Single Product Tab ---------- */
+.stock-product-panel .stock-card-table {
     margin-top: 16px;
 }
 
-.stock-test-search-row {
+.stock-product-search-row {
     display: flex;
     align-items: flex-start;
     gap: 8px;
@@ -1373,14 +1373,14 @@ details .stock-card-table thead th:last-child {
 }
 
 /* ---------- Single Product Search ---------- */
-.stock-test-search-wrap {
+.stock-product-search-wrap {
     display: flex;
     align-items: stretch;
     gap: 8px;
     max-width: 100%;
 }
 
-.stock-test-search-wrap input[type="text"] {
+.stock-product-search-wrap input[type="text"] {
     flex: 1;
     min-width: 0;
     border-radius: 10px;
@@ -1390,13 +1390,13 @@ details .stock-card-table thead th:last-child {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.stock-test-search-wrap input[type="text"]:focus {
+.stock-product-search-wrap input[type="text"]:focus {
     border-color: var(--wp-admin-theme-color, #2271b1);
     box-shadow: 0 0 0 3px rgba(34,113,177,0.1);
     outline: none;
 }
 
-.stock-test-search-wrap .button {
+.stock-product-search-wrap .button {
     border-radius: 10px;
     padding: 8px 18px;
     font-size: 14px;
@@ -1459,9 +1459,7 @@ details .stock-card-table thead th:last-child {
     display: none !important;
 }
 
-.stock-test-status {
-    margin-left: 10px;
-}
+
 
 /* ---------- Misc ---------- */
 .wc-product-cell {
@@ -1494,7 +1492,85 @@ details .stock-card-table thead th:last-child {
     display: none !important;
 }
 
-/* Fix success notice margin inside test sticky bar */
-#stock-test-success.stock-success-notice {
+/* Fix success notice margin inside product sticky bar */
+#stock-product-success.stock-success-notice {
     margin: 0;
+}
+
+/* ---------- Mode Toggle Switch ---------- */
+.stock-card-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stock-card-header-text {
+    flex: 1;
+}
+
+.stock-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.stock-mode-toggle-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #3c434a;
+}
+
+.stock-toggle-switch {
+    position: relative;
+    display: inline-flex;
+    background: #f0f0f1;
+    border-radius: 20px;
+    padding: 3px;
+    cursor: pointer;
+    gap: 2px;
+}
+
+.stock-toggle-label {
+    position: relative;
+    z-index: 1;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 16px;
+    color: #3c434a;
+    transition: color 0.2s;
+}
+
+.stock-toggle-label.active {
+    color: #fff;
+}
+
+.stock-toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background: var(--wp-admin-theme-color, #2271b1);
+    border-radius: 16px;
+    transition: transform 0.2s;
+}
+
+.stock-toggle-switch[data-mode="publish"]::after {
+    transform: translateX(100%);
+}
+
+/* ---------- Product status pill ---------- */
+.status-published {
+    color: #155724;
+    font-weight: 600;
+}
+
+/* ---------- Product status text ---------- */
+.stock-product-status {
+    margin-left: 10px;
 }

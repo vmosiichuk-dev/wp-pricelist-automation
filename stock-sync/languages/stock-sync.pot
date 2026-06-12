@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Stock Sync plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stock Sync 0.6.7\n"
+"Project-Id-Version: Stock Sync 0.7.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -508,3 +508,105 @@ msgstr ""
 #: stock-sync.php:120
 msgid "Stock Sync requires WooCommerce. Please install and activate WooCommerce."
 msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Price column"
+msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Optional. Overrides the expected header for the price column."
+msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Markup %"
+msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Markup percentage applied to the distributor price. Default is 25%."
+msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Preview product availability changes (delist or publish) before applying them"
+msgstr ""
+
+#: admin/views/tab-sync.php:NEW
+msgid "Published"
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Manually apply availability changes (delist or publish) to one product"
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Manually apply availability changes (delist or publish) to one product. Search by name or SKU."
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Mode"
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Delist"
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Publish"
+msgstr ""
+
+#: admin/views/tab-product.php:NEW
+msgid "Catalog & search"
+msgstr ""
+
+#: includes/class-product-updater.php:NEW
+msgid "Product is a draft and cannot be published: %d"
+msgstr ""
+
+#: includes/class-product-updater.php:NEW
+msgid "Product is a draft and cannot be delisted: %d"
+msgstr ""
+
+#: includes/class-ajax-handler.php:NEW
+msgid "Product updated successfully."
+msgstr ""
+
+#: includes/distributors/class-distributor.php:NEW
+#, php-format
+msgid "%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Apply"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "publish"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "published"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "would_publish"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Publish"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Delist"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Catalog & search"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Markup"
+msgstr ""
+
+#: includes/class-admin.php:NEW
+msgid "Markup %"
+msgstr ""
+

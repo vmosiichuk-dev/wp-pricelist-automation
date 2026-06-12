@@ -359,6 +359,8 @@
         var distributor = getDistributorSlug();
         var headerRef   = $('#header_label_ref').val().trim();
         var headerAvail = $('#header_label_avail').val().trim();
+        var headerPrice = $('#header_label_price').val().trim();
+        var markup      = parseFloat($('#stock_markup').val()) || 25;
 
         var ajaxData = {
             action: 'stock_sync_bootstrap_analyze',
@@ -373,6 +375,10 @@
         if (headerAvail) {
             ajaxData.header_label_avail = headerAvail;
         }
+        if (headerPrice) {
+            ajaxData.header_label_price = headerPrice;
+        }
+        ajaxData.markup = markup;
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -641,7 +647,7 @@
             url: stockSync.ajaxUrl,
             type: 'POST',
             data: {
-                action: 'stock_sync_test_search',
+                action: 'stock_sync_product_search',
                 nonce: stockSync.nonce,
                 distributor_slug: distributor,
                 q: query,
@@ -938,6 +944,8 @@
 
         var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
+        var headerPrice = $('#header_label_price').val().trim();
+        var markup      = parseFloat($('#stock_markup').val()) || 25;
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -947,7 +955,9 @@
                 nonce: stockSync.nonce,
                 distributor_slug: distributor,
                 file_path: filePath,
-                dry_run: true
+                dry_run: true,
+                header_label_price: headerPrice,
+                markup: markup
             },
             success: function(response) {
                 if (thisGen !== requestGenerationToken) return;
@@ -989,7 +999,7 @@
         var updateCount = 0;
 
         stats.details.forEach(function(d) {
-            if (d.status === 'would_update' || d.status === 'updated' || d.status === 'would_delist' || d.status === 'delisted' || d.status === 'would_list' || d.status === 'listed') {
+            if (d.status === 'would_update' || d.status === 'updated' || d.status === 'would_delist' || d.status === 'delisted' || d.status === 'would_publish' || d.status === 'published') {
                 updateCount++;
                 var $tr = $('<tr>').attr('data-ref', d.distributor_ref || '');
                 $tr.append($('<td>').append($('<input>', {type: 'checkbox', class: 'preview-check'}).prop('checked', true)));
@@ -997,10 +1007,16 @@
                 $tr.append($('<td>').text(d.distributor_ref || '-'));
                 $tr.append($('<td>').text(d.name || '-'));
                 var actionText = stockSync.strings.delist;
-                if (d.status === 'would_list' || d.status === 'listed') {
-                    actionText = stockSync.strings.list;
+                var actionClass = 'status-delisted';
+                if (d.status === 'would_publish' || d.status === 'published') {
+                    actionText = stockSync.strings.publish;
+                    actionClass = 'status-published';
                 }
-                $tr.append($('<td>').addClass('status-delisted').text(actionText));
+                var $actionCell = $('<td>').addClass(actionClass).text(actionText);
+                if (d.price) {
+                    $actionCell.append(' (' + d.price + ')');
+                }
+                $tr.append($actionCell);
                 $tbody.append($tr);
             }
         });
@@ -1171,10 +1187,10 @@
 
         $('#res-total').text(stats.processed);
         $('#res-delisted').text(stats.updated);
-        var listedCount = stats.details.reduce(function(n, d) {
-            return n + (d.status === 'listed' || d.status === 'would_list' ? 1 : 0);
+        var publishedCount = stats.details.reduce(function(n, d) {
+            return n + (d.status === 'published' || d.status === 'would_publish' ? 1 : 0);
         }, 0);
-        $('#res-listed').text(listedCount);
+        $('#res-published').text(publishedCount);
         $('#res-errors').text(stats.errors);
 
         $('#stock-sync-results-title').text(stockSync.strings.syncResults);
@@ -1186,9 +1202,9 @@
             if (d.status === 'updated' || d.status === 'delisted') {
                 statusClass = 'status-delisted';
                 displayStatus = stockSync.strings.delisted;
-            } else if (d.status === 'listed' || d.status === 'would_list') {
-                statusClass = 'status-listed';
-                displayStatus = stockSync.strings.listed;
+            } else if (d.status === 'published' || d.status === 'would_publish') {
+                statusClass = 'status-published';
+                displayStatus = stockSync.strings.published;
             } else if (d.status === 'not_found') {
                 statusClass = 'status-error';
                 displayStatus = stockSync.strings.notFound;
@@ -1208,30 +1224,40 @@
         $('#res-details').html(html);
     }
 
-    // ===== TEST PRODUCT TAB =====
+    // ===== SINGLE PRODUCT TAB =====
 
-    var selectedTestProductId = null;
+    var selectedProductId = null;
+    var currentMode = 'delist';
 
-    $('#stock-test-search-btn').on('click', function() {
-        var query = $('#stock-test-search').val().trim();
+    $(document).on('click', '.stock-toggle-switch', function() {
+        currentMode = $(this).attr('data-mode') === 'delist' ? 'publish' : 'delist';
+        $(this).attr('data-mode', currentMode);
+        $(this).find('.stock-toggle-label').toggleClass('active');
+        if (selectedProductId) {
+            loadProductDetails(selectedProductId);
+        }
+    });
+
+    $('#stock-product-search-btn').on('click', function() {
+        var query = $('#stock-product-search').val().trim();
         if (query.length < 2) {
             showToast(stockSync.strings.pleaseEnterTwoChars, 'warning');
             return;
         }
 
         // Bug fix: disable apply button and hide previous results when starting a new search
-        $('#stock-test-apply').prop('disabled', true);
-        $('#stock-test-selected').addClass('hidden');
+        $('#stock-product-apply').prop('disabled', true);
+        $('#stock-product-selected').addClass('hidden');
 
         var distributor = getDistributorSlug();
-        var $results = $('#stock-test-search-results');
+        var $results = $('#stock-product-search-results');
         $results.html('<p>' + escapeHtml(stockSync.strings.searching) + '</p>').removeClass('hidden');
 
         $.ajax({
             url: stockSync.ajaxUrl,
             type: 'POST',
             data: {
-                action: 'stock_sync_test_search',
+                action: 'stock_sync_product_search',
                 nonce: stockSync.nonce,
                 distributor_slug: distributor,
                 q: query
@@ -1267,32 +1293,33 @@
         });
     });
 
-    $('#stock-test-search').on('keypress', function(e) {
+    $('#stock-product-search').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
-            $('#stock-test-search-btn').click();
+            $('#stock-product-search-btn').click();
         }
     });
 
     $(document).on('click', '.stock-select-product', function(e) {
         e.preventDefault();
-        selectedTestProductId = $(this).data('id');
-        $('#stock-test-search-results').addClass('hidden');
-        $('#stock-test-search').val('');
-        loadTestProductDetails(selectedTestProductId);
+        selectedProductId = $(this).data('id');
+        $('#stock-product-search-results').addClass('hidden');
+        $('#stock-product-search').val('');
+        loadProductDetails(selectedProductId);
     });
 
-    function loadTestProductDetails(productId) {
+    function loadProductDetails(productId) {
         var distributor = getDistributorSlug();
 
         $.ajax({
             url: stockSync.ajaxUrl,
             type: 'POST',
             data: {
-                action: 'stock_sync_test_get_product',
+                action: 'stock_sync_product_get',
                 nonce: stockSync.nonce,
                 distributor_slug: distributor,
-                product_id: productId
+                product_id: productId,
+                mode: currentMode
             },
             success: function(response) {
                 if (!response.success) {
@@ -1301,22 +1328,30 @@
                 }
 
                 var d = response.data;
-                $('#test-current-sku').text(d.sku || '—');
-                $('#test-current-name').text(d.name);
-                $('#test-new-name').text(d.new_name === d.name ? stockSync.strings.noChange : d.new_name);
-                $('#test-current-visibility').text(d.visibility);
-                $('#test-new-visibility').text(d.visibility === 'search' ? stockSync.strings.noChange : stockSync.strings.searchResultsOnly);
-                $('#test-current-price').text(d.price || '—');
-                $('#test-new-price').text(d.price ? stockSync.strings.cleared : stockSync.strings.noChange);
-                $('#test-current-sale').text(d.sale_price || '—');
-                $('#test-new-sale').text(d.sale_price ? stockSync.strings.cleared : stockSync.strings.noChange);
-                $('#test-current-excerpt').text(d.excerpt || '—');
-                $('#test-new-excerpt').text(d.new_excerpt);
+                $('#product-current-sku').text(d.sku || '—');
+                $('#product-current-name').text(d.name);
+                $('#product-new-name').text(d.new_name === d.name ? stockSync.strings.noChange : d.new_name);
+                $('#product-current-visibility').text(d.visibility);
 
-                $('#stock-test-selected').removeClass('hidden');
-                $('#stock-test-apply').prop('disabled', false);
-                $('#stock-test-success').addClass('hidden').empty();
-                $('#stock-test-status').text('');
+                if (currentMode === 'publish') {
+                    $('#product-new-visibility').text(d.visibility === 'visible' ? stockSync.strings.noChange : stockSync.strings.catalogAndSearch);
+                    $('#product-new-price').html('<input type="number" id="product-price-input" step="0.01" value="" placeholder="' + escapeHtml(stockSync.strings.price) + '" />');
+                    $('#product-new-sale').html('<input type="number" id="product-sale-input" step="0.01" value="" placeholder="' + escapeHtml(stockSync.strings.salePrice || 'Sale price') + '" />');
+                } else {
+                    $('#product-new-visibility').text(d.visibility === 'search' ? stockSync.strings.noChange : stockSync.strings.searchResultsOnly);
+                    $('#product-new-price').text(d.price ? stockSync.strings.cleared : stockSync.strings.noChange);
+                    $('#product-new-sale').text(d.sale_price ? stockSync.strings.cleared : stockSync.strings.noChange);
+                }
+
+                $('#product-current-price').text(d.price || '—');
+                $('#product-current-sale').text(d.sale_price || '—');
+                $('#product-current-excerpt').text(d.excerpt || '—');
+                $('#product-new-excerpt').text(d.new_excerpt);
+
+                $('#stock-product-selected').removeClass('hidden');
+                $('#stock-product-apply').prop('disabled', false);
+                $('#stock-product-success').addClass('hidden').empty();
+                $('#stock-product-status').text('');
             },
             error: function() {
                 showToast(stockSync.strings.networkErrorLoadProduct, 'error');
@@ -1324,8 +1359,8 @@
         });
     }
 
-    $('#stock-test-apply').on('click', function() {
-        if (!selectedTestProductId) return;
+    $('#stock-product-apply').on('click', function() {
+        if (!selectedProductId) return;
 
         var $btn = $(this);
         var distributor = getDistributorSlug();
@@ -1335,29 +1370,43 @@
         }
 
         $btn.prop('disabled', true).text(stockSync.strings.applying);
-        $('#stock-test-status').text('');
+        $('#stock-product-status').text('');
+
+        var ajaxData = {
+            action: 'stock_sync_product_apply',
+            nonce: stockSync.nonce,
+            distributor_slug: distributor,
+            product_id: selectedProductId,
+            mode: currentMode
+        };
+
+        if (currentMode === 'publish') {
+            var price = $('#product-price-input').val();
+            var salePrice = $('#product-sale-input').val();
+            if (price) {
+                ajaxData.price = price;
+            }
+            if (salePrice) {
+                ajaxData.sale_price = salePrice;
+            }
+        }
 
         $.ajax({
             url: stockSync.ajaxUrl,
             type: 'POST',
-            data: {
-                action: 'stock_sync_test_apply',
-                nonce: stockSync.nonce,
-                distributor_slug: distributor,
-                product_id: selectedTestProductId
-            },
+            data: ajaxData,
             success: function(response) {
-                $btn.text(stockSync.strings.applyUpdateProduct);
+                $btn.text(stockSync.strings.applyProduct);
                 if (response.success) {
-                    $('#stock-test-success').html('<p>' + escapeHtml(response.data.message) + '</p>').removeClass('hidden');
+                    $('#stock-product-success').html('<p>' + escapeHtml(response.data.message) + '</p>').removeClass('hidden');
                 } else {
                     $btn.prop('disabled', false);
-                    $('#stock-test-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.error + ': ' + response.data));
+                    $('#stock-product-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.error + ': ' + response.data));
                 }
             },
             error: function() {
-                $btn.prop('disabled', false).text(stockSync.strings.applyUpdateProduct);
-                $('#stock-test-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.networkError));
+                $btn.prop('disabled', false).text(stockSync.strings.applyProduct);
+                $('#stock-product-status').empty().append($('<span>').css('color', 'red').text(stockSync.strings.networkError));
             }
         });
     });
@@ -1403,8 +1452,8 @@
         if (activeInlineSearch && !$(e.target).closest('.stock-inline-search').length) {
             activeInlineSearch.closest('tr').find('.stock-action-cell .stock-cancel-match').trigger('click');
         }
-        if (!$(e.target).closest('#stock-test-search-results').length && !$(e.target).closest('.stock-test-search-wrap').length) {
-            $('#stock-test-search-results').addClass('hidden');
+        if (!$(e.target).closest('#stock-product-search-results').length && !$(e.target).closest('.stock-product-search-wrap').length) {
+            $('#stock-product-search-results').addClass('hidden');
         }
     });
 

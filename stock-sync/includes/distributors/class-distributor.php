@@ -15,6 +15,13 @@ abstract class StockSync_Distributor {
 	private $custom_header_labels = [];
 
 	/**
+	 * Custom price column header label set from the UI.
+	 *
+	 * @var string
+	 */
+	private $custom_price_header_label = '';
+
+	/**
 	 * Human-readable distributor name
 	 */
 	abstract public function get_name();
@@ -117,6 +124,63 @@ abstract class StockSync_Distributor {
 			return $this->custom_header_labels;
 		}
 		return $this->get_header_labels();
+	}
+
+	/**
+	 * Return the price column header labels for auto-detection.
+	 * Return empty array if the distributor file does not contain prices.
+	 *
+	 * @return array
+	 */
+	public function get_price_header_labels() {
+		return [];
+	}
+
+	/**
+	 * Set a custom price column header label from the UI.
+	 *
+	 * @param string $label
+	 * @return void
+	 */
+	public function set_price_header_label($label) {
+		$this->custom_price_header_label = sanitize_text_field($label);
+	}
+
+	/**
+	 * Return the effective price header labels.
+	 *
+	 * @return array
+	 */
+	public function get_effective_price_header_labels() {
+		if (!empty($this->custom_price_header_label)) {
+			return [$this->custom_price_header_label];
+		}
+		return $this->get_price_header_labels();
+	}
+
+	/**
+	 * Return the default markup percentage for price calculation.
+	 *
+	 * @return float
+	 */
+	public function get_default_markup() {
+		return 25.0;
+	}
+
+	/**
+	 * Generate the suffix text for published (listed) products.
+	 *
+	 * @param string $product_name      Clean product name.
+	 * @param string $distributor_name  Distributor human-readable name.
+	 * @return string
+	 */
+	public function get_listed_suffix($product_name, $distributor_name) {
+		return sprintf(
+			/* translators: 1: product name, 2: distributor name */
+			__('%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!', 'stock-sync'),
+			$product_name,
+			$distributor_name
+		);
 	}
 
 	/**

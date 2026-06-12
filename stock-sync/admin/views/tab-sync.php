@@ -12,7 +12,7 @@
             <div class="stock-info-text">
                 <ul>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><?php esc_html_e('Upload a distributor price list and automatically assign product references', 'stock-sync'); ?></li>
-                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><?php esc_html_e('Preview product availability changes before applying them', 'stock-sync'); ?></li>
+                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><?php esc_html_e('Preview product availability changes (delist or publish) before applying them', 'stock-sync'); ?></li>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><?php esc_html_e('Keep your catalog in sync with one click', 'stock-sync'); ?></li>
                 </ul>
             </div>
@@ -85,6 +85,14 @@
                             <label for="header_label_avail"><?php esc_html_e('Availability column', 'stock-sync'); ?></label>
                             <input type="text" id="header_label_avail" name="header_label_avail" placeholder="STR. W KAT." />
                             <p class="description"><?php esc_html_e('Optional. Overrides the expected header for the availability column.', 'stock-sync'); ?></p>
+
+                            <label for="header_label_price"><?php esc_html_e('Price column', 'stock-sync'); ?></label>
+                            <input type="text" id="header_label_price" name="header_label_price" placeholder="HURT NETTO" />
+                            <p class="description"><?php esc_html_e('Optional. Overrides the expected header for the price column.', 'stock-sync'); ?></p>
+
+                            <label for="stock_markup"><?php esc_html_e('Markup %', 'stock-sync'); ?></label>
+                            <input type="number" id="stock_markup" name="stock_markup" value="25" min="0" step="0.01" />
+                            <p class="description"><?php esc_html_e('Markup percentage applied to the distributor price. Default is 25%.', 'stock-sync'); ?></p>
                         </div>
                     </details>
 
@@ -241,9 +249,9 @@
                     <div class="stock-stat-value" id="res-delisted">0</div>
                     <div class="stock-stat-label" id="res-delisted-label"><?php esc_html_e('Delisted', 'stock-sync'); ?></div>
                 </div>
-                <div class="stock-stat-item listed">
-                    <div class="stock-stat-value" id="res-listed">0</div>
-                    <div class="stock-stat-label"><?php esc_html_e('Listed', 'stock-sync'); ?></div>
+                <div class="stock-stat-item published">
+                    <div class="stock-stat-value" id="res-published">0</div>
+                    <div class="stock-stat-label"><?php esc_html_e('Published', 'stock-sync'); ?></div>
                 </div>
                 <div class="stock-stat-item stat-error">
                     <div class="stock-stat-value" id="res-errors">0</div>

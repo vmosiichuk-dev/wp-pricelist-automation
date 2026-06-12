@@ -8,6 +8,7 @@ class StockSync_XLSX_Parser {
     private $file_path;
     private $distributor;
     private $unrecognized_availability = [];
+    private $price_col_index = null;
 
     /**
      * Set the XLSX file path and distributor config.
@@ -96,6 +97,23 @@ class StockSync_XLSX_Parser {
                 if ($found >= $min_required) {
                     $header_found   = true;
                     $header_row_num = $row_num;
+
+                    // Scan header row for price column
+                    $price_labels = array_map([$this, 'clean_value'], $this->distributor->get_effective_price_header_labels());
+                    if (!empty($price_labels)) {
+                        foreach ($row->c as $cell) {
+                            $cell_ref = isset($cell['r']) ? (string) $cell['r'] : '';
+                            $col_index = 0;
+                            if ($cell_ref) {
+                                $col_index = $this->excel_col_to_index($cell_ref);
+                            }
+                            $value = $this->clean_value($this->get_cell_value($cell, $shared_strings));
+                            if (in_array($value, $price_labels, true)) {
+                                $this->price_col_index = $col_index;
+                                break;
+                            }
+                        }
+                    }
                 }
                 continue;
             }
@@ -131,6 +149,16 @@ class StockSync_XLSX_Parser {
                 $this->unrecognized_availability[$availability] = true;
             }
 
+            $price = null;
+            if ($this->price_col_index !== null && isset($row_data[$this->price_col_index])) {
+                $raw_price = $row_data[$this->price_col_index];
+                // Normalize Polish comma decimal to dot
+                $raw_price = str_replace(',', '.', $raw_price);
+                if (is_numeric($raw_price)) {
+                    $price = floatval($raw_price);
+                }
+            }
+
             $products[] = new StockSync_Standard_Product([
                 'distributor_ref'  => isset($row_data[$col_map['distributor_ref']]) ? $row_data[$col_map['distributor_ref']] : '',
                 'ean'              => isset($row_data[$col_map['ean']]) ? $row_data[$col_map['ean']] : '',
@@ -139,6 +167,7 @@ class StockSync_XLSX_Parser {
                 'availability_raw' => $availability,
                 'is_unavailable'   => $this->distributor->is_unavailable($availability),
                 'distributor_slug' => $this->distributor->get_slug(),
+                'price'            => $price,
             ]);
         }
 

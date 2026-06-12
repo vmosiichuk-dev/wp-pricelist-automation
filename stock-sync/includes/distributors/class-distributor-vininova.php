@@ -52,7 +52,17 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
             'availability'    => 3,  // Column C
             'product_name'    => 4,  // Column D
             'vintage'         => 5,  // Column E
+            'price'           => null, // Dynamic resolution
         ];
+    }
+
+    /**
+     * Return the price column header labels for auto-detection.
+     *
+     * @return array
+     */
+    public function get_price_header_labels() {
+        return ['HURT NETTO'];
     }
 
     /**
