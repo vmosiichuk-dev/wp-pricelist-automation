@@ -329,7 +329,8 @@
         var headerRef   = $('#header_label_ref').val().trim();
         var headerAvail = $('#header_label_avail').val().trim();
         var headerPrice = $('#header_label_price').val().trim();
-        var markup      = parseFloat($('#stock_markup').val()) || 25;
+        var val = parseFloat($('#stock_markup').val());
+        var markup = isNaN(val) ? 25 : val;
 
         var ajaxData = {
             action: 'stock_sync_bootstrap_analyze',
@@ -915,7 +916,8 @@
         var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
         var headerPrice = $('#header_label_price').val().trim();
-        var markup      = parseFloat($('#stock_markup').val()) || 25;
+        var val = parseFloat($('#stock_markup').val());
+        var markup = isNaN(val) ? 25 : val;
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -1036,6 +1038,7 @@
         // Collect checked refs and custom prices
         var includeRefs = [];
         var customPrices = {};
+        var customSalePrices = {};
         $('#sync-preview-body tr').each(function() {
             var $row = $(this);
             if ($row.find('.preview-check').prop('checked')) {
@@ -1045,6 +1048,10 @@
                     var price = $row.attr('data-price');
                     if (price) {
                         customPrices[ref] = price;
+                    }
+                    var salePrice = $row.attr('data-sale-price');
+                    if (salePrice) {
+                        customSalePrices[ref] = salePrice;
                     }
                 }
             }
@@ -1060,10 +1067,10 @@
         $('#stock-sync-results').hide();
 
         // Filter queue to only selected refs
-        filterAndApply(includeRefs, customPrices, $btn);
+        filterAndApply(includeRefs, customPrices, customSalePrices, $btn);
     });
 
-    function filterAndApply(includeRefs, customPrices, $btn) {
+    function filterAndApply(includeRefs, customPrices, customSalePrices, $btn) {
         var thisGen = requestGenerationToken;
         var distributor = getDistributorSlug();
 
@@ -1076,7 +1083,8 @@
                 distributor_slug: distributor,
                 run_id: currentRunId,
                 include_refs: includeRefs,
-                custom_prices: customPrices
+                custom_prices: customPrices,
+                custom_sale_prices: customSalePrices
             },
             success: function(response) {
                 if (thisGen !== requestGenerationToken) return;
@@ -1231,6 +1239,7 @@
     $(document).on('click', '.stock-toggle-switch', function() {
         currentMode = $(this).attr('data-mode') === 'delist' ? 'publish' : 'delist';
         $(this).attr('data-mode', currentMode);
+        $(this).attr('aria-checked', currentMode === 'publish' ? 'true' : 'false');
         $(this).find('.stock-toggle-label').toggleClass('active');
         if (selectedProductId) {
             loadProductDetails(selectedProductId);

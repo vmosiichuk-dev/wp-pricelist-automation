@@ -1747,6 +1747,7 @@ details .stock-card-table thead th:last-child {
     position: relative;
     display: inline-flex;
     background: #f0f0f1;
+    border: none;
     border-radius: 20px;
     padding: 3px;
     cursor: pointer;

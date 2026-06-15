@@ -15,9 +15,12 @@ if (!defined('STOCK_SYNC_PLUGIN_URL')) {
 }
 if (!defined('STOCK_SYNC_VERSION')) {
     $plugin_file = __DIR__ . '/../stock-sync.php';
-    $plugin_content = file_get_contents($plugin_file);
-    preg_match('/^\s*Version:\s*([\d.]+)/m', $plugin_content, $matches);
-    define('STOCK_SYNC_VERSION', $matches[1]);
+    $plugin_content = @file_get_contents($plugin_file);
+    if ($plugin_content === false || !preg_match('/^\s*Version:\s*([\d.]+)/m', $plugin_content, $matches)) {
+        define('STOCK_SYNC_VERSION', '0.7.2');
+    } else {
+        define('STOCK_SYNC_VERSION', $matches[1]);
+    }
 }
 if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);

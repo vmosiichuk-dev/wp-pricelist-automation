@@ -348,6 +348,9 @@ class StockSync_AJAX_Handler {
             if (isset($item['custom_price'])) {
                 $item['price'] = $item['custom_price'];
             }
+            if (isset($item['custom_sale_price'])) {
+                $item['sale_price'] = $item['custom_sale_price'];
+            }
             $standard = new StockSync_Standard_Product($item);
             if ($action === 'publish') {
                 $result = $updater->mark_published($product_id, $standard, $distributor);
@@ -620,6 +623,7 @@ class StockSync_AJAX_Handler {
         $run_id       = sanitize_text_field($_POST['run_id'] ?? '');
         $include_refs = isset($_POST['include_refs']) ? (array) $_POST['include_refs'] : [];
         $custom_prices = isset($_POST['custom_prices']) ? (array) $_POST['custom_prices'] : [];
+        $custom_sale_prices = isset($_POST['custom_sale_prices']) ? (array) $_POST['custom_sale_prices'] : [];
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
@@ -645,7 +649,12 @@ class StockSync_AJAX_Handler {
             $ref = $item['distributor_ref'] ?? '';
             if (isset($allowed_set[$ref])) {
                 if (isset($custom_prices[$ref])) {
-                    $item['custom_price'] = is_numeric($custom_prices[$ref]) ? round(floatval($custom_prices[$ref]), 2) : null;
+                    $val = is_numeric($custom_prices[$ref]) ? floatval($custom_prices[$ref]) : null;
+                    $item['custom_price'] = ($val !== null && $val > 0) ? round($val, 2) : null;
+                }
+                if (isset($custom_sale_prices[$ref])) {
+                    $val = is_numeric($custom_sale_prices[$ref]) ? floatval($custom_sale_prices[$ref]) : null;
+                    $item['custom_sale_price'] = ($val !== null && $val > 0) ? round($val, 2) : null;
                 }
                 $filtered[] = $item;
             }

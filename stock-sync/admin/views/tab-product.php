@@ -25,10 +25,10 @@
                 <p class="stock-card-desc"><?php esc_html_e('Manually apply availability changes (delist or publish) to one product. Search by name or SKU.', 'stock-sync'); ?></p>
             </div>
             <div class="stock-mode-toggle">
-                <div class="stock-toggle-switch" id="stock-mode-toggle" data-mode="delist">
+                <button type="button" class="stock-toggle-switch" id="stock-mode-toggle" data-mode="delist" role="switch" aria-checked="false">
                     <span class="stock-toggle-label active" data-mode="delist"><?php esc_html_e('Delist', 'stock-sync'); ?></span>
                     <span class="stock-toggle-label" data-mode="publish"><?php esc_html_e('Publish', 'stock-sync'); ?></span>
-                </div>
+                </button>
             </div>
         </div>
 

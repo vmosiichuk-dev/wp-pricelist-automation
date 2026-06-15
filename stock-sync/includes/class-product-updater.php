@@ -55,10 +55,6 @@ class StockSync_Product_Updater {
 
 		// 2. Set prices
 		$final_price = $product->price;
-		$price_from_name = StockSync_Product_Utils::extract_price_from_name($old_name);
-		if ($price_from_name !== null) {
-			$final_price = max($final_price, $price_from_name);
-		}
 		if ($final_price !== null && $final_price > 0) {
 			$wc_product->set_regular_price(number_format($final_price, 2, '.', ''));
 		}
