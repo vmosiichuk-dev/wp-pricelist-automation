@@ -13,7 +13,7 @@
                 <ul>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><?php esc_html_e('Upload a distributor price list and automatically assign product references', 'stock-sync'); ?></li>
                     <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><?php esc_html_e('Preview product availability changes (delist or publish) before applying them', 'stock-sync'); ?></li>
-                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><?php esc_html_e('Keep your catalog in sync with one click', 'stock-sync'); ?></li>
+                    <li><svg class="stock-info-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><?php esc_html_e('Keep your catalog synchronized in just a few clicks', 'stock-sync'); ?></li>
                 </ul>
             </div>
         </div>
@@ -74,7 +74,7 @@
                     <details class="stock-upload-options">
                         <summary>
                             <span><?php esc_html_e('Advanced options', 'stock-sync'); ?></span>
-                            <span class="stock-advanced-arrow">
+                            <span class="stock-svg-button">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                             </span>
                         </summary>
@@ -261,6 +261,30 @@
             </div>
 
             <div id="res-details"></div>
+        </div>
+    </div>
+
+    <!-- Price Edit Modal -->
+    <div id="stock-price-modal" class="stock-modal hidden">
+        <div class="stock-modal-overlay"></div>
+        <div class="stock-modal-content">
+            <div class="stock-modal-header">
+                <h3>
+                    <?php esc_html_e('Edit Price', 'stock-sync'); ?>
+                </h3>
+                <button type="button" class="stock-modal-close" id="stock-modal-close">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="stock-modal-body">
+                <label for="modal-price"><?php esc_html_e('Regular Price', 'stock-sync'); ?></label>
+                <input type="number" id="modal-price" step="0.01" placeholder="0.00" />
+                <label for="modal-sale-price"><?php esc_html_e('Sale Price', 'stock-sync'); ?></label>
+                <input type="number" id="modal-sale-price" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="stock-modal-footer">
+                <button type="button" class="button button-primary" id="stock-modal-save"><?php esc_html_e('Save', 'stock-sync'); ?></button>
+            </div>
         </div>
     </div>
 </div>

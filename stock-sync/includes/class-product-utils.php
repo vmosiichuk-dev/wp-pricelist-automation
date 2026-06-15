@@ -19,6 +19,20 @@ class StockSync_Product_Utils {
     }
 
     /**
+     * Extract a Polish price from a product name.
+     *
+     * @param string $name
+     * @return float|null
+     */
+    public static function extract_price_from_name($name) {
+        if (preg_match('/(\d+(?:,\d+)?)\s*zł\.\*\*/iu', $name, $matches)) {
+            $price = str_replace(',', '.', $matches[1]);
+            return floatval($price);
+        }
+        return null;
+    }
+
+    /**
      * Build the new excerpt preserving the prefix before the first '>'.
      *
      * @param string $current_excerpt

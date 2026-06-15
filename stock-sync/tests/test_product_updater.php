@@ -216,7 +216,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$mockProduct->shouldReceive('set_short_description')->with(Mockery::on(function($arg) {
 			return strpos($arg, 'Old excerpt >') === 0;
 		}))->once();
-		$mockProduct->shouldReceive('set_regular_price')->with('12.50')->once();
+		$mockProduct->shouldReceive('set_regular_price')->with('108.00')->once();
 		$mockProduct->shouldReceive('save')->once();
 
 		Functions\when('wc_get_product')->justReturn($mockProduct);

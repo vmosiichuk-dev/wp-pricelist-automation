@@ -8,7 +8,15 @@
     <div class="stock-header-card">
         <div class="stock-header-meta">
             <h1 class="stock-header-title"><?php echo esc_html(get_admin_page_title()); ?></h1>
-            <p class="stock-header-tagline"><?php esc_html_e('Automate product availability from distributor price lists', 'stock-sync'); ?></p>
+            <p class="stock-header-tagline">
+                <?php
+                if ($active_tab === 'product') {
+                    esc_html_e('Control availability for any WordPress product with just one click', 'stock-sync');
+                } else {
+                    esc_html_e('Automate product availability from distributor price lists', 'stock-sync');
+                }
+                ?>
+            </p>
         </div>
         <div class="stock-header-tabs">
             <a href="<?php echo esc_url(add_query_arg(array('page' => 'stock-sync', 'tab' => 'sync', 'distributor' => $current_dist), admin_url('admin.php'))); ?>"

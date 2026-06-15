@@ -46,11 +46,21 @@ class StockSync_Product_Updater {
 		// 1. Clean name
 		if ($new_name !== $old_name) {
 			$wc_product->set_name($new_name);
+			// Update Yoast SEO title if it contains the old name
+			$yoast_title = get_post_meta($product_id, '_yoast_wpseo_title', true);
+			if ($yoast_title && strpos($yoast_title, $old_name) !== false) {
+				update_post_meta($product_id, '_yoast_wpseo_title', str_replace($old_name, $new_name, $yoast_title));
+			}
 		}
 
 		// 2. Set prices
-		if ($product->price !== null && $product->price > 0) {
-			$wc_product->set_regular_price(number_format($product->price, 2, '.', ''));
+		$final_price = $product->price;
+		$price_from_name = StockSync_Product_Utils::extract_price_from_name($old_name);
+		if ($price_from_name !== null) {
+			$final_price = max($final_price, $price_from_name);
+		}
+		if ($final_price !== null && $final_price > 0) {
+			$wc_product->set_regular_price(number_format($final_price, 2, '.', ''));
 		}
 		if ($product->sale_price !== null && $product->sale_price > 0) {
 			$wc_product->set_sale_price(number_format($product->sale_price, 2, '.', ''));
@@ -92,6 +102,11 @@ class StockSync_Product_Updater {
 		$new_name = StockSync_Product_Utils::clean_name($old_name);
 		if ($new_name !== $old_name) {
 			$wc_product->set_name($new_name);
+			// Update Yoast SEO title if it contains the old name
+			$yoast_title = get_post_meta($product_id, '_yoast_wpseo_title', true);
+			if ($yoast_title && strpos($yoast_title, $old_name) !== false) {
+				update_post_meta($product_id, '_yoast_wpseo_title', str_replace($old_name, $new_name, $yoast_title));
+			}
 		}
 
 		// 2. Build new excerpt preserving prefix, replacing suffix

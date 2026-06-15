@@ -322,6 +322,15 @@ class StockSync_AJAX_Handler {
             $sku        = $wc_product ? $wc_product->get_sku() : '';
 
             if ($dry_run) {
+                $already_correct = false;
+                if ($action === 'delist') {
+                    $already_correct = $wc_product && $wc_product->get_catalog_visibility() === 'search' && !$wc_product->get_regular_price();
+                } elseif ($action === 'publish') {
+                    $already_correct = $wc_product && $wc_product->get_catalog_visibility() === 'visible' && $wc_product->get_regular_price();
+                }
+                if ($already_correct) {
+                    continue;
+                }
                 $results['updated']++;
                 $results['details'][] = [
                     'distributor_ref' => $item['distributor_ref'],
@@ -330,10 +339,15 @@ class StockSync_AJAX_Handler {
                     'product_id'      => $product_id,
                     'sku'             => $sku,
                     'price'           => $item['price'] ?? null,
+                    'sale_price'      => $item['sale_price'] ?? null,
                 ];
                 continue;
             }
 
+            // Apply custom price override if user edited it in the preview
+            if (isset($item['custom_price'])) {
+                $item['price'] = $item['custom_price'];
+            }
             $standard = new StockSync_Standard_Product($item);
             if ($action === 'publish') {
                 $result = $updater->mark_published($product_id, $standard, $distributor);
@@ -605,6 +619,7 @@ class StockSync_AJAX_Handler {
         $slug         = sanitize_text_field($_POST['distributor_slug'] ?? '');
         $run_id       = sanitize_text_field($_POST['run_id'] ?? '');
         $include_refs = isset($_POST['include_refs']) ? (array) $_POST['include_refs'] : [];
+        $custom_prices = isset($_POST['custom_prices']) ? (array) $_POST['custom_prices'] : [];
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
@@ -627,7 +642,11 @@ class StockSync_AJAX_Handler {
 
         $filtered = [];
         foreach ($queue as $item) {
-            if (isset($allowed_set[$item['distributor_ref']])) {
+            $ref = $item['distributor_ref'] ?? '';
+            if (isset($allowed_set[$ref])) {
+                if (isset($custom_prices[$ref])) {
+                    $item['custom_price'] = is_numeric($custom_prices[$ref]) ? round(floatval($custom_prices[$ref]), 2) : null;
+                }
                 $filtered[] = $item;
             }
         }
@@ -708,9 +727,6 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Query too short', 'stock-sync'));
         }
 
-        $distributor = StockSync_Distributor_Registry::instance()->get($slug);
-        $category    = $distributor ? $distributor->get_category_filter() : null;
-
         $args = [
             'post_type'      => 'product',
             'post_status'    => 'publish',
@@ -735,18 +751,6 @@ class StockSync_AJAX_Handler {
             ],
             'no_found_rows'  => true,
         ];
-
-        if (!empty($category)) {
-            $tax_query = [
-                [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'name',
-                    'terms'    => $category,
-                ],
-            ];
-            $args['tax_query']     = $tax_query;
-            $sku_args['tax_query'] = $tax_query;
-        }
 
         $name_query = new WP_Query($args);
         $sku_query  = new WP_Query($sku_args);
@@ -862,14 +866,17 @@ class StockSync_AJAX_Handler {
         // Refresh product data after update
         $updated = wc_get_product($product_id);
 
+        $product_name = $updated->get_name();
         wp_send_json_success([
-            'message'        => __('Product updated successfully.', 'stock-sync'),
+            'message'        => sprintf(__('Product %s updated successfully.', 'stock-sync'), $product_name),
             'product_id'     => $product_id,
+            'product_name'   => $product_name,
             'new_visibility' => $updated->get_catalog_visibility(),
             'new_price'      => $updated->get_regular_price(),
             'new_sale'       => $updated->get_sale_price(),
             'new_excerpt'    => $updated->get_short_description(),
-            'new_name'       => $updated->get_name(),
+            'new_name'       => $product_name,
+            'edit_url'       => get_edit_post_link($product_id, 'raw'),
         ]);
     }
 

@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Stock Sync plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Stock Sync 0.7.0\n"
+"Project-Id-Version: Stock Sync\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stock-sync\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -34,6 +34,10 @@ msgstr "vmosiichuk.dev"
 #: admin/views/page-wrapper.php:11
 msgid "Automate product availability from distributor price lists"
 msgstr "Automatyzuj dostępność produktów na podstawie cenników dystrybutorów"
+
+#: admin/views/page-wrapper.php:11
+msgid "Control availability for any WordPress product with just one click"
+msgstr "Kontroluj dostępność produktów z katalogu jednym kliknięciem"
 
 #: admin/views/page-wrapper.php:16 admin/views/tab-sync.php:11
 msgid "Distributor sync"
@@ -79,15 +83,15 @@ msgstr "Niedostępne"
 
 #: admin/views/tab-sync.php:14
 msgid "Upload a distributor price list and automatically assign product references"
-msgstr "Prześlij cennik dystrybutora i automatycznie przypisz referencje produktów"
+msgstr "Prześlij cennik dystrybutora i przypisz referencje produktów"
 
 #: admin/views/tab-sync.php:15
 msgid "Preview product availability changes before applying them"
 msgstr "Podgląd zmian dostępności produktów przed zastosowaniem"
 
 #: admin/views/tab-sync.php:16
-msgid "Keep your catalog in sync with one click"
-msgstr "Utrzymuj katalog zsynchronizowany jednym kliknięciem"
+msgid "Keep your catalog synchronized in just a few clicks"
+msgstr "Utrzymuj katalog zsynchronizowany w zaledwie kilka kliknięć"
 
 #: admin/views/tab-sync.php:32
 msgid "Erase All Supplier References"
@@ -176,12 +180,12 @@ msgstr "Nazwa dystrybutora"
 #: admin/views/tab-sync.php:121 admin/views/tab-sync.php:142
 #: admin/views/tab-sync.php:163
 msgid "Product name"
-msgstr "Nazwa produktu"
+msgstr "Nazwa produktu WP"
 
 #: admin/views/tab-sync.php:122 admin/views/tab-sync.php:143
 #: admin/views/tab-sync.php:164
 msgid "Match"
-msgstr "Dopasowanie"
+msgstr "Trafność"
 
 #: admin/views/tab-sync.php:123 admin/views/tab-sync.php:144
 #: admin/views/tab-sync.php:165 admin/views/tab-sync.php:210
@@ -250,23 +254,23 @@ msgstr "Wycofane"
 
 #: admin/views/tab-sync.php:246
 msgid "Listed"
-msgstr "Wystawione"
+msgstr "Opublikowane"
 
 #: admin/views/tab-sync.php:250
 msgid "Errors"
 msgstr "Błędy"
 
 #: admin/views/tab-test.php:13
-msgid "Manually apply unavailable-state changes to one product"
-msgstr "Ręcznie zastosuj zmiany dostępności do jednego produktu"
+msgid "Delist or republish any product from the catalog"
+msgstr "Wycofaj lub ponownie opublikuj dowolny produkt z katalogu"
 
 #: admin/views/tab-test.php:14
-msgid "Search by name or SKU to preview the product and apply updates"
-msgstr "Wyszukaj po nazwie lub SKU, aby podejrzeć produkt i zastosować aktualizacje"
+msgid "Search by name or SKU to preview the product"
+msgstr "Wyszukaj po nazwie lub SKU, aby podejrzeć produkt"
 
 #: admin/views/tab-test.php:15
-msgid "Use this to verify how the plugin affects a product before running a full sync"
-msgstr "Użyj tego, aby sprawdzić, jak wtyczka wpływa na produkt przed uruchomieniem pełnej synchronizacji"
+msgid "Apply changes to the product according to the selected mode"
+msgstr "Zastosuj zmiany do produktu według wybranego trybu"
 
 #: admin/views/tab-test.php:23
 msgid "Manually apply unavailable-state changes to one product. Search by name or SKU."
@@ -294,7 +298,7 @@ msgstr "Pole"
 
 #: admin/views/tab-test.php:41
 msgid "Current"
-msgstr "Aktualne"
+msgstr "Aktualnie"
 
 #: admin/views/tab-test.php:42
 msgid "After Update"
@@ -489,7 +493,7 @@ msgstr "wycofaj"
 
 #: assets/js/admin.js:1
 msgid "list"
-msgstr "wystaw"
+msgstr "publikuj"
 
 #: assets/js/admin.js:1
 msgid "delisted"
@@ -497,7 +501,7 @@ msgstr "wycofany"
 
 #: assets/js/admin.js:1
 msgid "listed"
-msgstr "wystawiony"
+msgstr "opublikowany"
 
 #: assets/js/admin.js:1
 msgid "not_found"
@@ -541,7 +545,7 @@ msgstr "Wyszukiwanie..."
 
 #: assets/js/admin.js:1
 msgid "Search product name or SKU..."
-msgstr "Wyszukaj nazwę produktu lub SKU..."
+msgstr "Wyszukaj nazwę produktu / SKU..."
 
 #: assets/js/admin.js:1
 msgid "Change"
@@ -553,7 +557,7 @@ msgstr "Anuluj"
 
 #: assets/js/admin.js:1
 msgid "Revert"
-msgstr "Przywróć"
+msgstr "Resetuj"
 
 #: assets/js/admin.js:1
 msgid "No products found."
@@ -564,8 +568,44 @@ msgid "Network error."
 msgstr "Błąd sieci."
 
 #: assets/js/admin.js:1
-msgid "(cleared)"
-msgstr "(wyczyszczono)"
+msgid "(removed)"
+msgstr "(usunięte)"
+
+#: assets/js/admin.js:1
+msgid "publikuj"
+msgstr "publikuj"
+
+#: assets/js/admin.js:1
+msgid "visible"
+msgstr "Katalog i wyszukiwanie"
+
+#: assets/js/admin.js:1
+msgid "search"
+msgstr "Tylko wyszukiwanie"
+
+#: assets/js/admin.js:1
+msgid "Edit price"
+msgstr "Edytuj cenę"
+
+#: assets/js/admin.js:1
+msgid "Price"
+msgstr "Cena"
+
+#: assets/js/admin.js:1
+msgid "Sale price"
+msgstr "Cena promocyjna"
+
+#: assets/js/admin.js:1
+msgid "Current visibility"
+msgstr "Aktualna widoczność"
+
+#: assets/js/admin.js:1
+msgid "After update"
+msgstr "Po aktualizacji"
+
+#: assets/js/admin.js:1
+msgid "Regular price"
+msgstr "Cena regularna"
 
 #: assets/js/admin.js:1
 msgid "Please select a file."
@@ -673,7 +713,7 @@ msgstr "Synchronizowanie partii %1$s z %2$s"
 
 #: assets/js/admin.js:1
 msgid "We could not locate the required column headers. If you set custom names under Advanced options, please double-check them. Otherwise, verify the file contains the reference and availability columns, then try uploading again."
-msgstr "Nie udało się znaleźć wymaganych nagłówków kolumn. Jeśli ustawiłeś niestandardowe nazwy w Opcjach zaawansowanych, sprawdź je ponownie. W przeciwnym razie sprawdź, czy plik zawiera kolumny referencyjne i dostępności, a następnie spróbuj przesłać ponownie."
+msgstr "Nie znaleziono wymaganych kolumn. Jeśli ustawiłeś niestandardowe nagłówki kolumn w Opcjach zaawansowanych, sprawdź czy zostały wpisane poprawnie. Zweryfikuj czy plik zawiera kolumny referencyjne i kolumny dostępności, a następnie spróbuj przesłać plik ponownie."
 
 #: assets/js/admin.js:1
 msgid "Expected column headers have not been found. Check if the correct distributor file has been uploaded or modify column names under Advanced options."
@@ -725,19 +765,19 @@ msgstr "Procent marży zastosowany do ceny dystrybutora. Domyślnie 25%."
 
 #: admin/views/tab-sync.php:NEW
 msgid "Preview product availability changes (delist or publish) before applying them"
-msgstr "Podgląd zmian dostępności produktów (wycofaj lub wystaw) przed zastosowaniem"
+msgstr "Podgląd zmian dostępności produktów przed zastosowaniem"
 
 #: admin/views/tab-sync.php:NEW
 msgid "Published"
-msgstr "Wystawione"
+msgstr "Opublikowane"
 
 #: admin/views/tab-product.php:NEW
 msgid "Manually apply availability changes (delist or publish) to one product"
-msgstr "Ręcznie zastosuj zmiany dostępności (wycofaj lub wystaw) do jednego produktu"
+msgstr "Ręcznie zastosuj zmiany dostępności do jednego produktu"
 
 #: admin/views/tab-product.php:NEW
 msgid "Manually apply availability changes (delist or publish) to one product. Search by name or SKU."
-msgstr "Ręcznie zastosuj zmiany dostępności (wycofaj lub wystaw) do jednego produktu. Wyszukaj po nazwie lub SKU."
+msgstr "Ręcznie zastosuj zmiany dostępności do jednego produktu. Wyszukaj po nazwie lub SKU."
 
 #: admin/views/tab-product.php:NEW
 msgid "Mode"
@@ -749,7 +789,7 @@ msgstr "Wycofaj"
 
 #: admin/views/tab-product.php:NEW
 msgid "Publish"
-msgstr "Wystaw"
+msgstr "Publikuj"
 
 #: admin/views/tab-product.php:NEW
 msgid "Catalog & search"
@@ -757,54 +797,29 @@ msgstr "Katalog i wyszukiwanie"
 
 #: includes/class-product-updater.php:NEW
 msgid "Product is a draft and cannot be published: %d"
-msgstr "Produkt jest wersją roboczą i nie może zostać wystawiony: %d"
+msgstr "Produkt jest wersją roboczą i nie może zostać opublikowany: %d"
 
 #: includes/class-product-updater.php:NEW
 msgid "Product is a draft and cannot be delisted: %d"
 msgstr "Produkt jest wersją roboczą i nie może zostać wycofany: %d"
 
-#: includes/class-ajax-handler.php:NEW
-msgid "Product updated successfully."
-msgstr "Produkt zaktualizowany pomyślnie."
-
 #: includes/distributors/class-distributor.php:NEW
-#, php-format
-msgid "%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
-msgstr "%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
-
-#: includes/class-admin.php:NEW
-msgid "Apply"
-msgstr "Zastosuj"
+msgid "Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
+msgstr "Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!"
 
 #: includes/class-admin.php:NEW
 msgid "publish"
-msgstr "wystaw"
+msgstr "publikuj"
 
 #: includes/class-admin.php:NEW
 msgid "published"
-msgstr "wystawiony"
+msgstr "opublikowany"
+
+#: includes/class-admin.php:NEW
+msgid "Plugin developed by Vladyslav Mosiichuk – %s"
+msgstr "Wtyczka opracowana przez Vladyslav Mosiichuk – %s"
 
 #: includes/class-admin.php:NEW
 msgid "would_publish"
-msgstr "zostałby_wystawiony"
-
-#: includes/class-admin.php:NEW
-msgid "Publish"
-msgstr "Wystaw"
-
-#: includes/class-admin.php:NEW
-msgid "Delist"
-msgstr "Wycofaj"
-
-#: includes/class-admin.php:NEW
-msgid "Catalog & search"
-msgstr "Katalog i wyszukiwanie"
-
-#: includes/class-admin.php:NEW
-msgid "Markup"
-msgstr "Marża"
-
-#: includes/class-admin.php:NEW
-msgid "Markup %"
-msgstr "Marża %"
+msgstr "zostałby_opublikowany"
 

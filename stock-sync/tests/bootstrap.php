@@ -14,7 +14,10 @@ if (!defined('STOCK_SYNC_PLUGIN_URL')) {
     define('STOCK_SYNC_PLUGIN_URL', 'http://example.com/wp-content/plugins/stock-sync/');
 }
 if (!defined('STOCK_SYNC_VERSION')) {
-    define('STOCK_SYNC_VERSION', '0.5.2');
+    $plugin_file = __DIR__ . '/../stock-sync.php';
+    $plugin_content = file_get_contents($plugin_file);
+    preg_match('/^\s*Version:\s*([\d.]+)/m', $plugin_content, $matches);
+    define('STOCK_SYNC_VERSION', $matches[1]);
 }
 if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);
@@ -92,4 +95,16 @@ class WP_Query {
 
 if (!defined('ARRAY_A')) {
     define('ARRAY_A', 'ARRAY_A');
+}
+
+if (!function_exists('get_post_meta')) {
+    function get_post_meta($post_id, $key, $single = false) {
+        return false;
+    }
+}
+
+if (!function_exists('update_post_meta')) {
+    function update_post_meta($post_id, $meta_key, $meta_value, $prev_value = '') {
+        return true;
+    }
 }

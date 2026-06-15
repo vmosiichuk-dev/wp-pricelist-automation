@@ -175,11 +175,9 @@ abstract class StockSync_Distributor {
 	 * @return string
 	 */
 	public function get_listed_suffix($product_name, $distributor_name) {
-		return sprintf(
-			/* translators: 1: product name, 2: distributor name */
-			__('%s - %s > Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!', 'stock-sync'),
-			$product_name,
-			$distributor_name
+		return __(
+			'Przygotuj karton z 6 butelkami swoich ulubionych win, sam zdecyduj, które wina dodać i ile butelek każdego z nich. Nie szukaj dalej, mamy najlepsze ceny w Polsce!',
+			'stock-sync'
 		);
 	}
 
