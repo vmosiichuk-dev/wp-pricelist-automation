@@ -38,6 +38,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 	 */
 	public function test_mark_unavailable_calls_correct_setters() {
 		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('publish');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Old excerpt > previous text');
 		$mockProduct->shouldReceive('get_regular_price')->andReturn('100');
@@ -98,6 +99,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 
 	public function test_mark_unavailable_cleans_leading_price() {
 		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('publish');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Old excerpt > previous text');
 		$mockProduct->shouldReceive('get_regular_price')->andReturn('100');
@@ -137,6 +139,7 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 
 	public function test_mark_unavailable_builds_excerpt_from_name_when_no_gt() {
 		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('publish');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('visible');
 		$mockProduct->shouldReceive('get_short_description')->andReturn('Some plain text without delimiter');
 		$mockProduct->shouldReceive('get_regular_price')->andReturn('100');
@@ -168,5 +171,100 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$result = $updater->mark_unavailable(3, $product, $mockDistributor);
 
 		$this->assertTrue($result);
+	}
+
+	/**
+	 * Verify that mark_unavailable skips draft products.
+	 */
+	public function test_mark_unavailable_skips_drafts() {
+		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('draft');
+
+		Functions\when('wc_get_product')->justReturn($mockProduct);
+
+		$updater = new StockSync_Product_Updater();
+
+		$product = new StockSync_Standard_Product([
+			'distributor_slug' => 'vininova',
+			'distributor_ref'  => 'REF123',
+			'product_name'     => 'Product Alpha',
+		]);
+
+		$mockDistributor = Mockery::mock('StockSync_Distributor');
+
+		$result = $updater->mark_unavailable(1, $product, $mockDistributor);
+
+		$this->assertInstanceOf('WP_Error', $result);
+		$this->assertSame('product_is_draft', $result->get_error_code());
+	}
+
+	/**
+	 * Verifies that mark_published updates a product's visibility, prices, excerpt, name, and saves the product.
+	 */
+	public function test_mark_published_calls_correct_setters() {
+		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('publish');
+		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('search');
+		$mockProduct->shouldReceive('get_short_description')->andReturn('Old excerpt > previous text');
+		$mockProduct->shouldReceive('get_regular_price')->andReturn('');
+		$mockProduct->shouldReceive('get_sale_price')->andReturn('');
+		$mockProduct->shouldReceive('get_sku')->andReturn('SKU123');
+		$mockProduct->shouldReceive('get_name')->andReturn('Product Alpha - 108 zł.**');
+		$mockProduct->shouldReceive('get_slug')->andReturn('product-alpha-108-zl');
+		$mockProduct->shouldReceive('set_name')->with('Product Alpha')->once();
+		$mockProduct->shouldReceive('set_catalog_visibility')->with('visible')->once();
+		$mockProduct->shouldReceive('set_short_description')->with(Mockery::on(function($arg) {
+			return strpos($arg, 'Old excerpt >') === 0;
+		}))->once();
+		$mockProduct->shouldReceive('set_regular_price')->with('108.00')->once();
+		$mockProduct->shouldReceive('save')->once();
+
+		Functions\when('wc_get_product')->justReturn($mockProduct);
+
+		$mockDistributor = Mockery::mock('StockSync_Distributor');
+		$mockDistributor->shouldReceive('get_name')->andReturn('Vininova');
+		$mockDistributor->shouldReceive('get_listed_suffix')
+			->andReturnUsing(function($name, $dist_name) {
+				return $name . ' - ' . $dist_name . ' > test listed suffix';
+			});
+
+		$updater = new StockSync_Product_Updater();
+
+		$product = new StockSync_Standard_Product([
+			'distributor_slug' => 'vininova',
+			'distributor_ref'  => 'REF123',
+			'product_name'     => 'Product Alpha',
+			'price'            => 12.50,
+		]);
+
+		$result = $updater->mark_published(1, $product, $mockDistributor);
+
+		$this->assertTrue($result);
+	}
+
+	/**
+	 * Verify that mark_published returns a WP_Error for draft products.
+	 */
+	public function test_mark_published_skips_drafts() {
+		$mockProduct = Mockery::mock('WC_Product');
+		$mockProduct->shouldReceive('get_status')->andReturn('draft');
+
+		Functions\when('wc_get_product')->justReturn($mockProduct);
+
+		$updater = new StockSync_Product_Updater();
+
+		$product = new StockSync_Standard_Product([
+			'distributor_slug' => 'vininova',
+			'distributor_ref'  => 'REF123',
+			'product_name'     => 'Product Alpha',
+			'price'            => 12.50,
+		]);
+
+		$mockDistributor = Mockery::mock('StockSync_Distributor');
+
+		$result = $updater->mark_published(1, $product, $mockDistributor);
+
+		$this->assertInstanceOf('WP_Error', $result);
+		$this->assertSame('product_is_draft', $result->get_error_code());
 	}
 }

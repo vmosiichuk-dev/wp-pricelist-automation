@@ -15,6 +15,8 @@ class StockSync_Admin {
         add_action('admin_menu', [$this, 'add_menu_page']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_ajax_stock_sync_upload_file', [$this, 'ajax_upload_file']);
+        add_filter('admin_footer_text', [$this, 'custom_admin_footer_text']);
+        add_filter('update_footer', [$this, 'custom_admin_footer_version'], 11);
     }
 
     /**
@@ -56,7 +58,8 @@ class StockSync_Admin {
         );
 
         wp_localize_script('stock-sync-admin', 'stockSync', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'ajaxUrl'  => admin_url('admin-ajax.php'),
+            'adminUrl' => admin_url(),
             'nonce'   => wp_create_nonce('stock_sync_nonce'),
             'strings' => [
                 'uploading' => __('Uploading...', 'stock-sync'),
@@ -67,7 +70,7 @@ class StockSync_Admin {
                 'applySync' => __('Apply Sync', 'stock-sync'),
                 'filtering' => __('Filtering...', 'stock-sync'),
                 'syncing' => __('Syncing...', 'stock-sync'),
-                'applyUpdateProduct' => __('Apply Update to This Product', 'stock-sync'),
+                'applyProduct' => __('Apply', 'stock-sync'),
                 'applying' => __('Applying...', 'stock-sync'),
                 'erasing' => __('Erasing...', 'stock-sync'),
                 'eraseAllRefs' => __('Erase All Supplier References', 'stock-sync'),
@@ -80,25 +83,47 @@ class StockSync_Admin {
                 'noProductsFound' => __('No products found.', 'stock-sync'),
                 'networkError' => __('Network error.', 'stock-sync'),
                 'noChange' => __('(no change)', 'stock-sync'),
-                'cleared' => __('(cleared)', 'stock-sync'),
+                'cleared' => __('(removed)', 'stock-sync'),
                 'searchResultsOnly' => __('Search results only', 'stock-sync'),
+                'catalogAndSearch' => __('Catalog & search', 'stock-sync'),
+                'visible' => __('Catalog & search', 'stock-sync'),
+                'search' => __('Search results only', 'stock-sync'),
                 'sku' => __('SKU', 'stock-sync'),
                 'name' => __('Name', 'stock-sync'),
                 'ref' => __('Ref', 'stock-sync'),
                 'status' => __('Status', 'stock-sync'),
                 'action' => __('Action', 'stock-sync'),
                 'delist' => __('delist', 'stock-sync'),
-                'list' => __('list', 'stock-sync'),
+                'publish' => __('publish', 'stock-sync'),
+                'publikuj' => __('publish', 'stock-sync'),
                 'delisted' => __('delisted', 'stock-sync'),
-                'listed' => __('listed', 'stock-sync'),
+                'published' => __('published', 'stock-sync'),
                 'notFound' => __('not_found', 'stock-sync'),
                 'error' => __('error', 'stock-sync'),
                 'more' => __('... and %s more', 'stock-sync'),
                 'syncResults' => __('Sync Results', 'stock-sync'),
                 'totalProcessed' => __('Total Processed', 'stock-sync'),
                 'delistedLabel' => __('Delisted', 'stock-sync'),
-                'listedLabel' => __('Listed', 'stock-sync'),
+                'publishedLabel' => __('Published', 'stock-sync'),
                 'errorsLabel' => __('Errors', 'stock-sync'),
+                'publishMode' => __('Publish', 'stock-sync'),
+                'delistMode' => __('Delist', 'stock-sync'),
+                'markup' => __('Markup', 'stock-sync'),
+                'markupLabel' => __('Markup %', 'stock-sync'),
+                'wouldPublish' => __('would_publish', 'stock-sync'),
+                'editPrice' => __('Edit price', 'stock-sync'),
+                'save' => __('Save', 'stock-sync'),
+                'priceValidationRules' => __('Positive numbers only, max 2 decimals, zero not allowed, at least one price required.', 'stock-sync'),
+                'price' => __('Price', 'stock-sync'),
+                'salePrice' => __('Sale price', 'stock-sync'),
+                'currentVisibility' => __('Current visibility', 'stock-sync'),
+                'field' => __('Field', 'stock-sync'),
+                'current' => __('Current', 'stock-sync'),
+                'afterUpdate' => __('After update', 'stock-sync'),
+                'regularPrice' => __('Regular price', 'stock-sync'),
+'editProduct' => __('Edit product', 'stock-sync'),
+                'product' => __('Produkt', 'stock-sync'),
+                'updatedSuccessfully' => __('zaktualizowany pomyślnie.', 'stock-sync'),
                 'pleaseSelectFile' => __('Please select a file.', 'stock-sync'),
                 'pleaseSelectOneMatch' => __('Please select at least one match to save.', 'stock-sync'),
                 'pleaseSelectOneProduct' => __('Please select at least one product to update.', 'stock-sync'),
@@ -219,5 +244,50 @@ class StockSync_Admin {
         $current_dist = isset($_GET['distributor']) ? sanitize_text_field($_GET['distributor']) : 'vininova';
 
         include STOCK_SYNC_PLUGIN_DIR . 'admin/views/page-wrapper.php';
+    }
+
+    /**
+     * Custom admin footer text (left side) on plugin pages.
+     *
+     * @param string $text Default footer text.
+     * @return string
+     */
+    public function custom_admin_footer_text($text) {
+        if (!$this->is_plugin_screen()) {
+            return $text;
+        }
+        $link = sprintf(
+            '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+            esc_url('https://vmosiichuk.dev'),
+            esc_html('vmosiichuk.dev')
+        );
+        return sprintf(
+            /* translators: %s: link to developer website */
+            __('Plugin developed by Vladyslav Mosiichuk – %s', 'stock-sync'),
+            $link
+        );
+    }
+
+    /**
+     * Custom admin footer version (right side) on plugin pages.
+     *
+     * @param string $version Default version text.
+     * @return string
+     */
+    public function custom_admin_footer_version($version) {
+        if (!$this->is_plugin_screen()) {
+            return $version;
+        }
+        return 'Stock Sync v' . STOCK_SYNC_VERSION;
+    }
+
+    /**
+     * Check if the current screen is a plugin admin page.
+     *
+     * @return bool
+     */
+    private function is_plugin_screen() {
+        $screen = get_current_screen();
+        return $screen && $screen->id === 'toplevel_page_' . $this->plugin_slug;
     }
 }

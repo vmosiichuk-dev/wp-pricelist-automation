@@ -23,9 +23,9 @@ class StockSync_AJAX_Handler {
         add_action('wp_ajax_stock_sync_bootstrap_save', [$this, 'bootstrap_save']);
         add_action('wp_ajax_stock_sync_filter_queue', [$this, 'filter_queue']);
         add_action('wp_ajax_stock_sync_erase_refs', [$this, 'erase_refs']);
-        add_action('wp_ajax_stock_sync_test_search', [$this, 'test_search']);
-        add_action('wp_ajax_stock_sync_test_get_product', [$this, 'test_get_product']);
-        add_action('wp_ajax_stock_sync_test_apply', [$this, 'test_apply']);
+        add_action('wp_ajax_stock_sync_product_search', [$this, 'product_search']);
+        add_action('wp_ajax_stock_sync_product_get', [$this, 'product_get']);
+        add_action('wp_ajax_stock_sync_product_apply', [$this, 'product_apply']);
     }
 
     /**
@@ -120,9 +120,29 @@ class StockSync_AJAX_Handler {
             );
         }
 
+        // Handle custom header labels (ref, avail, price)
+        $header_ref = isset($_POST['header_label_ref']) ? sanitize_text_field($_POST['header_label_ref']) : '';
+        $header_avail = isset($_POST['header_label_avail']) ? sanitize_text_field($_POST['header_label_avail']) : '';
+        $header_price = isset($_POST['header_label_price']) ? sanitize_text_field($_POST['header_label_price']) : '';
+        $custom_labels = [];
+        if ($header_ref !== '') {
+            $custom_labels[] = $header_ref;
+        }
+        if ($header_avail !== '') {
+            $custom_labels[] = $header_avail;
+        }
+        if (!empty($custom_labels)) {
+            $distributor->set_header_labels($custom_labels);
+        }
+        if ($header_price !== '') {
+            $distributor->set_price_header_label($header_price);
+        }
+
         $to_process = [];
         $all_xlsx_refs = [];
         $seen_refs = [];
+        $available_set = []; // ref => price
+        $unavailable_set = []; // ref => true
         foreach ($products as $product) {
             $all_xlsx_refs[] = $product->distributor_ref;
             if ($product->is_unavailable && !isset($seen_refs[$product->distributor_ref])) {
@@ -133,6 +153,11 @@ class StockSync_AJAX_Handler {
                     'distributor_slug' => $product->distributor_slug,
                 ];
             }
+            if ($product->is_unavailable) {
+                $unavailable_set[$product->distributor_ref] = true;
+            } else {
+                $available_set[$product->distributor_ref] = $product->price;
+            }
         }
         $xlsx_ref_set = array_flip($all_xlsx_refs);
 
@@ -140,6 +165,7 @@ class StockSync_AJAX_Handler {
         $meta_key       = $distributor->get_meta_key();
         $mapped_products = get_posts([
             'post_type'              => 'product',
+            'post_status'            => 'publish', // ONLY PUBLISHED
             'posts_per_page'         => -1,
             'meta_query'             => [
                 [
@@ -165,8 +191,40 @@ class StockSync_AJAX_Handler {
                     'distributor_ref'  => $mapped_ref,
                     'product_name'     => $wc_product ? $wc_product->get_name() : '',
                     'distributor_slug' => $slug,
-                    'delist'           => true,
+                    'action'             => 'delist',
                 ];
+            }
+        }
+
+        // Build publish queue for products available in file but currently search-only with no price
+        $markup = isset($_POST['markup']) ? floatval($_POST['markup']) : $distributor->get_default_markup();
+
+        foreach ($mapped_products as $post_id) {
+            $mapped_ref = get_post_meta($post_id, $meta_key, true);
+            if (empty($mapped_ref)) {
+                continue;
+            }
+
+            if (isset($available_set[$mapped_ref])) {
+                $wc_product = wc_get_product($post_id);
+                $has_price = $wc_product && $wc_product->get_regular_price();
+                $is_search_only = $wc_product && $wc_product->get_catalog_visibility() === 'search';
+
+                // ONLY publish if: no price AND search-only visibility AND published
+                if (!$has_price && $is_search_only) {
+                    $base_price = $available_set[$mapped_ref];
+                    if ($base_price !== null && $base_price > 0) {
+                        $final_price = round($base_price * (1 + $markup / 100), 2);
+                        $to_process[] = [
+                            'product_id'       => $post_id,
+                            'distributor_ref'    => $mapped_ref,
+                            'product_name'       => $wc_product->get_name(),
+                            'distributor_slug'   => $slug,
+                            'action'             => 'publish',
+                            'price'              => $final_price,
+                        ];
+                    }
+                }
             }
         }
 
@@ -246,7 +304,7 @@ class StockSync_AJAX_Handler {
         foreach ($batch as $item) {
             $results['processed']++;
 
-            $is_delist = !empty($item['delist']);
+            $action = $item['action'] ?? 'delist';
             $product_id = !empty($item['product_id']) ? (int) $item['product_id'] : $matcher->find_by_distributor_ref($item['distributor_ref'], $meta_key);
 
             if (!$product_id) {
@@ -264,19 +322,41 @@ class StockSync_AJAX_Handler {
             $sku        = $wc_product ? $wc_product->get_sku() : '';
 
             if ($dry_run) {
+                $already_correct = false;
+                if ($action === 'delist') {
+                    $already_correct = $wc_product && $wc_product->get_catalog_visibility() === 'search' && !$wc_product->get_regular_price();
+                } elseif ($action === 'publish') {
+                    $already_correct = $wc_product && $wc_product->get_catalog_visibility() === 'visible' && $wc_product->get_regular_price();
+                }
+                if ($already_correct) {
+                    continue;
+                }
                 $results['updated']++;
                 $results['details'][] = [
                     'distributor_ref' => $item['distributor_ref'],
                     'name'            => $item['product_name'],
-                    'status'          => $is_delist ? 'would_delist' : 'would_update',
+                    'status'          => $action === 'publish' ? 'would_publish' : ($action === 'delist' ? 'would_delist' : 'would_update'),
                     'product_id'      => $product_id,
                     'sku'             => $sku,
+                    'price'           => $item['price'] ?? null,
+                    'sale_price'      => $item['sale_price'] ?? null,
                 ];
                 continue;
             }
 
+            // Apply custom price override if user edited it in the preview
+            if (isset($item['custom_price'])) {
+                $item['price'] = $item['custom_price'];
+            }
+            if (isset($item['custom_sale_price'])) {
+                $item['sale_price'] = $item['custom_sale_price'];
+            }
             $standard = new StockSync_Standard_Product($item);
-            $result   = $updater->mark_unavailable($product_id, $standard, $distributor);
+            if ($action === 'publish') {
+                $result = $updater->mark_published($product_id, $standard, $distributor);
+            } else {
+                $result = $updater->mark_unavailable($product_id, $standard, $distributor);
+            }
 
             if (is_wp_error($result)) {
                 $results['errors']++;
@@ -292,7 +372,7 @@ class StockSync_AJAX_Handler {
                 $results['details'][] = [
                     'distributor_ref' => $item['distributor_ref'],
                     'name'            => $item['product_name'],
-                    'status'          => $is_delist ? 'delisted' : 'updated',
+                    'status'          => $action === 'publish' ? 'published' : ($action === 'delist' ? 'delisted' : 'updated'),
                     'product_id'      => $product_id,
                     'sku'             => $sku,
                 ];
@@ -542,6 +622,8 @@ class StockSync_AJAX_Handler {
         $slug         = sanitize_text_field($_POST['distributor_slug'] ?? '');
         $run_id       = sanitize_text_field($_POST['run_id'] ?? '');
         $include_refs = isset($_POST['include_refs']) ? (array) $_POST['include_refs'] : [];
+        $custom_prices = isset($_POST['custom_prices']) ? (array) $_POST['custom_prices'] : [];
+        $custom_sale_prices = isset($_POST['custom_sale_prices']) ? (array) $_POST['custom_sale_prices'] : [];
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
@@ -564,7 +646,16 @@ class StockSync_AJAX_Handler {
 
         $filtered = [];
         foreach ($queue as $item) {
-            if (isset($allowed_set[$item['distributor_ref']])) {
+            $ref = $item['distributor_ref'] ?? '';
+            if (isset($allowed_set[$ref])) {
+                if (isset($custom_prices[$ref])) {
+                    $val = is_numeric($custom_prices[$ref]) ? floatval($custom_prices[$ref]) : null;
+                    $item['custom_price'] = ($val !== null && $val > 0) ? round($val, 2) : null;
+                }
+                if (isset($custom_sale_prices[$ref])) {
+                    $val = is_numeric($custom_sale_prices[$ref]) ? floatval($custom_sale_prices[$ref]) : null;
+                    $item['custom_sale_price'] = ($val !== null && $val > 0) ? round($val, 2) : null;
+                }
                 $filtered[] = $item;
             }
         }
@@ -628,9 +719,9 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Test: Search products by name or SKU
+     * Search products by name or SKU
      */
-    public function test_search() {
+    public function product_search() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
 
         if (!current_user_can('manage_woocommerce')) {
@@ -645,11 +736,9 @@ class StockSync_AJAX_Handler {
             wp_send_json_error(__('Query too short', 'stock-sync'));
         }
 
-        $distributor = StockSync_Distributor_Registry::instance()->get($slug);
-        $category    = $distributor ? $distributor->get_category_filter() : null;
-
         $args = [
             'post_type'      => 'product',
+            'post_status'    => 'publish',
             'posts_per_page' => $limit,
             'fields'         => 'ids',
             's'              => $query,
@@ -659,6 +748,7 @@ class StockSync_AJAX_Handler {
         // Also search by SKU via meta query
         $sku_args = [
             'post_type'      => 'product',
+            'post_status'    => 'publish',
             'posts_per_page' => $limit,
             'fields'         => 'ids',
             'meta_query'     => [
@@ -670,18 +760,6 @@ class StockSync_AJAX_Handler {
             ],
             'no_found_rows'  => true,
         ];
-
-        if (!empty($category)) {
-            $tax_query = [
-                [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'name',
-                    'terms'    => $category,
-                ],
-            ];
-            $args['tax_query']     = $tax_query;
-            $sku_args['tax_query'] = $tax_query;
-        }
 
         $name_query = new WP_Query($args);
         $sku_query  = new WP_Query($sku_args);
@@ -707,9 +785,9 @@ class StockSync_AJAX_Handler {
     }
 
     /**
-     * Test: Get single product details
+     * Get single product details
      */
-    public function test_get_product() {
+    public function product_get() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
 
         if (!current_user_can('manage_woocommerce')) {
@@ -718,6 +796,7 @@ class StockSync_AJAX_Handler {
 
         $product_id = intval($_POST['product_id'] ?? 0);
         $slug       = sanitize_text_field($_POST['distributor_slug'] ?? '');
+        $mode       = sanitize_text_field($_POST['mode'] ?? 'delist');
 
         $product = wc_get_product($product_id);
         if (!$product) {
@@ -730,19 +809,19 @@ class StockSync_AJAX_Handler {
         }
 
         $distributor_ref = get_post_meta($product_id, $distributor->get_meta_key(), true);
-        $preview = $this->compute_preview($product, $distributor, $distributor_ref);
+        $preview = $this->compute_preview($product, $distributor, $distributor_ref, $mode);
 
         wp_send_json_success($preview);
     }
 
     /**
-     * Apply a distributor-specific "unavailable" state to a single WooCommerce product and return the result as JSON.
+     * Apply a distributor-specific state to a single WooCommerce product and return the result as JSON.
      *
-     * Reads `product_id` and `distributor_slug` from POST, applies the distributor's unavailable transformation to the product,
-     * and sends a JSON success response with the updated product fields (`product_id`, `new_visibility`, `new_price`, `new_sale`, `new_excerpt`).
+     * Reads `product_id`, `distributor_slug`, and `mode` from POST, applies the distributor's transformation to the product,
+     * and sends a JSON success response with the updated product fields.
      * Sends a JSON error response if the request is unauthorized, the distributor is unknown, the product is not found, or the updater returns an error.
      */
-    public function test_apply() {
+    public function product_apply() {
         check_ajax_referer('stock_sync_nonce', 'nonce');
 
         if (!current_user_can('manage_woocommerce')) {
@@ -751,6 +830,7 @@ class StockSync_AJAX_Handler {
 
         $product_id = intval($_POST['product_id'] ?? 0);
         $slug       = sanitize_text_field($_POST['distributor_slug'] ?? '');
+        $mode       = sanitize_text_field($_POST['mode'] ?? 'delist');
 
         $distributor = StockSync_Distributor_Registry::instance()->get($slug);
         if (!$distributor) {
@@ -764,14 +844,29 @@ class StockSync_AJAX_Handler {
 
         $distributor_ref = get_post_meta($product_id, $distributor->get_meta_key(), true);
 
+        $price = isset($_POST['price']) ? floatval($_POST['price']) : null;
+        if ($price !== null && $price <= 0) {
+            $price = null;
+        }
+        $sale_price = isset($_POST['sale_price']) ? floatval($_POST['sale_price']) : null;
+        if ($sale_price !== null && $sale_price <= 0) {
+            $sale_price = null;
+        }
+
         $standard = new StockSync_Standard_Product([
             'distributor_ref'  => $distributor_ref,
             'product_name'     => $product->get_name(),
             'distributor_slug' => $distributor->get_slug(),
+            'price'            => $price,
+            'sale_price'       => $sale_price,
         ]);
 
         $updater = StockSync_Service_Factory::product_updater();
-        $result  = $updater->mark_unavailable($product_id, $standard, $distributor);
+        if ($mode === 'publish') {
+            $result = $updater->mark_published($product_id, $standard, $distributor);
+        } else {
+            $result = $updater->mark_unavailable($product_id, $standard, $distributor);
+        }
 
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
@@ -780,33 +875,42 @@ class StockSync_AJAX_Handler {
         // Refresh product data after update
         $updated = wc_get_product($product_id);
 
+        $product_name = $updated->get_name();
         wp_send_json_success([
-            'message'        => __('Product updated successfully.', 'stock-sync'),
+            'message'        => sprintf(__('Product %s updated successfully.', 'stock-sync'), $product_name),
             'product_id'     => $product_id,
+            'product_name'   => $product_name,
             'new_visibility' => $updated->get_catalog_visibility(),
             'new_price'      => $updated->get_regular_price(),
             'new_sale'       => $updated->get_sale_price(),
             'new_excerpt'    => $updated->get_short_description(),
-            'new_name'       => $updated->get_name(),
+            'new_name'       => $product_name,
+            'edit_url'       => get_edit_post_link($product_id, 'raw'),
         ]);
     }
 
     /**
-     * Compute preview values for the Test Product tab.
+     * Compute preview values for the Single Product tab.
      *
      * @param \WC_Product $product
      * @param StockSync_Distributor $distributor
      * @param string $distributor_ref
+     * @param string $mode
      * @return array
      */
-    private function compute_preview($product, $distributor, $distributor_ref) {
+    private function compute_preview($product, $distributor, $distributor_ref, $mode = 'delist') {
         $current_name   = $product->get_name();
         $new_name       = StockSync_Product_Utils::clean_name($current_name);
         $cat_term       = StockSync_Product_Utils::find_first_product_category($product->get_id());
         $cat_url        = $cat_term ? $cat_term['url'] : null;
         $cat_name       = $cat_term ? $cat_term['name'] : null;
-        $suffix         = wp_kses_post($distributor->get_unavailable_suffix($product->get_id(), $cat_url, $cat_name));
-        $new_excerpt    = StockSync_Product_Utils::build_new_excerpt($product->get_short_description(), $new_name, $suffix);
+
+        if ($mode === 'publish') {
+            $suffix = wp_kses_post($distributor->get_listed_suffix($new_name, $distributor->get_name()));
+        } else {
+            $suffix = wp_kses_post($distributor->get_unavailable_suffix($product->get_id(), $cat_url, $cat_name));
+        }
+        $new_excerpt = StockSync_Product_Utils::build_new_excerpt($product->get_short_description(), $new_name, $suffix);
 
         return [
             'id'            => $product->get_id(),
@@ -818,6 +922,7 @@ class StockSync_AJAX_Handler {
             'sale_price'    => $product->get_sale_price(),
             'excerpt'       => $product->get_short_description(),
             'new_excerpt'   => $new_excerpt,
+            'mode'          => $mode,
         ];
     }
 }

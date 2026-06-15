@@ -548,4 +548,87 @@ class Test_XLSX_Parser extends \PHPUnit\Framework\TestCase {
         $this->assertCount(1, $products);
         $this->assertSame('AB123', $products[0]->distributor_ref);
     }
+
+    /**
+     * Verifies that the parser finds the price column by header label and extracts the correct float value.
+     */
+    public function test_price_column_extraction() {
+        $tmpDir = sys_get_temp_dir() . '/stock_sync_test_' . uniqid();
+        mkdir($tmpDir, 0777, true);
+        mkdir($tmpDir . '/xl/worksheets', 0777, true);
+
+        $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n" .
+            '    <sheetData>' . "\n" .
+            '        <row r="10">' . "\n" .
+            '            <c r="A10"><v>NR REF</v></c>' . "\n" .
+            '            <c r="B10"><v>KOD_KRESKOWY</v></c>' . "\n" .
+            '            <c r="C10"><v>STR. W KAT.</v></c>' . "\n" .
+            '            <c r="D10"><v>NAZWA</v></c>' . "\n" .
+            '            <c r="E10"><v>ROCZNIK</v></c>' . "\n" .
+            '            <c r="F10"><v>HURT NETTO</v></c>' . "\n" .
+            '        </row>' . "\n" .
+            '        <row r="11">' . "\n" .
+            '            <c r="A11"><v>AB123</v></c>' . "\n" .
+            '            <c r="C11"><v>brak</v></c>' . "\n" .
+            '            <c r="D11"><v>Alpha</v></c>' . "\n" .
+            '            <c r="F11"><v>15,50</v></c>' . "\n" .
+            '        </row>' . "\n" .
+            '        <row r="12">' . "\n" .
+            '            <c r="A12"><v>CD456</v></c>' . "\n" .
+            '            <c r="C12"><v>7</v></c>' . "\n" .
+            '            <c r="D12"><v>Beta</v></c>' . "\n" .
+            '            <c r="F12"><v>20.00</v></c>' . "\n" .
+            '        </row>' . "\n" .
+            '    </sheetData>' . "\n" .
+            '</worksheet>';
+
+        file_put_contents($tmpDir . '/xl/worksheets/sheet1.xml', $sheetXml);
+        file_put_contents(
+            $tmpDir . '/xl/sharedStrings.xml',
+            '<?xml version="1.0"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"></sst>'
+        );
+
+        $zipFile = $tmpDir . '.xlsx';
+        $zip = new ZipArchive();
+        $zip->open($zipFile, ZipArchive::CREATE);
+        $zip->addFile($tmpDir . '/xl/worksheets/sheet1.xml', 'xl/worksheets/sheet1.xml');
+        $zip->addFile($tmpDir . '/xl/sharedStrings.xml', 'xl/sharedStrings.xml');
+        $zip->close();
+
+        $distributor = new StockSync_Distributor_Vininova();
+        $parser = new StockSync_XLSX_Parser($zipFile, $distributor);
+
+        $products = $parser->parse();
+
+        unlink($zipFile);
+        foreach (glob($tmpDir . '/xl/worksheets/*') as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        foreach (glob($tmpDir . '/xl/*') as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+        rmdir($tmpDir . '/xl/worksheets');
+        rmdir($tmpDir . '/xl');
+        rmdir($tmpDir);
+
+        $this->assertNotInstanceOf('WP_Error', $products);
+        $this->assertCount(2, $products);
+
+        $ab123 = array_values(array_filter($products, function ($p) {
+            return $p->distributor_ref === 'AB123';
+        }))[0] ?? null;
+        $this->assertNotNull($ab123);
+        $this->assertSame(15.50, $ab123->price);
+
+        $cd456 = array_values(array_filter($products, function ($p) {
+            return $p->distributor_ref === 'CD456';
+        }))[0] ?? null;
+        $this->assertNotNull($cd456);
+        $this->assertSame(20.00, $cd456->price);
+    }
 }

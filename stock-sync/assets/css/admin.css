@@ -1,5 +1,5 @@
 /* ============================================================
-   Stock Sync v0.6.7 — Admin Styles
+   Stock Sync — Admin Styles
    ============================================================ */
 
 /* ---------- Layout ---------- */
@@ -438,7 +438,7 @@
 #stock-sync-upload,
 #stock-sync-confirm-mappings,
 #stock-sync-apply,
-#stock-test-apply {
+#stock-product-apply {
     border-radius: 12px;
     padding: 2px 16px;
     font-size: 14px;
@@ -451,7 +451,7 @@
 
 #stock-sync-confirm-mappings:hover:not(:disabled),
 #stock-sync-apply:hover:not(:disabled),
-#stock-test-apply:hover:not(:disabled) {
+#stock-product-apply:hover:not(:disabled) {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
@@ -733,8 +733,8 @@ details .stock-card-table thead th:last-child {
 .stock-stat-item.delisted { border-color: #f0b849; background: #fff8e5; }
 .stock-stat-item.delisted .stock-stat-value { color: #946c00; }
 
-.stock-stat-item.listed { border-color: #c3e6cb; background: #f0f9f4; }
-.stock-stat-item.listed .stock-stat-value { color: #155724; }
+.stock-stat-item.published { border-color: #c3e6cb; background: #f0f9f4; }
+.stock-stat-item.published .stock-stat-value { color: #155724; }
 
 .stock-stat-item.stat-error { border-color: #f5c6cb; background: #fdf2f2; }
 .stock-stat-item.stat-error .stock-stat-value { color: #721c24; }
@@ -1130,12 +1130,12 @@ details .stock-card-table thead th:last-child {
     display: block;
 }
 
-/* ---------- Test Tab ---------- */
-.stock-test-panel .stock-card-table {
+/* ---------- Single Product Tab ---------- */
+.stock-product-panel .stock-card-table {
     margin-top: 16px;
 }
 
-.stock-test-search-row {
+.stock-product-search-row {
     display: flex;
     align-items: flex-start;
     gap: 8px;
@@ -1373,14 +1373,14 @@ details .stock-card-table thead th:last-child {
 }
 
 /* ---------- Single Product Search ---------- */
-.stock-test-search-wrap {
+.stock-product-search-wrap {
     display: flex;
     align-items: stretch;
     gap: 8px;
     max-width: 100%;
 }
 
-.stock-test-search-wrap input[type="text"] {
+.stock-product-search-wrap input[type="text"] {
     flex: 1;
     min-width: 0;
     border-radius: 10px;
@@ -1390,13 +1390,13 @@ details .stock-card-table thead th:last-child {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.stock-test-search-wrap input[type="text"]:focus {
+.stock-product-search-wrap input[type="text"]:focus {
     border-color: var(--wp-admin-theme-color, #2271b1);
     box-shadow: 0 0 0 3px rgba(34,113,177,0.1);
     outline: none;
 }
 
-.stock-test-search-wrap .button {
+.stock-product-search-wrap .button {
     border-radius: 10px;
     padding: 8px 18px;
     font-size: 14px;
@@ -1421,7 +1421,7 @@ details .stock-card-table thead th:last-child {
     justify-content: space-between;
 }
 
-.stock-advanced-arrow {
+.stock-svg-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1433,35 +1433,35 @@ details .stock-card-table thead th:last-child {
     transition: transform 0.2s, background 0.15s;
 }
 
-.stock-advanced-arrow svg {
+.stock-svg-button svg {
     color: #3c434a;
     transition: transform 0.2s;
 }
 
-.stock-upload-options[open] .stock-advanced-arrow svg {
+.stock-upload-options[open] .stock-svg-button svg {
     transform: rotate(180deg);
 }
 
-/* ---------- Revert Button (Brick Color) ---------- */
-.stock-revert-match {
-    background: #fdf2f2;
-    border: 1px solid #f5c6cb;
-    color: #b91c1c;
+/* ---------- Cancel / Revert Buttons (Red) ---------- */
+.wp-core-ui .button.button-small.stock-cancel-match,
+.wp-core-ui .button.button-small.stock-revert-match {
+    background: #fdf2f238;
+    border: 1px solid #a6565f;
+    color: #721c24;
 }
 
-.stock-revert-match:hover:not(:disabled) {
-    background: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
+.wp-core-ui .button.button-small.stock-cancel-match:hover:not(:disabled),
+.wp-core-ui .button.button-small.stock-revert-match:hover:not(:disabled) {
+    background: #fdf2f28c;
+    border-color: #b12937;
+    color: #b12937;
 }
 
 .hidden {
     display: none !important;
 }
 
-.stock-test-status {
-    margin-left: 10px;
-}
+
 
 /* ---------- Misc ---------- */
 .wc-product-cell {
@@ -1494,7 +1494,304 @@ details .stock-card-table thead th:last-child {
     display: none !important;
 }
 
-/* Fix success notice margin inside test sticky bar */
-#stock-test-success.stock-success-notice {
+/* Fix success notice margin inside product sticky bar */
+#stock-product-success.stock-success-notice {
     margin: 0;
+}
+
+/* ---------- Modal ---------- */
+.stock-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stock-modal.hidden {
+    display: none !important;
+}
+
+.stock-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+}
+
+.stock-modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 1;
+}
+
+.stock-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.stock-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stock-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #646970;
+    padding: 4px;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+.stock-modal-close:hover {
+    color: #1d2327;
+    background: rgba(0,0,0,0.06);
+}
+
+.stock-modal-body label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #3c434a;
+}
+
+.stock-modal-body input[type="number"] {
+    width: 100%;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #c3c4c7;
+    padding: 6px 10px;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.stock-modal-body input[type="number"]:focus {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    box-shadow: 0 0 0 3px rgba(34,113,177,0.1);
+    outline: none;
+}
+
+.stock-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.stock-modal-footer .button {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* ---------- Modal Input Error ---------- */
+.stock-input-error {
+    border-color: #dc3232 !important;
+    background: #fff5f5;
+}
+
+/* ---------- Modal Info Icon ---------- */
+.stock-modal-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+    vertical-align: middle;
+    color: #a7aaad;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.stock-modal-info:hover {
+    color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* ---------- Modal Info Panel ---------- */
+.stock-modal-info-panel {
+    margin: -8px 24px 16px;
+    padding: 12px 16px;
+    background: #f6f7f7;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #3c434a;
+}
+
+.stock-modal-info-panel ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.stock-modal-info-panel li {
+    margin-bottom: 4px;
+}
+
+.stock-modal-info-panel li:last-child {
+    margin-bottom: 0;
+}
+
+/* ---------- Pencil Button in Preview Table ---------- */
+.stock-edit-price-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    color: #3c434a;
+    padding: 5px;
+    margin-left: 8px;
+    vertical-align: middle;
+    transition: transform 0.2s, background 0.15s;
+}
+
+.stock-edit-price-btn:hover {
+    background: #f0f0f1;
+    border-color: #a7aaad;
+    color: #1d2327;
+}
+
+.stock-edit-price-btn svg {
+    color: #3c434a;
+    transition: transform 0.2s;
+}
+
+.stock-edit-price-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ---------- Number Inputs (markup, price) ---------- */
+#stock_markup,
+#product-price-input,
+#product-sale-input,
+#modal-price,
+#modal-sale-price {
+    border-radius: 8px;
+    border: 1px solid #c3c4c7;
+    padding: 6px 10px;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#stock_markup:focus,
+#product-price-input:focus,
+#product-sale-input:focus,
+#modal-price:focus,
+#modal-sale-price:focus {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    box-shadow: 0 0 0 3px rgba(34,113,177,0.1);
+    outline: none;
+}
+
+#stock_markup {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 4px;
+}
+
+#product-price-input,
+#product-sale-input {
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------- Mode Toggle Switch ---------- */
+.stock-card-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stock-card-header-text {
+    flex: 1;
+}
+
+.stock-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.stock-mode-toggle-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #3c434a;
+}
+
+.stock-toggle-switch {
+    position: relative;
+    display: inline-flex;
+    background: #f0f0f1;
+    border: none;
+    border-radius: 20px;
+    padding: 3px;
+    cursor: pointer;
+    gap: 2px;
+}
+
+.stock-toggle-label {
+    position: relative;
+    z-index: 1;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 16px;
+    color: #3c434a;
+    transition: color 0.2s;
+}
+
+.stock-toggle-label.active {
+    color: #fff;
+}
+
+.stock-toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background: var(--wp-admin-theme-color, #2271b1);
+    border-radius: 16px;
+    transition: transform 0.2s;
+}
+
+.stock-toggle-switch[data-mode="publish"]::after {
+    transform: translateX(100%);
+}
+
+/* ---------- Product status pill ---------- */
+.status-published {
+    color: #155724;
+    font-weight: 600;
+}
+
+/* ---------- Product status text ---------- */
+.stock-product-status {
+    margin-left: 10px;
 }
