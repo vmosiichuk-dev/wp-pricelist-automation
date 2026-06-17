@@ -57,10 +57,13 @@ class StockSync_Admin {
             true
         );
 
+        $registry = StockSync_Distributor_Registry::instance();
+
         wp_localize_script('stock-sync-admin', 'stockSync', [
-            'ajaxUrl'  => admin_url('admin-ajax.php'),
-            'adminUrl' => admin_url(),
-            'nonce'   => wp_create_nonce('stock_sync_nonce'),
+            'ajaxUrl'           => admin_url('admin-ajax.php'),
+            'adminUrl'          => admin_url(),
+            'nonce'             => wp_create_nonce('stock_sync_nonce'),
+            'defaultDistributor'=> $registry->get_default_slug() ?: 'vininova',
             'strings' => [
                 'uploading' => __('Uploading...', 'stock-sync'),
                 'analyzing' => __('Analyzing...', 'stock-sync'),
@@ -241,7 +244,8 @@ class StockSync_Admin {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'sync';
         $registry   = StockSync_Distributor_Registry::instance();
         $distributors = $registry->get_options();
-        $current_dist = isset($_GET['distributor']) ? sanitize_text_field($_GET['distributor']) : 'vininova';
+        $default_dist = $registry->get_default_slug() ?: 'vininova';
+        $current_dist = isset($_GET['distributor']) ? sanitize_text_field($_GET['distributor']) : $default_dist;
 
         include STOCK_SYNC_PLUGIN_DIR . 'admin/views/page-wrapper.php';
     }
