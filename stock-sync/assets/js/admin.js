@@ -172,6 +172,12 @@
     var globalTotalBatches = 0;
     var globalCurrentBatch = 0;
     var requestGenerationToken = 0;
+    var isSyncing = false;
+
+    function setSyncing(value) {
+        isSyncing = value;
+        $('#stock-erase-refs-btn').prop('disabled', value);
+    }
 
     // ===== PROGRESS BAR =====
 
@@ -271,6 +277,8 @@
 
         $btn.prop('disabled', true).addClass('stock-btn-spinner').text(stockSync.strings.uploading);
         $('#stock-xlsx-file').prop('disabled', true);
+        $('#stock-upload-dropzone').addClass('disabled');
+        setSyncing(true);
         hideUploadError();
         resetAllSteps();
         globalTotalBatches = 0;
@@ -288,6 +296,8 @@
             showToast(stockSync.strings.uploadError + ': ' + error, 'error');
             $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
             $('#stock-xlsx-file').prop('disabled', false);
+            $('#stock-upload-dropzone').removeClass('disabled');
+            setSyncing(false);
         });
     });
 
@@ -313,6 +323,8 @@
         $('#stock-upload-filename').text('');
         $('#stock-xlsx-file').val('');
         $('#stock-sync-upload').prop('disabled', true);
+        $('#stock-upload-dropzone').removeClass('disabled');
+        setSyncing(false);
         updateStepper(1);
     }
 
@@ -363,6 +375,8 @@
                     $('#sync-step-upload form').show();
                     $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
                     $('#stock-xlsx-file').prop('disabled', false);
+                    $('#stock-upload-dropzone').removeClass('disabled');
+                    setSyncing(false);
                     return;
                 }
 
@@ -375,6 +389,8 @@
                 if (matches.length > 0 || alreadyMappedItems.length > 0) {
                     updateProgressPercent(10, stockSync.strings.reviewMappings);
                     showMappingReview(matches, alreadyMappedItems);
+                    setSyncing(false);
+                    $('#stock-upload-dropzone').removeClass('disabled');
                 } else {
                     updateProgressPercent(10, stockSync.strings.startingScan);
                     startDryRun(filePath);
@@ -390,6 +406,8 @@
                     $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
                 }
                 $('#stock-xlsx-file').prop('disabled', false);
+                $('#stock-upload-dropzone').removeClass('disabled');
+                setSyncing(false);
             }
         });
     }
@@ -875,6 +893,7 @@
 
         $btn.prop('disabled', true).text(stockSync.strings.saving);
         showProgress(stockSync.strings.savingMappings);
+        setSyncing(true);
 
         $.ajax({
             url: stockSync.ajaxUrl,
@@ -894,12 +913,14 @@
                 } else {
                     showToast(stockSync.strings.saveFailed + ': ' + response.data, 'error');
                     hideProgress();
+                    setSyncing(false);
                 }
             },
             error: function() {
                 $btn.prop('disabled', false).text(stockSync.strings.confirmMappingsContinue);
                 showToast(stockSync.strings.networkError, 'error');
                 hideProgress();
+                setSyncing(false);
             }
         });
     });
@@ -956,12 +977,14 @@
                     if (thisGen !== requestGenerationToken) return;
                     currentDryRunStats = stats;
                     showPreviewResults(stats);
+                    setSyncing(false);
                 });
             },
             error: function() {
                 if (thisGen !== requestGenerationToken) return;
                 showToast(stockSync.strings.networkError, 'error');
                 hideProgress();
+                setSyncing(false);
             }
         });
     }
@@ -1065,6 +1088,7 @@
         $btn.prop('disabled', true).text(stockSync.strings.filtering);
         showProgress(stockSync.strings.preparingSync);
         $('#stock-sync-results').hide();
+        setSyncing(true);
 
         // Filter queue to only selected refs
         filterAndApply(includeRefs, customPrices, customSalePrices, $btn);
@@ -1111,6 +1135,7 @@
                     $btn.prop('disabled', false).text(stockSync.strings.applySync);
                     hideProgress();
                     showFinalResults(stats);
+                    setSyncing(false);
                 });
             },
             error: function() {
@@ -1118,6 +1143,7 @@
                 showToast(stockSync.strings.networkErrorFilter, 'error');
                 $btn.prop('disabled', false).text(stockSync.strings.applySync);
                 hideProgress();
+                setSyncing(false);
             }
         });
     }

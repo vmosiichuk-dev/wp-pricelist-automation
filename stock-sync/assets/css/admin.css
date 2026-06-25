@@ -336,6 +336,15 @@
     box-shadow: 0 0 0 4px rgba(124,58,237,0.08);
 }
 
+.stock-upload-dropzone.disabled,
+.stock-upload-dropzone.disabled:hover,
+.stock-upload-dropzone.disabled.drag-over {
+    border-color: #c3c4c7;
+    background-color: #fff;
+    box-shadow: none;
+    cursor: default;
+}
+
 .stock-upload-dropzone input[type="file"] {
     position: absolute;
     top: 0;
@@ -745,6 +754,7 @@ details .stock-card-table thead th:last-child {
     color: #721c24;
     border-radius: 8px;
     margin-top: 6px;
+    min-width: 220px;
 }
 
 #stock-erase-refs-btn:hover:not(:disabled) {
@@ -1462,6 +1472,17 @@ details .stock-card-table thead th:last-child {
 }
 
 
+
+/* ---------- StockSync Refs Tab Icon ---------- */
+#woocommerce-product-data .stock-sync-refs-tab a::before {
+    content: '\f463';
+    font-family: dashicons;
+    font-size: 16px;
+    vertical-align: middle;
+    margin-right: 6px;
+    margin-top: -2px;
+    display: inline-block;
+}
 
 /* ---------- Misc ---------- */
 .wc-product-cell {

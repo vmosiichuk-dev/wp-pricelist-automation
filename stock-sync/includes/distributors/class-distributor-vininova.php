@@ -110,6 +110,10 @@ class StockSync_Distributor_Vininova extends StockSync_Distributor {
      * @return bool
      */
     public function is_known_availability($value) {
+        if (parent::is_known_availability($value)) {
+            return true;
+        }
+
         $normalized = mb_strtolower(trim($value));
 
         // Pure numeric stock counts (e.g. "7", "308")

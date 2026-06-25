@@ -761,10 +761,21 @@ class StockSync_AJAX_Handler {
             'no_found_rows'  => true,
         ];
 
+        // Name query: use a title LIKE filter for reliable partial matching
+        $title_filter = function ($where) use ($query) {
+            global $wpdb;
+            $like = '%' . $wpdb->esc_like($query) . '%';
+            $where .= $wpdb->prepare(" AND {$wpdb->posts}.post_title LIKE %s ", $like);
+            return $where;
+        };
+        add_filter('posts_where', $title_filter);
         $name_query = new WP_Query($args);
+        remove_filter('posts_where', $title_filter);
+        $name_ids = $name_query->posts;
+
         $sku_query  = new WP_Query($sku_args);
 
-        $ids = array_unique(array_merge($name_query->posts, $sku_query->posts));
+        $ids = array_unique(array_merge($name_ids, $sku_query->posts));
         $results = [];
 
         foreach (array_slice($ids, 0, $limit) as $product_id) {
