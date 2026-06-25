@@ -52,14 +52,27 @@ class StockSync_Distributor_Registry {
         return $this->distributors;
     }
 
-    /**
-     * Get distributor names for dropdowns
-     */
-    public function get_options() {
-        $options = [];
-        foreach ($this->distributors as $slug => $distributor) {
-            $options[$slug] = $distributor->get_name();
-        }
-        return $options;
-    }
+	/**
+	 * Get distributor names for dropdowns, sorted alphabetically by name.
+	 *
+	 * @return array
+	 */
+	public function get_options() {
+		$options = [];
+		foreach ($this->distributors as $slug => $distributor) {
+			$options[$slug] = $distributor->get_name();
+		}
+		asort($options);
+		return $options;
+	}
+
+	/**
+	 * Return the slug of the first distributor when sorted alphabetically by name.
+	 *
+	 * @return string|null
+	 */
+	public function get_default_slug() {
+		$options = $this->get_options();
+		return empty($options) ? null : array_key_first($options);
+	}
 }

@@ -32,10 +32,15 @@ class StockSync_XLSX_Parser {
     }
 
     /**
-     * Parse the XLSX and return an array of StockSync_Standard_Product objects
+     * Parse the XLSX and return an array of StockSync_Standard_Product objects.
+     *
+     * Supports both single-sheet (default) and multi-sheet distributors.
+     *
+     * @return array|WP_Error
      */
     public function parse() {
         $this->unrecognized_availability = [];
+
         $zip = new ZipArchive();
         if ($zip->open($this->file_path) !== true) {
             return new WP_Error('parse_error', __('Cannot open XLSX file', 'stock-sync'));
@@ -47,26 +52,107 @@ class StockSync_XLSX_Parser {
             return $shared_strings;
         }
 
-        $sheet_xml = $zip->getFromName($this->distributor->get_sheet_name());
+        $sheet_configs = $this->distributor->get_sheet_configs();
+
+        if ($sheet_configs === null) {
+            // Single-sheet mode (backward compatible)
+            $result = $this->parse_single_sheet(
+                $zip,
+                $shared_strings,
+                $this->distributor->get_sheet_name(),
+                $this->distributor->get_header_row(),
+                $this->distributor->get_column_map(),
+                $this->distributor->get_effective_header_labels(),
+                $this->distributor->get_effective_price_header_labels()
+            );
+            $zip->close();
+            return $result;
+        }
+
+        // Multi-sheet mode
+        $all_products = [];
+        $any_header_found = false;
+
+        foreach ($sheet_configs as $config) {
+            $this->distributor->set_sheet_context($config);
+
+            $sheet_result = $this->parse_single_sheet(
+                $zip,
+                $shared_strings,
+                $config['sheet_name'],
+                $config['header_row'],
+                $config['column_map'],
+                isset($config['header_labels']) ? $config['header_labels'] : [],
+                isset($config['price_header_labels']) ? $config['price_header_labels'] : []
+            );
+
+            $this->distributor->clear_sheet_context();
+
+            if (is_wp_error($sheet_result)) {
+                $code = $sheet_result->get_error_code();
+                // Only abort on parse-level errors, not sheet-specific ones
+                if ($code === 'parse_error' || $code === 'invalid_xml') {
+                    $zip->close();
+                    return $sheet_result;
+                }
+                // header_not_found or no_products on a single sheet is okay — skip it
+                continue;
+            }
+
+            $any_header_found = true;
+            $all_products = array_merge($all_products, $sheet_result);
+        }
+
         $zip->close();
 
+        if (!$any_header_found) {
+            return new WP_Error(
+                'header_not_found',
+                __('Header row not found in any sheet.', 'stock-sync')
+            );
+        }
+
+        if (empty($all_products)) {
+            return new WP_Error(
+                'no_products',
+                __('No valid product rows found after the header. The reference format or file structure may have changed.', 'stock-sync')
+            );
+        }
+
+        return $all_products;
+    }
+
+    /**
+     * Parse a single worksheet and return an array of StockSync_Standard_Product objects.
+     *
+     * @param ZipArchive $zip             Open ZIP archive.
+     * @param array      $shared_strings  Shared strings array.
+     * @param string     $sheet_name      XML path inside the ZIP.
+     * @param int        $header_row_num  Expected header row number.
+     * @param array      $col_map         Column map for this sheet.
+     * @param array      $expected_labels Header labels for auto-detection.
+     * @param array      $price_labels    Price header labels for auto-detection.
+     * @return array|WP_Error
+     */
+    private function parse_single_sheet($zip, $shared_strings, $sheet_name, $header_row_num, $col_map, $expected_labels, $price_labels) {
+        $sheet_xml = $zip->getFromName($sheet_name);
+
         if (!$sheet_xml) {
-            return new WP_Error('parse_error', __('Cannot read worksheet', 'stock-sync'));
+            return new WP_Error('parse_error', sprintf(__('Cannot read worksheet %s', 'stock-sync'), $sheet_name));
         }
 
         $xml = simplexml_load_string($sheet_xml, 'SimpleXMLElement', LIBXML_NONET);
         if ($xml === false) {
-            return new WP_Error('parse_error', __('Invalid worksheet XML', 'stock-sync'));
+            return new WP_Error('parse_error', sprintf(__('Invalid worksheet XML %s', 'stock-sync'), $sheet_name));
         }
 
         $products  = [];
         $row_index = 0;
-        $col_map   = $this->distributor->get_column_map();
 
-        $expected_labels = array_map([$this, 'clean_value'], $this->distributor->get_effective_header_labels());
+        $expected_labels = array_map([$this, 'clean_value'], $expected_labels);
         $header_found    = empty($expected_labels);
-        $header_row_num  = $this->distributor->get_header_row();
         $max_scan_rows   = 20;
+        $this->price_col_index = null;
 
         foreach ($xml->sheetData->row as $row) {
             $row_index++;
@@ -99,7 +185,7 @@ class StockSync_XLSX_Parser {
                     $header_row_num = $row_num;
 
                     // Scan header row for price column
-                    $price_labels = array_map([$this, 'clean_value'], $this->distributor->get_effective_price_header_labels());
+                    $price_labels = array_map([$this, 'clean_value'], $price_labels);
                     if (!empty($price_labels)) {
                         foreach ($row->c as $cell) {
                             $cell_ref = isset($cell['r']) ? (string) $cell['r'] : '';
@@ -159,10 +245,25 @@ class StockSync_XLSX_Parser {
                 }
             }
 
+            $distributor_ref = isset($row_data[$col_map['distributor_ref']]) ? $row_data[$col_map['distributor_ref']] : '';
+            $product_name     = isset($row_data[$col_map['product_name']]) ? $row_data[$col_map['product_name']] : '';
+
+            // Allow distributors to generate refs from product name when symbol is missing
+            if (empty($distributor_ref)) {
+                if (!empty($product_name)) {
+                    $distributor_ref = $this->distributor->generate_ref_from_name($product_name);
+                }
+            }
+
+            // Allow distributors to clean product names (strip distributor notes)
+            if (!empty($product_name)) {
+                $product_name = $this->distributor->clean_product_name($product_name);
+            }
+
             $products[] = new StockSync_Standard_Product([
-                'distributor_ref'  => isset($row_data[$col_map['distributor_ref']]) ? $row_data[$col_map['distributor_ref']] : '',
+                'distributor_ref'  => $distributor_ref,
                 'ean'              => isset($row_data[$col_map['ean']]) ? $row_data[$col_map['ean']] : '',
-                'product_name'     => isset($row_data[$col_map['product_name']]) ? $row_data[$col_map['product_name']] : '',
+                'product_name'     => $product_name,
                 'vintage'          => isset($row_data[$col_map['vintage']]) ? $row_data[$col_map['vintage']] : '',
                 'availability_raw' => $availability,
                 'is_unavailable'   => $this->distributor->is_unavailable($availability),

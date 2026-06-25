@@ -8,6 +8,13 @@ abstract class StockSync_Distributor {
 	private $category_url_cache = null;
 
 	/**
+	 * Current sheet context for multi-sheet distributors.
+	 *
+	 * @var array|null
+	 */
+	private $sheet_context = null;
+
+	/**
 	 * Custom header labels set from the UI before scanning.
 	 *
 	 * @var array
@@ -91,6 +98,53 @@ abstract class StockSync_Distributor {
 	 */
 	public function get_category_filter() {
 		return null;
+	}
+
+	/**
+	 * Return sheet configurations for multi-sheet XLSX parsing.
+	 *
+	 * Return null to use the default single-sheet logic (get_sheet_name(),
+	 * get_header_row(), get_column_map() directly).
+	 *
+	 * When an array is returned, each element must contain:
+	 *   - sheet_name: XML path inside the ZIP (e.g. 'xl/worksheets/sheet1.xml')
+	 *   - header_row: 1-based row number of column headers
+	 *   - column_map: standard field => 1-based column index
+	 *   - header_labels: array of header labels for auto-detection
+	 *   - price_header_labels: array of price column header labels (optional)
+	 *
+	 * @return array|null
+	 */
+	public function get_sheet_configs() {
+		return null;
+	}
+
+	/**
+	 * Set the current sheet context so is_product_row() can behave per-sheet.
+	 *
+	 * @param array $context Sheet config from get_sheet_configs().
+	 * @return void
+	 */
+	public function set_sheet_context(array $context) {
+		$this->sheet_context = $context;
+	}
+
+	/**
+	 * Get the current sheet context.
+	 *
+	 * @return array|null
+	 */
+	public function get_sheet_context() {
+		return $this->sheet_context;
+	}
+
+	/**
+	 * Clear the current sheet context.
+	 *
+	 * @return void
+	 */
+	public function clear_sheet_context() {
+		$this->sheet_context = null;
 	}
 
 	/**
@@ -247,5 +301,25 @@ abstract class StockSync_Distributor {
 		}
 
 		return __('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!', 'stock-sync');
+	}
+
+	/**
+	 * Generate a deterministic distributor reference from a product name.
+	 *
+	 * @param string $name Product name.
+	 * @return string
+	 */
+	public function generate_ref_from_name($name) {
+		return '';
+	}
+
+	/**
+	 * Clean a product name by stripping distributor-specific annotations.
+	 *
+	 * @param string $name Raw product name.
+	 * @return string
+	 */
+	public function clean_product_name($name) {
+		return $name;
 	}
 }

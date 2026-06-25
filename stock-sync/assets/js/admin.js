@@ -19,7 +19,7 @@
 
     function getDistributorSlug() {
         var params = new URLSearchParams(window.location.search);
-        return params.get('distributor') || 'vininova';
+        return params.get('distributor') || (typeof stockSync !== 'undefined' && stockSync.defaultDistributor ? stockSync.defaultDistributor : 'vininova');
     }
 
     function showWarnings(containerSelector, warnings) {

@@ -39,6 +39,7 @@ class StockSync_Plugin {
     private function register_distributors() {
         $registry = StockSync_Distributor_Registry::instance();
         $registry->register(new StockSync_Distributor_Vininova());
+        $registry->register(new StockSync_Distributor_Winkolekcja());
     }
 
     /**

@@ -202,6 +202,13 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 	 * Verifies that mark_published updates a product's visibility, prices, excerpt, name, and saves the product.
 	 */
 	public function test_mark_published_calls_correct_setters() {
+		$product = new StockSync_Standard_Product([
+			'distributor_slug' => 'vininova',
+			'distributor_ref'  => 'REF123',
+			'product_name'     => 'Product Alpha',
+			'price'            => 12.50,
+		]);
+
 		$mockProduct = Mockery::mock('WC_Product');
 		$mockProduct->shouldReceive('get_status')->andReturn('publish');
 		$mockProduct->shouldReceive('get_catalog_visibility')->andReturn('search');
@@ -216,7 +223,11 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 		$mockProduct->shouldReceive('set_short_description')->with(Mockery::on(function($arg) {
 			return strpos($arg, 'Old excerpt >') === 0;
 		}))->once();
-		$mockProduct->shouldReceive('set_regular_price')->with('108.00')->once();
+		$mockProduct->shouldReceive('set_regular_price')
+			->with(Mockery::on(function($arg) use ($product) {
+				return $arg === number_format($product->price, 2, '.', '');
+			}))
+			->once();
 		$mockProduct->shouldReceive('save')->once();
 
 		Functions\when('wc_get_product')->justReturn($mockProduct);
@@ -229,13 +240,6 @@ class Test_Product_Updater extends \PHPUnit\Framework\TestCase {
 			});
 
 		$updater = new StockSync_Product_Updater();
-
-		$product = new StockSync_Standard_Product([
-			'distributor_slug' => 'vininova',
-			'distributor_ref'  => 'REF123',
-			'product_name'     => 'Product Alpha',
-			'price'            => 12.50,
-		]);
 
 		$result = $updater->mark_published(1, $product, $mockDistributor);
 
