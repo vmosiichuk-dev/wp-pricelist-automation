@@ -9,6 +9,7 @@
             <file>tests/Test_Bootstrap_Matcher.php</file>
             <file>tests/Test_Distributor_Registry.php</file>
             <file>tests/Test_Distributor_Vininova.php</file>
+            <file>tests/Test_Distributor_Winkolekcja.php</file>
             <file>tests/Test_Standard_Product.php</file>
             <file>tests/test_product_matcher.php</file>
             <file>tests/test_product_updater.php</file>
