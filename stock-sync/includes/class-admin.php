@@ -282,7 +282,7 @@ class StockSync_Admin {
         if (!$this->is_plugin_screen()) {
             return $version;
         }
-        return 'StockSync v' . STOCK_SYNC_VERSION;
+        return sprintf(__('StockSync v%s', 'stock-sync'), STOCK_SYNC_VERSION);
     }
 
     /**

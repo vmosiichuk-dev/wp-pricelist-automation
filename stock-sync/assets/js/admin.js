@@ -375,6 +375,8 @@
                     $('#sync-step-upload form').show();
                     $btn.prop('disabled', false).removeClass('stock-btn-spinner').text(stockSync.strings.upload);
                     $('#stock-xlsx-file').prop('disabled', false);
+                    $('#stock-upload-dropzone').removeClass('disabled');
+                    setSyncing(false);
                     return;
                 }
 
