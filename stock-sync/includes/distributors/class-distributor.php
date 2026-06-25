@@ -302,4 +302,24 @@ abstract class StockSync_Distributor {
 
 		return __('Produkt wycofany z naszej oferty. Podobne produkty znajdziesz w naszej ofercie. Zamów online!', 'stock-sync');
 	}
+
+	/**
+	 * Generate a deterministic distributor reference from a product name.
+	 *
+	 * @param string $name Product name.
+	 * @return string
+	 */
+	public function generate_ref_from_name($name) {
+		return '';
+	}
+
+	/**
+	 * Clean a product name by stripping distributor-specific annotations.
+	 *
+	 * @param string $name Raw product name.
+	 * @return string
+	 */
+	public function clean_product_name($name) {
+		return $name;
+	}
 }

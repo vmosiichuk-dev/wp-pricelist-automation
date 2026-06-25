@@ -210,8 +210,8 @@ class Test_Distributor_Winkolekcja extends PHPUnit\Framework\TestCase {
 		$this->assertContains('SPLBR01', $refs);
 
 		// WYPRZEDAŻ: name-based WNKL refs
-		$wnkl_refs2 = array_filter($refs, fn($r) => strpos($r, 'WNKL-') === 0);
-		$this->assertNotEmpty($wnkl_refs2);
+		$this->assertContains('WNKL-1E287C2E', $refs);
+		$this->assertContains('WNKL-9FB5C34B', $refs);
 
 		// Check unavailable products
 		$unavailable = array_filter($products, fn($p) => $p->is_unavailable);

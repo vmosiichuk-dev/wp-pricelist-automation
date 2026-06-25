@@ -249,14 +249,14 @@ class StockSync_XLSX_Parser {
             $product_name     = isset($row_data[$col_map['product_name']]) ? $row_data[$col_map['product_name']] : '';
 
             // Allow distributors to generate refs from product name when symbol is missing
-            if (empty($distributor_ref) && method_exists($this->distributor, 'generate_ref_from_name')) {
+            if (empty($distributor_ref)) {
                 if (!empty($product_name)) {
                     $distributor_ref = $this->distributor->generate_ref_from_name($product_name);
                 }
             }
 
             // Allow distributors to clean product names (strip distributor notes)
-            if (!empty($product_name) && method_exists($this->distributor, 'clean_product_name')) {
+            if (!empty($product_name)) {
                 $product_name = $this->distributor->clean_product_name($product_name);
             }
 
