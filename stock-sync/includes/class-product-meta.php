@@ -42,9 +42,9 @@ class StockSync_Product_Meta {
      */
     public function add_supplier_refs_tab($tabs) {
         $tabs['stock_sync_supplier_refs'] = [
-            'label'    => __('Supplier References', 'stock-sync'),
+            'label'    => __('StockSync Refs', 'stock-sync'),
             'target'   => 'stock_sync_supplier_refs_data',
-            'class'    => [],
+            'class'    => ['stock-sync-refs-tab'],
             'priority' => 90,
         ];
         return $tabs;

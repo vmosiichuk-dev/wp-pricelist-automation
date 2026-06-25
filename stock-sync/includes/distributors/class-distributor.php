@@ -73,6 +73,10 @@ abstract class StockSync_Distributor {
 	 * @return bool
 	 */
 	public function is_known_availability($value) {
+		$normalized = mb_strtolower(trim($value));
+		if (preg_match('/^\(.*\)$/', $normalized)) {
+			return true;
+		}
 		return false;
 	}
 
@@ -223,9 +227,7 @@ abstract class StockSync_Distributor {
 	 */
 	public function get_unavailable_suffix($product_id = 0, $category_url = null, $category_name = null) {
 		if ($category_url && $category_name) {
-			$link_text = (strpos($category_name, 'A - ') === 0)
-				? sprintf(__('Wina %s', 'stock-sync'), $this->get_name())
-				: $category_name;
+			$link_text = preg_replace('/^A - Oferta\s+/', 'Wina ', $category_name);
 			$link = '<a href="' . esc_url($category_url) . '">' . esc_html($link_text) . '</a>';
 			return sprintf(
 				/* translators: %s: link to category */

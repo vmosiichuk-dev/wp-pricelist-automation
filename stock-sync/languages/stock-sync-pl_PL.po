@@ -18,8 +18,8 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: stock-sync.php includes/class-admin.php:25 includes/class-admin.php:26
-msgid "Stock Sync"
-msgstr "Stock Sync"
+msgid "StockSync"
+msgstr "StockSync"
 
 #. Description of the plugin
 #: stock-sync.php
@@ -414,8 +414,8 @@ msgid "Product updated successfully."
 msgstr "Produkt zaktualizowany pomyślnie."
 
 #: includes/class-product-meta.php:45
-msgid "Supplier References"
-msgstr "Referencje Dostawców"
+msgid "StockSync Refs"
+msgstr "StockSync Refs"
 
 #. translators: %s: distributor name
 #: includes/class-product-meta.php:79
@@ -680,8 +680,8 @@ msgid "Are you sure you want to update this single product?"
 msgstr "Czy na pewno chcesz zaktualizować ten produkt?"
 
 #: assets/js/admin.js:1
-msgid "Are you sure you want to erase all supplier references for %s?"
-msgstr "Czy na pewno chcesz usunąć wszystkie referencje dostawcy dla %s?"
+msgid "Are you sure you want to erase all supplier references for %s? Any ongoing sync will be aborted."
+msgstr "Czy na pewno chcesz usunąć wszystkie referencje dostawcy dla %s? Wszelka trwająca synchronizacja zostanie przerwana."
 
 #: assets/js/admin.js:1
 msgid "Erased %s references for %s."

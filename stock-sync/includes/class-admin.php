@@ -24,8 +24,8 @@ class StockSync_Admin {
      */
     public function add_menu_page() {
         add_menu_page(
-            __('Stock Sync', 'stock-sync'),
-            __('Stock Sync', 'stock-sync'),
+            __('StockSync', 'stock-sync'),
+            __('StockSync', 'stock-sync'),
             'manage_woocommerce',
             $this->plugin_slug,
             [$this, 'render_page'],
@@ -142,7 +142,7 @@ class StockSync_Admin {
                 'networkErrorLoadProduct' => __('Network error loading product details.', 'stock-sync'),
                 'failedToLoadProduct' => __('Failed to load product: %s', 'stock-sync'),
                 'confirmUpdateSingle' => __('Are you sure you want to update this single product?', 'stock-sync'),
-                'confirmEraseRefs' => __('Are you sure you want to erase all supplier references for %s?', 'stock-sync'),
+                'confirmEraseRefs' => __('Are you sure you want to erase all supplier references for %s? Any ongoing sync will be aborted.', 'stock-sync'),
                 'erasedRefs' => __('Erased %s references for %s.', 'stock-sync'),
                 'reviewMappings' => __('Review mappings...', 'stock-sync'),
                 'startingScan' => __('Starting scan...', 'stock-sync'),
@@ -278,7 +278,7 @@ class StockSync_Admin {
         if (!$this->is_plugin_screen()) {
             return $version;
         }
-        return 'Stock Sync v' . STOCK_SYNC_VERSION;
+        return 'StockSync v' . STOCK_SYNC_VERSION;
     }
 
     /**
