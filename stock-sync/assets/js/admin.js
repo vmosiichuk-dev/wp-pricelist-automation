@@ -1220,7 +1220,10 @@
         $('#stock-sync-results-title').text(stockSync.strings.syncResults);
 
         // If nothing was delisted, published, or errored, don't show the details section
-        if (stats.updated === 0 && publishedCount === 0 && stats.errors === 0) {
+        var hasDelistedOrPublished = stats.details.some(function(d) {
+            return d.status === 'updated' || d.status === 'delisted' || d.status === 'published' || d.status === 'would_publish' || d.status === 'would_delist';
+        });
+        if (!hasDelistedOrPublished && stats.errors === 0) {
             $('#res-details').addClass('hidden');
             return;
         }
@@ -1520,6 +1523,8 @@
                 $btn.prop('disabled', false).text(stockSync.strings.eraseAllRefs);
                 if (response.success) {
                     showToast(__(stockSync.strings.erasedRefs, response.data.erased, distributorName), 'success');
+                    requestGenerationToken++;
+                    resetAllSteps();
                 } else {
                     showToast(stockSync.strings.eraseFailed + ': ' + response.data, 'error');
                 }

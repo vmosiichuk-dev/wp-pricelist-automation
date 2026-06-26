@@ -730,55 +730,49 @@ class StockSync_AJAX_Handler {
 
         $query   = sanitize_text_field($_POST['q'] ?? '');
         $slug    = sanitize_text_field($_POST['distributor_slug'] ?? '');
-        $limit   = max(1, min(intval($_POST['limit'] ?? 10), 20));
+        $limit   = isset($_POST['limit']) ? max(1, min(intval($_POST['limit']), 200)) : 200;
 
         if (strlen($query) < 2) {
             wp_send_json_error(__('Query too short', 'stock-sync'));
         }
 
-        $args = [
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'posts_per_page' => $limit,
-            'fields'         => 'ids',
-            's'              => $query,
-            'no_found_rows'  => true,
-        ];
+        global $wpdb;
+        $like = '%' . $wpdb->esc_like($query) . '%';
 
-        // Also search by SKU via meta query
-        $sku_args = [
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'posts_per_page' => $limit,
-            'fields'         => 'ids',
-            'meta_query'     => [
-                [
-                    'key'     => '_sku',
-                    'value'   => $query,
-                    'compare' => 'LIKE',
-                ],
-            ],
-            'no_found_rows'  => true,
-        ];
+        // Pass 1: exact phrase match in title
+        $name_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'product' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_title ASC LIMIT %d",
+            $like,
+            $limit
+        ));
 
-        // Name query: use a title LIKE filter for reliable partial matching
-        $title_filter = function ($where) use ($query) {
-            global $wpdb;
-            $like = '%' . $wpdb->esc_like($query) . '%';
-            $where .= $wpdb->prepare(" AND {$wpdb->posts}.post_title LIKE %s ", $like);
-            return $where;
-        };
-        add_filter('posts_where', $title_filter);
-        $name_query = new WP_Query($args);
-        remove_filter('posts_where', $title_filter);
-        $name_ids = $name_query->posts;
+        // Pass 2: word-by-word fallback if first pass returned nothing
+        if (empty($name_ids)) {
+            $words = preg_split('/\s+/', $query, -1, PREG_SPLIT_NO_EMPTY);
+            $conditions = [];
+            foreach ($words as $word) {
+                if (mb_strlen($word) >= 2) {
+                    $conditions[] = $wpdb->prepare("post_title LIKE %s", '%' . $wpdb->esc_like($word) . '%');
+                }
+            }
+            if (!empty($conditions)) {
+                $name_ids = $wpdb->get_col(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'product' AND post_status = 'publish' AND (" . implode(' OR ', $conditions) . ") ORDER BY post_title ASC LIMIT {$limit}"
+                );
+            }
+        }
 
-        $sku_query  = new WP_Query($sku_args);
+        // SKU search
+        $sku_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id WHERE p.post_type = 'product' AND p.post_status = 'publish' AND pm.meta_key = '_sku' AND pm.meta_value LIKE %s LIMIT %d",
+            $like,
+            $limit
+        ));
 
-        $ids = array_unique(array_merge($name_ids, $sku_query->posts));
+        $ids = array_unique(array_merge($name_ids, $sku_ids));
         $results = [];
 
-        foreach (array_slice($ids, 0, $limit) as $product_id) {
+        foreach ($ids as $product_id) {
             $product = wc_get_product($product_id);
             if (!$product) {
                 continue;
