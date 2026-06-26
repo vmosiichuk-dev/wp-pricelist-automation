@@ -769,7 +769,7 @@ class StockSync_AJAX_Handler {
             $limit
         ));
 
-        $ids = array_unique(array_merge($name_ids, $sku_ids));
+        $ids = array_slice(array_unique(array_merge($name_ids, $sku_ids)), 0, $limit);
         $results = [];
 
         foreach ($ids as $product_id) {
