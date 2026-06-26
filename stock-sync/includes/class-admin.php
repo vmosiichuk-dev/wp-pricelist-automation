@@ -38,7 +38,17 @@ class StockSync_Admin {
      * Enqueue admin assets
      */
     public function enqueue_assets($hook) {
-        if ($hook !== 'toplevel_page_' . $this->plugin_slug) {
+        $load = false;
+        if ($hook === 'toplevel_page_' . $this->plugin_slug) {
+            $load = true;
+        } elseif ($hook === 'post.php' || $hook === 'post-new.php') {
+            $screen = get_current_screen();
+            if ($screen && $screen->post_type === 'product') {
+                $load = true;
+            }
+        }
+
+        if (!$load) {
             return;
         }
 

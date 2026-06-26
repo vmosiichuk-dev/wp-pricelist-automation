@@ -823,3 +823,8 @@ msgstr "Wtyczka opracowana przez Vladyslav Mosiichuk – %s"
 msgid "would_publish"
 msgstr "zostałby_opublikowany"
 
+#: includes/class-admin.php:112
+#: admin/views/tab-sync.php:286
+msgid "Save"
+msgstr "Zapisz"
+
